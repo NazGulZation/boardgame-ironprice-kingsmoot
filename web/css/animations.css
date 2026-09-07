@@ -35,6 +35,50 @@
   animation: diceRoll 0.45s ease-out forwards;
 }
 
+@keyframes diceTumble3D {
+  0% { transform: scale(0.85) rotate(0deg) translateY(0); filter: blur(0.5px); }
+  25% { transform: scale(1.15) rotate(180deg) translateY(-14px); filter: blur(1px); }
+  50% { transform: scale(0.9) rotate(360deg) translateY(4px); filter: blur(0.5px); }
+  75% { transform: scale(1.1) rotate(540deg) translateY(-8px); filter: blur(1px); }
+  100% { transform: scale(1) rotate(720deg) translateY(0); filter: blur(0); }
+}
+
+.dice-tumbling {
+  animation: diceTumble3D 0.8s cubic-bezier(0.25, 1, 0.5, 1) infinite;
+}
+
+@keyframes diceSettlePop {
+  0% { transform: scale(1.35) translateY(-10px); filter: brightness(1.5); }
+  60% { transform: scale(0.92) translateY(2px); }
+  85% { transform: scale(1.05) translateY(-2px); }
+  100% { transform: scale(1) translateY(0); filter: brightness(1); }
+}
+
+.dice-settled {
+  animation: diceSettlePop 0.4s ease-out forwards;
+}
+
+@keyframes resultBannerPop {
+  0% { opacity: 0; transform: scale(0.92) translateY(12px); }
+  70% { transform: scale(1.02) translateY(-2px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.result-banner-pop {
+  animation: resultBannerPop 0.4s ease-out forwards;
+}
+
+@keyframes lootGlow {
+  0% { box-shadow: 0 0 4px rgba(245, 197, 24, 0.2); }
+  50% { box-shadow: 0 0 16px rgba(245, 197, 24, 0.7); }
+  100% { box-shadow: 0 0 4px rgba(245, 197, 24, 0.2); }
+}
+
+.loot-glow {
+  animation: lootGlow 2s infinite ease-in-out;
+}
+
+
 .target-highlight circle, .target-highlight rect {
   animation: pulseGlow 1.5s infinite ease-in-out;
   cursor: pointer !important;

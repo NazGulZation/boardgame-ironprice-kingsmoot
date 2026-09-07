@@ -35,7 +35,7 @@ class KingsmootApp {
     }
   }
 
-  refresh() {
+  refresh(autoCheckAi = true) {
     this.mapRenderer.update(this.gameState, this.currentSelection);
     this.ui.update(this.gameState, this.currentSelection);
 
@@ -44,7 +44,9 @@ class KingsmootApp {
     }
 
     // Auto-step AI if active player is a bot
-    this.checkAiTurn();
+    if (autoCheckAi) {
+      this.checkAiTurn();
+    }
   }
 
   handleSelection(selection) {
@@ -140,7 +142,14 @@ class KingsmootApp {
       if (res.success) {
         this.gameState = res.state;
         this.currentSelection = { type: 'none' };
-        this.refresh();
+        this.refresh(false);
+        if (res.state.last_reave_outcome) {
+          this.ui.showReaveModal(res.state.last_reave_outcome, () => {
+            this.checkAiTurn();
+          });
+        } else {
+          this.checkAiTurn();
+        }
       } else {
         this.ui.showToast(res.error || "Reave gagal!", "error");
       }
@@ -185,7 +194,14 @@ class KingsmootApp {
       if (res.success) {
         this.gameState = res.state;
         this.currentSelection = { type: 'none' };
-        this.refresh();
+        this.refresh(false);
+        if (res.state.last_reave_outcome) {
+          this.ui.showReaveModal(res.state.last_reave_outcome, () => {
+            this.checkAiTurn();
+          });
+        } else {
+          this.checkAiTurn();
+        }
       } else {
         this.ui.showToast(res.error || "Reave failed!", "error");
       }
@@ -259,10 +275,21 @@ class KingsmootApp {
 
   async stepAi() {
     try {
+      const prevReaveOutcome = this.gameState ? this.gameState.last_reave_outcome : null;
       const res = await API.stepAI();
       if (res.success) {
         this.gameState = res.state;
-        this.refresh();
+        const hasNewReave = res.state.last_reave_outcome && 
+          (!prevReaveOutcome || JSON.stringify(prevReaveOutcome) !== JSON.stringify(res.state.last_reave_outcome));
+
+        if (hasNewReave) {
+          this.refresh(false);
+          this.ui.showReaveModal(res.state.last_reave_outcome, () => {
+            this.checkAiTurn();
+          }, 3800);
+        } else {
+          this.refresh();
+        }
       }
     } catch (err) {
       console.error("AI step error:", err);

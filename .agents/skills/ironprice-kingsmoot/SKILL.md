@@ -95,6 +95,9 @@ Web UI will be live at: `http://localhost:8000`
    * All decorative highlight SVG elements must have `pointer-events: none` so they don't block clicks.
 4. **State Synchronization**:
    * `MapRenderer.update(gameState, selection)` must reapply `this.highlightSelection()` on every render cycle so highlights are never wiped by DOM rebuilds.
+5. **Dice Tray & Combat Modal Guidelines**:
+   * Bottom dice tray (`.dice-tray-panel`) must use `min-height: 154px; height: auto; flex-shrink: 0;` and `.map-viewport` must have `min-height: 0;` to prevent layout clipping and ensure comfortable padding for result summary text.
+   * Reave combat modal (`#modal-reave`) must provide high-suspense animated 3D dice tumbling (`.dice-tumbling`), lock-in settles (`.dice-settled`), attacker vs defender formula bars, and pause AI auto-step pacing while the modal is open.
 
 ---
 

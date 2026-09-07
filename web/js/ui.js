@@ -38,7 +38,28 @@ class UIController {
       modalVictory: document.getElementById('modal-victory'),
       winnerNameText: document.getElementById('winner-name-text'),
       winnerTitleText: document.getElementById('winner-title-text'),
-      finalScoresContainer: document.getElementById('final-scores-container')
+      finalScoresContainer: document.getElementById('final-scores-container'),
+
+      // Reave Combat Modal
+      modalReave: document.getElementById('modal-reave'),
+      reaveModalTitle: document.getElementById('reave-modal-title'),
+      reaveDefenseBadge: document.getElementById('reave-defense-badge'),
+      btnCloseReaveX: document.getElementById('btn-close-reave-x'),
+      reaveAttackerName: document.getElementById('reave-attacker-name'),
+      reaveAttackerDice: document.getElementById('reave-attacker-dice'),
+      reaveAttackerTally: document.getElementById('reave-attacker-tally'),
+      reaveDefenderName: document.getElementById('reave-defender-name'),
+      reaveDefenderDice: document.getElementById('reave-defender-dice'),
+      reaveDefenderTally: document.getElementById('reave-defender-tally'),
+      reaveStatHits: document.getElementById('reave-stat-hits'),
+      reaveStatBlocks: document.getElementById('reave-stat-blocks'),
+      reaveStatNet: document.getElementById('reave-stat-net'),
+      reaveStatNeeded: document.getElementById('reave-stat-needed'),
+      reaveOutcomeCard: document.getElementById('reave-outcome-card'),
+      reaveOutcomeTitle: document.getElementById('reave-outcome-title'),
+      reaveOutcomeDesc: document.getElementById('reave-outcome-desc'),
+      reaveSpoilsRow: document.getElementById('reave-spoils-row'),
+      btnReaveConfirm: document.getElementById('btn-reave-confirm')
     };
   }
 
@@ -227,6 +248,180 @@ class UIController {
     if (face === 'Shield') return '🛡️';
     if (face === 'Eye') return '👁️';
     return '🎲';
+  }
+
+  _getDiceValueTag(face, isAttacker) {
+    if (face === 'Kraken') return isAttacker ? '+2 Hits' : '0';
+    if (face === 'Axe') return isAttacker ? '+1 Hit' : '0';
+    if (face === 'Shield') return isAttacker ? '0' : '+1 Block';
+    if (face === 'Eye') return '0';
+    return face;
+  }
+
+  showReaveModal(reaveOutcome, onComplete = null, autoDismissMs = 0) {
+    if (!reaveOutcome || !this.elements.modalReave) {
+      if (onComplete) onComplete();
+      return;
+    }
+
+    const {
+      target_name,
+      attacker_faction,
+      attacker_roll,
+      defender_roll,
+      net_attacker_hits,
+      defense_required,
+      success,
+      hoard_gained,
+      legend_gained,
+      crew_lost
+    } = reaveOutcome;
+
+    // Header & Info
+    this.elements.reaveModalTitle.innerHTML = `⚔️ Raid on ${target_name}`;
+    this.elements.reaveDefenseBadge.innerHTML = `🛡️ Keep Defense: <strong>${defense_required}</strong> Hits Required`;
+    this.elements.reaveAttackerName.textContent = attacker_faction || 'Attacking Fleet';
+    this.elements.reaveDefenderName.textContent = `${target_name} Garrison`;
+
+    // Reset formula & outcome card
+    this.elements.reaveOutcomeCard.style.display = 'none';
+    this.elements.reaveOutcomeCard.className = 'reave-outcome-card';
+    this.elements.reaveStatHits.textContent = '...';
+    this.elements.reaveStatBlocks.textContent = '...';
+    this.elements.reaveStatNet.textContent = '...';
+    this.elements.reaveStatNeeded.textContent = `${defense_required}`;
+    this.elements.reaveAttackerTally.textContent = '⚔️ Rolling...';
+    this.elements.reaveDefenderTally.textContent = '🛡️ Rolling...';
+    this.elements.btnReaveConfirm.textContent = 'Rolling...';
+    this.elements.btnReaveConfirm.disabled = true;
+
+    // Open Modal
+    this.elements.modalReave.style.display = 'flex';
+
+    // Populate placeholder tumbling dice
+    this.elements.reaveAttackerDice.innerHTML = '';
+    const attackerDiceEls = [];
+    attacker_roll.dice.forEach(() => {
+      const d = document.createElement('div');
+      d.className = 'dice-face reave-dice-face dice-tumbling';
+      d.innerHTML = `<span class="dice-icon">🎲</span><span class="reave-dice-val">...</span>`;
+      this.elements.reaveAttackerDice.appendChild(d);
+      attackerDiceEls.push(d);
+    });
+
+    this.elements.reaveDefenderDice.innerHTML = '';
+    const defenderDiceEls = [];
+    defender_roll.dice.forEach(() => {
+      const d = document.createElement('div');
+      d.className = 'dice-face reave-dice-face dice-tumbling';
+      d.innerHTML = `<span class="dice-icon">🎲</span><span class="reave-dice-val">...</span>`;
+      this.elements.reaveDefenderDice.appendChild(d);
+      defenderDiceEls.push(d);
+    });
+
+    // Rapid face cycling for suspenseful tumbling animation
+    const faces = ['Kraken', 'Axe', 'Shield', 'Eye'];
+    const rollInterval = setInterval(() => {
+      attackerDiceEls.forEach(el => {
+        const randFace = faces[Math.floor(Math.random() * faces.length)];
+        el.className = `dice-face reave-dice-face ${randFace.toLowerCase()} dice-tumbling`;
+        const iconEl = el.querySelector('.dice-icon');
+        if (iconEl) iconEl.textContent = this._getDiceIcon(randFace);
+      });
+      defenderDiceEls.forEach(el => {
+        const randFace = faces[Math.floor(Math.random() * faces.length)];
+        el.className = `dice-face reave-dice-face ${randFace.toLowerCase()} dice-tumbling`;
+        const iconEl = el.querySelector('.dice-icon');
+        if (iconEl) iconEl.textContent = this._getDiceIcon(randFace);
+      });
+    }, 75);
+
+    // After roll duration (~900ms), lock in final rolled dice
+    setTimeout(() => {
+      clearInterval(rollInterval);
+
+      // Lock Attacker Dice
+      attackerDiceEls.forEach((el, idx) => {
+        const face = attacker_roll.dice[idx];
+        const valTag = this._getDiceValueTag(face, true);
+        el.className = `dice-face reave-dice-face ${face.toLowerCase()} dice-settled`;
+        el.innerHTML = `
+          <span class="dice-icon">${this._getDiceIcon(face)}</span>
+          <span class="reave-dice-val">${valTag}</span>
+        `;
+      });
+      this.elements.reaveAttackerTally.innerHTML = `⚔️ <strong>${attacker_roll.hits}</strong> Total Hits`;
+
+      // Lock Defender Dice
+      defenderDiceEls.forEach((el, idx) => {
+        const face = defender_roll.dice[idx];
+        const valTag = this._getDiceValueTag(face, false);
+        el.className = `dice-face reave-dice-face ${face.toLowerCase()} dice-settled`;
+        el.innerHTML = `
+          <span class="dice-icon">${this._getDiceIcon(face)}</span>
+          <span class="reave-dice-val">${valTag}</span>
+        `;
+      });
+      this.elements.reaveDefenderTally.innerHTML = `🛡️ <strong>${defender_roll.blocks}</strong> Total Blocks`;
+
+      // Update Formula Stats
+      this.elements.reaveStatHits.textContent = `${attacker_roll.hits}`;
+      this.elements.reaveStatBlocks.textContent = `${defender_roll.blocks}`;
+      this.elements.reaveStatNet.textContent = `${net_attacker_hits}`;
+      this.elements.reaveStatNeeded.textContent = `${defense_required}`;
+
+      // Reveal Outcome Card
+      this.elements.reaveOutcomeCard.style.display = 'flex';
+      this.elements.btnReaveConfirm.disabled = false;
+
+      if (success) {
+        this.elements.reaveOutcomeCard.className = 'reave-outcome-card victory result-banner-pop';
+        this.elements.reaveOutcomeTitle.textContent = `🎉 VICTORY — ${target_name.toUpperCase()} SACKED!`;
+        this.elements.reaveOutcomeDesc.textContent = `The Ironborn overwhelm the defenses and carry away their plunder!`;
+
+        let spoilsHtml = `
+          <span class="spoil-pill hoard">💰 +${hoard_gained} Hoard</span>
+          <span class="spoil-pill legend">👑 +${legend_gained} Legend</span>
+        `;
+        if (crew_lost > 0) {
+          spoilsHtml += `<span class="spoil-pill casualty">💀 -${crew_lost} Crew Lost</span>`;
+        } else {
+          spoilsHtml += `<span class="spoil-pill safe">✨ Zero Casualties</span>`;
+        }
+        this.elements.reaveSpoilsRow.innerHTML = spoilsHtml;
+        this.elements.btnReaveConfirm.textContent = 'Claim Plunder & Continue';
+      } else {
+        this.elements.reaveOutcomeCard.className = 'reave-outcome-card repelled result-banner-pop';
+        this.elements.reaveOutcomeTitle.textContent = `🛡️ RAID REPELLED AT ${target_name.toUpperCase()}!`;
+        this.elements.reaveOutcomeDesc.textContent = `Scored only ${net_attacker_hits} net hits against ${defense_required} required defense. The assault was driven back!`;
+
+        let casualtiesHtml = `<span class="spoil-pill casualty">💀 -${crew_lost} Crew Lost</span>`;
+        this.elements.reaveSpoilsRow.innerHTML = casualtiesHtml;
+        this.elements.btnReaveConfirm.textContent = 'Fall Back & Continue';
+      }
+
+    }, 900);
+
+    // Setup close handlers
+    let isClosed = false;
+    let autoDismissTimer = null;
+    const handleClose = () => {
+      if (isClosed) return;
+      isClosed = true;
+      if (autoDismissTimer) clearTimeout(autoDismissTimer);
+      clearInterval(rollInterval);
+      this.elements.modalReave.style.display = 'none';
+      if (onComplete) onComplete();
+    };
+
+    if (autoDismissMs > 0) {
+      autoDismissTimer = setTimeout(() => {
+        handleClose();
+      }, autoDismissMs);
+    }
+
+    this.elements.btnReaveConfirm.onclick = handleClose;
+    this.elements.btnCloseReaveX.onclick = handleClose;
   }
 
   updateLogs(logs) {

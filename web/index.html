@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>IRON PRICE: Kingsmoot — Board Game</title>
-  <link rel="stylesheet" href="css/style.css?v=1.6">
-  <link rel="stylesheet" href="css/animations.css?v=1.6">
+  <link rel="stylesheet" href="css/style.css?v=1.7">
+  <link rel="stylesheet" href="css/animations.css?v=1.7">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800;900&family=Metamorphous&family=MedievalSharp&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -296,6 +296,74 @@
     </div>
   </div>
 
+  <!-- Reave Combat Modal -->
+  <div class="modal-backdrop" id="modal-reave" style="display: none;">
+    <div class="modal-reave-card">
+      <div class="reave-modal-header">
+        <div class="reave-header-left">
+          <h2 class="reave-modal-title" id="reave-modal-title">⚔️ Raid on Keep</h2>
+          <span class="reave-defense-badge" id="reave-defense-badge">🛡️ Keep Defense: 3 Hits Required</span>
+        </div>
+        <button class="modal-close" id="btn-close-reave-x">&times;</button>
+      </div>
+
+      <div class="reave-combat-arena">
+        <!-- Attacker Column -->
+        <div class="reave-side" id="reave-attacker-side">
+          <div class="reave-side-header">
+            <span class="reave-side-role">Attacking Fleet</span>
+            <span class="reave-side-name" id="reave-attacker-name">Asha Greyjoy</span>
+          </div>
+          <div class="reave-dice-box" id="reave-attacker-dice">
+            <!-- Animated dice populated dynamically -->
+          </div>
+          <div class="reave-side-tally" id="reave-attacker-tally">⚔️ Rolling...</div>
+        </div>
+
+        <!-- Clash VS -->
+        <div class="reave-vs-col">
+          <div class="reave-vs-clash">VS</div>
+        </div>
+
+        <!-- Defender Column -->
+        <div class="reave-side" id="reave-defender-side">
+          <div class="reave-side-header">
+            <span class="reave-side-role">Garrison Defense</span>
+            <span class="reave-side-name" id="reave-defender-name">Deepwood Motte</span>
+          </div>
+          <div class="reave-dice-box" id="reave-defender-dice">
+            <!-- Animated dice populated dynamically -->
+          </div>
+          <div class="reave-side-tally" id="reave-defender-tally">🛡️ Rolling...</div>
+        </div>
+      </div>
+
+      <!-- Formula / Calculation Bar -->
+      <div class="reave-formula-bar" id="reave-formula-bar">
+        <div class="reave-formula-stat">Attacker Hits: <strong id="reave-stat-hits">-</strong></div>
+        <span>−</span>
+        <div class="reave-formula-stat">Defender Blocks: <strong id="reave-stat-blocks">-</strong></div>
+        <span>=</span>
+        <div class="reave-formula-stat highlight">Net Hits: <strong id="reave-stat-net">-</strong></div>
+        <span>vs</span>
+        <div class="reave-formula-stat">Defense: <strong id="reave-stat-needed">-</strong></div>
+      </div>
+
+      <!-- Outcome Result Card -->
+      <div class="reave-outcome-card result-banner-pop" id="reave-outcome-card" style="display: none;">
+        <div class="reave-outcome-title" id="reave-outcome-title">VICTORY — KEEP SACKED!</div>
+        <div class="reave-outcome-desc" id="reave-outcome-desc">The longships break the defense!</div>
+        <div class="reave-spoils-row" id="reave-spoils-row">
+          <!-- Dynamic spoils pills -->
+        </div>
+      </div>
+
+      <div class="reave-modal-footer">
+        <button class="btn btn-primary" id="btn-reave-confirm">Continue</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Kingsmoot Victory Ceremony Modal -->
   <div class="modal-backdrop" id="modal-victory" style="display: none;">
     <div class="modal-card modal-victory-card">
@@ -319,9 +387,9 @@
   </div>
 
   <!-- JS Application Scripts with Cache Buster -->
-  <script src="js/api.js?v=1.6"></script>
-  <script src="js/map_renderer.js?v=1.6"></script>
-  <script src="js/ui.js?v=1.6"></script>
-  <script src="js/app.js?v=1.6"></script>
+  <script src="js/api.js?v=1.7"></script>
+  <script src="js/map_renderer.js?v=1.7"></script>
+  <script src="js/ui.js?v=1.7"></script>
+  <script src="js/app.js?v=1.7"></script>
 </body>
 </html>
