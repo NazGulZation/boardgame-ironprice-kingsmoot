@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>IRON PRICE: Kingsmoot — Board Game</title>
-  <link rel="stylesheet" href="css/style.css?v=1.7">
-  <link rel="stylesheet" href="css/animations.css?v=1.7">
+  <link rel="stylesheet" href="css/style.css?v=1.8">
+  <link rel="stylesheet" href="css/animations.css?v=1.8">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800;900&family=Metamorphous&family=MedievalSharp&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -95,8 +95,10 @@
             </linearGradient>
           </defs>
 
-          <!-- Background Layer -->
+          <!-- Background Layer: Thematic Board Map Illustration -->
           <rect width="1920" height="1080" fill="#080e18" />
+          <image href="assets/board_map.jpg" x="0" y="0" width="1920" height="1080" preserveAspectRatio="none" opacity="0.92" id="board-bg-image" />
+          <rect width="1920" height="1080" fill="#050c17" opacity="0.2" style="mix-blend-mode: multiply; pointer-events: none;" />
 
           <!-- Edges / Sea Routes Layer -->
           <g id="edges-layer"></g>
@@ -387,9 +389,9 @@
   </div>
 
   <!-- JS Application Scripts with Cache Buster -->
-  <script src="js/api.js?v=1.7"></script>
-  <script src="js/map_renderer.js?v=1.7"></script>
-  <script src="js/ui.js?v=1.7"></script>
-  <script src="js/app.js?v=1.7"></script>
+  <script src="js/api.js?v=1.8"></script>
+  <script src="js/map_renderer.js?v=1.8"></script>
+  <script src="js/ui.js?v=1.8"></script>
+  <script src="js/app.js?v=1.8"></script>
 </body>
 </html>

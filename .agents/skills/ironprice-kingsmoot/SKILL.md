@@ -98,6 +98,9 @@ Web UI will be live at: `http://localhost:8000`
 5. **Dice Tray & Combat Modal Guidelines**:
    * Bottom dice tray (`.dice-tray-panel`) must use `min-height: 154px; height: auto; flex-shrink: 0;` and `.map-viewport` must have `min-height: 0;` to prevent layout clipping and ensure comfortable padding for result summary text.
    * Reave combat modal (`#modal-reave`) must provide high-suspense animated 3D dice tumbling (`.dice-tumbling`), lock-in settles (`.dice-settled`), attacker vs defender formula bars, and pause AI auto-step pacing while the modal is open.
+6. **Thematic Board Map Illustration**:
+   * The map SVG embeds `web/assets/board_map.jpg` as the background art with an atmospheric multiply overlay.
+   * Sea routes and edges include dark underlay contrast strokes so navigation paths and nodes remain distinct and legible over the nautical illustration.
 
 ---
 

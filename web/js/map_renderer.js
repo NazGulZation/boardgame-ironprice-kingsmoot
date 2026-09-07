@@ -127,13 +127,26 @@ class MapRenderer {
       const v = nodeMap[edge[1]];
       if (!u || !v) return;
 
+      // Dark shadow underlay for high contrast over board map art
+      const shadowLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      shadowLine.setAttribute('x1', u.x);
+      shadowLine.setAttribute('y1', u.y);
+      shadowLine.setAttribute('x2', v.x);
+      shadowLine.setAttribute('y2', v.y);
+      shadowLine.setAttribute('stroke', '#050a12');
+      shadowLine.setAttribute('stroke-width', '7');
+      shadowLine.setAttribute('stroke-linecap', 'round');
+      shadowLine.setAttribute('opacity', '0.75');
+      this.edgesGroup.appendChild(shadowLine);
+
+      // Main dashed route line
       const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
       line.setAttribute('x1', u.x);
       line.setAttribute('y1', u.y);
       line.setAttribute('x2', v.x);
       line.setAttribute('y2', v.y);
-      line.setAttribute('stroke', '#243c5b');
-      line.setAttribute('stroke-width', '5');
+      line.setAttribute('stroke', '#41739c');
+      line.setAttribute('stroke-width', '4');
       line.setAttribute('stroke-dasharray', '8,6');
       line.setAttribute('stroke-linecap', 'round');
       this.edgesGroup.appendChild(line);
