@@ -102,7 +102,7 @@ class TestPhase1Engine(unittest.TestCase):
 
         res = self.game.action_muster("harlaw")
         self.assertFalse(res.get("success"))
-        self.assertIn("penuh", res.get("error", "").lower())
+        self.assertIn("full", res.get("error", "").lower())
         # Hoard must NOT be deducted
         self.assertEqual(active.hoard, initial_hoard)
 

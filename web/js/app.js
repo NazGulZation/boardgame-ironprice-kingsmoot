@@ -116,7 +116,7 @@ class KingsmootApp {
     const activePlayer = this.gameState.players[this.gameState.active_player_idx];
     
     if (activePlayer.is_ai) {
-      this.ui.showToast("Bukan giliran Anda (Giliran Bot).", "error");
+      this.ui.showToast("Not your turn (Bot's turn).", "error");
       return;
     }
 
@@ -129,11 +129,11 @@ class KingsmootApp {
         if (shipObj && shipObj.faction === activeFaction) {
           this.currentSelection = target;
           this.refresh();
-          this.ui.showToast(`Kapal ${shipObj.id} dipilih! Klik kanan laut untuk Sail, klik kanan keep untuk Reave.`, "info");
+          this.ui.showToast(`Ship ${shipObj.id} selected! Right-click sea to Sail, right-click keep to Reave.`, "info");
           return;
         }
       }
-      this.ui.showToast("Pilih kapal Anda (klik kiri) terlebih dahulu, lalu klik kanan tujuan.", "info");
+      this.ui.showToast("Select your ship (left-click) first, then right-click destination.", "info");
       return;
     }
 
@@ -153,7 +153,7 @@ class KingsmootApp {
     }
 
     if (!shipObj || shipObj.faction !== activeFaction) {
-      this.ui.showToast("Kapal yang dipilih bukan milik Anda.", "error");
+      this.ui.showToast("Selected ship does not belong to you.", "error");
       return;
     }
 
@@ -170,7 +170,7 @@ class KingsmootApp {
     // Right-click on Sea or Isle -> SAIL!
     if (targetNode.kind === 'sea' || targetNode.kind === 'isle') {
       if (targetNodeId === shipLocation) {
-        this.ui.showToast(`Kapal sudah berada di ${targetNode.name}.`, "info");
+        this.ui.showToast(`Ship is already at ${targetNode.name}.`, "info");
         return;
       }
       this.executeSail(selectedShipId, targetNodeId);
@@ -180,12 +180,26 @@ class KingsmootApp {
 
   async executeReaveDirect(shipId, targetLandId) {
     try {
+      let shipLoc = null;
+      if (this.gameState) {
+        for (const [nid, node] of Object.entries(this.gameState.nodes)) {
+          if (node.occupants && node.occupants.some(s => s.id === shipId)) {
+            shipLoc = nid;
+            break;
+          }
+        }
+      }
+
       const res = await API.sendAction('reave', {
         ship_id: shipId,
         target_land_id: targetLandId
       });
 
       if (res.success) {
+        if (shipLoc && res.state.last_reave_outcome) {
+          await this.mapRenderer.animateReaveTargeting(shipLoc, targetLandId, res.state.last_reave_outcome, shipId);
+        }
+
         this.gameState = res.state;
         this.currentSelection = { type: 'none' };
         this.refresh(false);
@@ -197,27 +211,43 @@ class KingsmootApp {
           this.checkAiTurn();
         }
       } else {
-        this.ui.showToast(res.error || "Reave gagal!", "error");
+        this.ui.showToast(res.error || "Reave failed!", "error");
       }
     } catch (err) {
       console.error("Reave error:", err);
-      this.ui.showToast("Aksi Reave gagal", "error");
+      this.ui.showToast("Failed to execute Reave action", "error");
     }
   }
 
   async executeSail(shipId, targetNodeId) {
     try {
+      let currentLoc = null;
+      const activeFaction = this.gameState ? this.gameState.active_faction : 'Asha';
+      if (this.gameState) {
+        for (const [nid, node] of Object.entries(this.gameState.nodes)) {
+          if (node.occupants && node.occupants.some(s => s.id === shipId)) {
+            currentLoc = nid;
+            break;
+          }
+        }
+      }
+
       const res = await API.sendAction('sail', {
         ship_id: shipId,
         target_node: targetNodeId
       });
 
       if (res.success) {
+        if (currentLoc && currentLoc !== targetNodeId) {
+          await this.mapRenderer.animateShipSail(shipId, currentLoc, targetNodeId, activeFaction);
+        }
+
         this.gameState = res.state;
         this.currentSelection = { type: 'none' };
 
         const battle = res.battle || (res.state && res.state.active_battle);
         if (battle) {
+          await this.mapRenderer.animateNavalClash(targetNodeId);
           this.currentBattle = battle;
           this.refresh(false);
           this.showBattle(this.currentBattle);
@@ -236,11 +266,11 @@ class KingsmootApp {
 
   executeSailFromButton() {
     if (!this.currentSelection || !this.currentSelection.shipId) {
-      this.ui.showToast("Pilih kapal Anda terlebih dahulu!", "info");
+      this.ui.showToast("Select your ship first!", "info");
       return;
     }
     if (!this.currentSelection.targetSeaId) {
-      this.ui.showToast("Klik zona laut/pulau tujuan di peta untuk berlayar!", "info");
+      this.ui.showToast("Click destination sea/isle on map to sail!", "info");
       return;
     }
     this.executeSail(this.currentSelection.shipId, this.currentSelection.targetSeaId);
@@ -342,29 +372,73 @@ class KingsmootApp {
 
   async stepAi() {
     try {
+      const prevState = this.gameState;
       const prevReaveOutcome = this.gameState ? this.gameState.last_reave_outcome : null;
       const res = await API.stepAI();
       if (res.success) {
-        this.gameState = res.state;
-        const hasNewReave = res.state.last_reave_outcome && 
-          (!prevReaveOutcome || JSON.stringify(prevReaveOutcome) !== JSON.stringify(res.state.last_reave_outcome));
+        const nextState = res.state;
+        const activeFaction = prevState ? prevState.active_faction : nextState.active_faction;
 
-        const battle = res.battle || (res.state && res.state.active_battle);
-        if (battle) {
+        // 1. Check if a SAIL action occurred -> animate ship sailing across nodes
+        if (res.ship_id && res.from && res.to && res.from !== res.to) {
+          await this.mapRenderer.animateShipSail(res.ship_id, res.from, res.to, activeFaction);
+        }
+
+        // 2. Check if a REAVE action occurred -> animate targeting & keep outcome (SKIP popup dice roll!)
+        const newReave = res.outcome || (nextState.last_reave_outcome && 
+          (!prevReaveOutcome || JSON.stringify(prevReaveOutcome) !== JSON.stringify(nextState.last_reave_outcome)) ? nextState.last_reave_outcome : null);
+
+        if (newReave) {
+          // Non-blocking update to bottom dice tray so user sees the roll
+          if (newReave.attacker_roll && newReave.defender_roll) {
+            this.ui.updateDiceTray(newReave.attacker_roll, newReave.defender_roll, newReave);
+          }
+          // Animate on map (targeting line, axe throw, keep reaction)
+          let originNode = newReave.origin_node;
+          if (!originNode && res.ship_id && prevState) {
+            for (const [nid, node] of Object.entries(prevState.nodes)) {
+              if (node.occupants && node.occupants.some(s => s.id === res.ship_id)) {
+                originNode = nid;
+                break;
+              }
+            }
+          }
+          if (!originNode) originNode = 'bay';
+          await this.mapRenderer.animateReaveTargeting(originNode, newReave.target_land_id, newReave, newReave.ship_id);
+          // Note: As requested, the blocking dice modal is SKIPPED during AI turn!
+        }
+
+        // 3. Check if NAVAL CLASH occurred
+        const battle = res.battle || (nextState && nextState.active_battle);
+        if (res.battle_triggered && battle) {
+          await this.mapRenderer.animateNavalClash(battle.node_id || res.to);
+        }
+
+        // 4. Check if ship sinking/defeat occurred
+        if (battle && battle.state === 'finished' && battle.winner) {
+          const loserShipId = (battle.winner === battle.attacker_faction) ? battle.defender_ship_id : battle.attacker_ship_id;
+          await this.mapRenderer.animateShipDefeat(loserShipId, battle.node_id, 'sunk');
+        }
+
+        this.gameState = nextState;
+        this.refresh();
+
+        // If human player is actively engaged in an unresolved battle, show battle modal
+        const humanPlayer = this.gameState.players.find(p => !p.is_ai);
+        const isHumanInBattle = battle && humanPlayer && 
+          (battle.attacker_faction === humanPlayer.faction || battle.defender_faction === humanPlayer.faction) && 
+          battle.state !== 'finished';
+        
+        if (isHumanInBattle) {
           this.currentBattle = battle;
-          this.refresh(false);
           this.showBattle(this.currentBattle);
           return;
         }
 
-        if (hasNewReave) {
-          this.refresh(false);
-          this.ui.showReaveModal(res.state.last_reave_outcome, () => {
-            this.checkAiTurn();
-          }, 3800);
-        } else {
-          this.refresh();
-        }
+        // Visual pacing: wait a moment before scheduling next AI step
+        setTimeout(() => {
+          this.checkAiTurn();
+        }, 500);
       }
     } catch (err) {
       console.error("AI step error:", err);
@@ -381,10 +455,10 @@ class KingsmootApp {
 
     const activePlayer = this.gameState.players[this.gameState.active_player_idx];
     if (activePlayer && activePlayer.is_ai) {
-      // Auto-step AI after 900ms delay for visual pacing
+      // Auto-step AI with visual pacing delay
       this.aiAutoStepTimer = setTimeout(() => {
         this.stepAi();
-      }, 900);
+      }, 700);
     }
   }
 
@@ -429,11 +503,11 @@ class KingsmootApp {
           this.refresh();
         }
       } else {
-        this.ui.showToast(res.error || "Aksi pertempuran gagal!", "error");
+        this.ui.showToast(res.error || "Battle action failed!", "error");
       }
     } catch (err) {
       console.error("Battle action error:", err);
-      this.ui.showToast("Gagal memproses aksi pertempuran", "error");
+      this.ui.showToast("Failed to process battle action", "error");
     }
   }
 
@@ -441,15 +515,15 @@ class KingsmootApp {
     if (!this.gameState || this.gameState.game_over) return;
     const activePlayer = this.gameState.players[this.gameState.active_player_idx];
     if (activePlayer.is_ai) {
-      this.ui.showToast("Bukan giliran Anda (Giliran Bot).", "error");
+      this.ui.showToast("Not your turn (Bot's turn).", "error");
       return;
     }
     if (activePlayer.favor < 4) {
-      this.ui.showToast("Drowned Favor tidak cukup! Butuh 4 Favor untuk Call Storm.", "error");
+      this.ui.showToast("Not enough Drowned Favor! 4 Favor required for Call Storm.", "error");
       return;
     }
     if (this.gameState.actions_remaining <= 0) {
-      this.ui.showToast("Tidak ada sisa aksi putaran ini.", "error");
+      this.ui.showToast("No actions remaining this turn.", "error");
       return;
     }
 
@@ -465,11 +539,11 @@ class KingsmootApp {
     }
 
     if (validNodes.length === 0) {
-      this.ui.showToast("Tidak ada armada musuh di zona laut untuk diserang badai!", "error");
+      this.ui.showToast("No enemy fleet in sea zones to strike with storm!", "error");
       return;
     }
 
-    this.ui.showToast("⚡ Klik zona laut target badai (berkedip merah)!", "info");
+    this.ui.showToast("⚡ Click target sea zone for storm (flashing red)!", "info");
     this.mapRenderer.setMiracleTargetMode(true, validNodes, (targetNodeId) => {
       this.executeCallStorm(targetNodeId);
     });
@@ -485,13 +559,13 @@ class KingsmootApp {
       if (res.success) {
         this.gameState = res.state;
         this.refresh();
-        this.ui.showToast(`🌊 BADAI DIPANGGIL! Musuh di ${targetNodeId.toUpperCase()} disapu gelombang (-1 crew & terlempar)!`, "info");
+        this.ui.showToast(`🌊 STORM INVOKED! Rival fleet at ${targetNodeId.toUpperCase()} battered by raging waves (-1 crew & pushed back)!`, "info");
       } else {
-        this.ui.showToast(res.error || "Gagal memanggil badai!", "error");
+        this.ui.showToast(res.error || "Failed to invoke storm!", "error");
       }
     } catch (err) {
       console.error("Call Storm error:", err);
-      this.ui.showToast("Gagal memanggil badai Drowned God", "error");
+      this.ui.showToast("Failed to invoke Drowned God's storm", "error");
     }
   }
 

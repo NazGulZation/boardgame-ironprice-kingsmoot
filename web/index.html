@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>IRON PRICE: Kingsmoot — Board Game</title>
-  <link rel="stylesheet" href="css/style.css?v=2.0">
-  <link rel="stylesheet" href="css/animations.css?v=2.0">
+  <link rel="stylesheet" href="css/style.css?v=2.5">
+  <link rel="stylesheet" href="css/animations.css?v=2.5">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800;900&family=Metamorphous&family=MedievalSharp&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -299,22 +299,39 @@
       </div>
       <div class="modal-body rules-content">
         <h3>1. Objective</h3>
-        <p>Amass the most <strong>Legend</strong> after 5 Seasons to be crowned King of Salt and Rock on Old Wyk.</p>
+        <p>Amass the most <strong>Legend</strong> after 5 Seasons to claim the Seastone Chair at the Kingsmoot on Old Wyk.</p>
         
         <h3>2. Turn Structure</h3>
-        <p>Each season has 3 turns per player. On your turn, take <strong>2 Actions</strong>:</p>
+        <p>Each season consists of turns for all 3 Ironborn factions. On your turn, choose <strong>2 Actions</strong>:</p>
         <ul>
-          <li><strong>Sail</strong>: Move a fleet up to 2 nodes along sea routes.</li>
-          <li><strong>Muster</strong>: At a controlled port, pay 3 Hoard (2 at Great Wyk) for +3 crew.</li>
+          <li><strong>Sail</strong>: Move a fleet up to 2 nodes along sea routes. If moving into a sea zone occupied by rivals, triggers immediate <strong>Naval Combat</strong>!</li>
+          <li><strong>Muster</strong>: At your controlled port, pay 3 Hoard (2 at Great Wyk) for +3 crew distributed across your longships.</li>
           <li><strong>Reave</strong>: Attack an adjacent Green Land keep with your fleet.</li>
-          <li><strong>Pray</strong>: Discard an action for +1 Drowned Favor.</li>
+          <li><strong>Pray</strong>: Discard an action to gain +1 Drowned Favor from the depths.</li>
+          <li><strong>Call the Storm</strong>: Pay 2 Favor while occupying Storm Belt to strike all enemy ships in Storm Belt and adjacent sea nodes.</li>
         </ul>
 
         <h3>3. Reaving Green Lands</h3>
-        <p>Roll 1 die per 2 crew (max 6). Keep rolls Defense dice. <strong>Kraken</strong> = 2 hits, <strong>Axe</strong> = 1 hit, <strong>Shield</strong> = 1 block. Beat Defense to claim Hoard & Legend! Sacked keeps become <strong>Burned</strong>.</p>
-        
-        <h3>4. Season End Scoring</h3>
-        <p>Gain +1 Legend per Iron Isle occupied. Refreshes 2 burned keeps each season.</p>
+        <p>Roll 1 combat die per 2 crew (max 6). The defending keep rolls its Defense dice:</p>
+        <ul>
+          <li><strong>Kraken</strong>: 2 Hits / Devastation</li>
+          <li><strong>Axe</strong>: 1 Hit</li>
+          <li><strong>Shield</strong>: 1 Block</li>
+          <li><strong>Blank</strong>: 0</li>
+        </ul>
+        <p>If Hits exceed Defense, the keep is <strong>Sacked</strong>! Claim its Hoard & Legend; the keep becomes <strong>Burned</strong> until seasonal recovery. If repelled, your fleet suffers casualties.</p>
+
+        <h3>4. Naval Combat</h3>
+        <p>Entering an enemy-held sea node provokes a naval clash. Both fleets roll combat dice. The fleet with fewer net hits suffers longship loss or retreats back to its origin node.</p>
+
+        <h3>5. Drowned Favor Powers</h3>
+        <ul>
+          <li><strong>Tactical Reroll (2 Favor)</strong>: Reroll all non-Kraken dice during any Reave or Naval Combat engagement to turn the tides.</li>
+          <li><strong>Call the Storm (2 Favor)</strong>: Unleash tempest winds from Storm Belt on all hostile fleets nearby.</li>
+        </ul>
+
+        <h3>6. Season End & Kingsmoot</h3>
+        <p>At the end of each Season, gain +1 Legend per Iron Isle port occupied. Burned keeps partially recover. After 5 Seasons, the final Kingsmoot convenes to crown the ruler!</p>
       </div>
       <div class="modal-footer">
         <button class="btn btn-primary" id="btn-close-rules-confirm">Understood</button>
@@ -515,9 +532,9 @@
   </div>
 
   <!-- JS Application Scripts with Cache Buster -->
-  <script src="js/api.js?v=2.4"></script>
-  <script src="js/map_renderer.js?v=2.4"></script>
-  <script src="js/ui.js?v=2.4"></script>
-  <script src="js/app.js?v=2.4"></script>
+  <script src="js/api.js?v=2.5"></script>
+  <script src="js/map_renderer.js?v=2.5"></script>
+  <script src="js/ui.js?v=2.5"></script>
+  <script src="js/app.js?v=2.5"></script>
 </body>
 </html>

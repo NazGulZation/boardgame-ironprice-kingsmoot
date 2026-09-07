@@ -531,60 +531,9 @@ class MapRenderer {
         g.setAttribute('id', `ship-g-${ship.id}`);
 
         // Offset ships cleanly outside node text and other ships
-        let offsetX = 0;
-        let offsetY = 0;
-
-        if (node.kind === 'isle') {
-          // Place ships in a neat vertical harbor dock to the left of the isle
-          offsetX = -108;
-          if (count === 1) {
-            offsetY = 0;
-          } else if (count === 2) {
-            offsetY = (idx === 0) ? -24 : 24;
-          } else {
-            offsetY = (idx - 1) * 44; // -44, 0, +44 with 36px height -> 8px gap
-          }
-        } else if (node.kind === 'sea') {
-          if (node.id === 'bay') {
-            // Ironman's Bay: dock to North (wide open ocean)
-            offsetY = -95;
-            offsetX = (count === 1) ? 0 : (idx - (count - 1) / 2) * 72;
-          } else if (node.id === 'storm') {
-            // Storm Belt: dock to West to leave South open for reave keeps
-            offsetX = -108;
-            if (count === 1) {
-              offsetY = 0;
-            } else if (count === 2) {
-              offsetY = (idx === 0) ? -24 : 24;
-            } else {
-              offsetY = (idx - 1) * 44;
-            }
-          } else if (node.id === 'seaS') {
-            // Sunset Sea South: dock to East (towards Shield Isles)
-            offsetX = +108;
-            if (count === 1) {
-              offsetY = 0;
-            } else if (count === 2) {
-              offsetY = (idx === 0) ? -24 : 24;
-            } else {
-              offsetY = (idx - 1) * 44;
-            }
-          } else {
-            // Sunset Sea North & Central: dock to West (left)
-            offsetX = -108;
-            if (count === 1) {
-              offsetY = 0;
-            } else if (count === 2) {
-              offsetY = (idx === 0) ? -24 : 24;
-            } else {
-              offsetY = (idx - 1) * 44;
-            }
-          }
-        } else {
-          // Green Land nodes: dock above keep
-          offsetX = (idx - (count - 1) / 2) * 72;
-          offsetY = -78;
-        }
+        const offset = this.getDockOffset(nodeId, count, idx);
+        const offsetX = offset.offsetX;
+        const offsetY = offset.offsetY;
 
         // Draw subtle faction-colored anchor line from node to ship dock
         const anchorLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
@@ -814,5 +763,300 @@ class MapRenderer {
         });
       }
     }
+  }
+
+  // ---------------- COORDINATE & DOCK HELPERS ----------------
+
+  getDockOffset(nodeId, count = 1, idx = 0) {
+    const node = this.gameState ? this.gameState.nodes[nodeId] : (this.mapData ? this.mapData.nodes.find(n => n.id === nodeId) : null);
+    if (!node) return { offsetX: 0, offsetY: 0 };
+    let offsetX = 0;
+    let offsetY = 0;
+
+    if (node.kind === 'isle') {
+      offsetX = -108;
+      if (count === 1) offsetY = 0;
+      else if (count === 2) offsetY = (idx === 0) ? -24 : 24;
+      else offsetY = (idx - 1) * 44;
+    } else if (node.kind === 'sea') {
+      if (node.id === 'bay') {
+        offsetY = -95;
+        offsetX = (count === 1) ? 0 : (idx - (count - 1) / 2) * 72;
+      } else if (node.id === 'storm') {
+        offsetX = -108;
+        if (count === 1) offsetY = 0;
+        else if (count === 2) offsetY = (idx === 0) ? -24 : 24;
+        else offsetY = (idx - 1) * 44;
+      } else if (node.id === 'seaS') {
+        offsetX = +108;
+        if (count === 1) offsetY = 0;
+        else if (count === 2) offsetY = (idx === 0) ? -24 : 24;
+        else offsetY = (idx - 1) * 44;
+      } else {
+        offsetX = -108;
+        if (count === 1) offsetY = 0;
+        else if (count === 2) offsetY = (idx === 0) ? -24 : 24;
+        else offsetY = (idx - 1) * 44;
+      }
+    } else {
+      offsetX = (idx - (count - 1) / 2) * 72;
+      offsetY = -78;
+    }
+    return { offsetX, offsetY };
+  }
+
+  getNodeCenter(nodeId) {
+    const node = this.gameState ? this.gameState.nodes[nodeId] : (this.mapData ? this.mapData.nodes.find(n => n.id === nodeId) : null);
+    if (!node) return { x: 0, y: 0 };
+    return { x: node.x, y: node.y };
+  }
+
+  getShipCoordinates(nodeId, shipId = null) {
+    const center = this.getNodeCenter(nodeId);
+    const node = this.gameState ? this.gameState.nodes[nodeId] : null;
+    let count = 1;
+    let idx = 0;
+    if (node && node.occupants) {
+      count = node.occupants.length || 1;
+      if (shipId) {
+        const foundIdx = node.occupants.findIndex(s => s.id === shipId);
+        if (foundIdx >= 0) idx = foundIdx;
+      }
+    }
+    const offset = this.getDockOffset(nodeId, count, idx);
+    return { x: center.x + offset.offsetX, y: center.y + offset.offsetY };
+  }
+
+  // ---------------- DYNAMIC ANIMATIONS (SAIL, REAVE, NAVAL CLASH, DEFEAT) ----------------
+
+  /**
+   * Smoothly animates a ship sailing from one node to another with water wake.
+   */
+  animateShipSail(shipId, fromNodeId, toNodeId, faction = 'Asha') {
+    return new Promise((resolve) => {
+      const fromPos = this.getShipCoordinates(fromNodeId, shipId);
+      const toPos = this.getShipCoordinates(toNodeId, shipId);
+
+      // Temporary sailing wake line
+      const wakeLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      wakeLine.setAttribute('class', 'sailing-wake-line');
+      wakeLine.setAttribute('x1', fromPos.x);
+      wakeLine.setAttribute('y1', fromPos.y);
+      wakeLine.setAttribute('x2', toPos.x);
+      wakeLine.setAttribute('y2', toPos.y);
+      this.overlaysGroup.appendChild(wakeLine);
+
+      let shipEl = document.getElementById(`ship-g-${shipId}`);
+      let ephemeralShip = false;
+
+      if (!shipEl) {
+        ephemeralShip = true;
+        shipEl = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        shipEl.setAttribute('class', 'map-ship-group');
+        shipEl.setAttribute('transform', `translate(${fromPos.x}, ${fromPos.y})`);
+
+        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        rect.setAttribute('class', 'ship-capsule-badge');
+        rect.setAttribute('x', '-33');
+        rect.setAttribute('y', '-18');
+        rect.setAttribute('width', '66');
+        rect.setAttribute('height', '36');
+        rect.setAttribute('rx', '18');
+        rect.setAttribute('fill', faction === 'Victarion' ? '#e74c3c' : (faction === 'Euron' ? '#9b59b6' : '#2ecc71'));
+        rect.setAttribute('stroke', '#f5c518');
+        rect.setAttribute('stroke-width', '3');
+        shipEl.appendChild(rect);
+
+        const sym = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        sym.setAttribute('y', '6');
+        sym.setAttribute('text-anchor', 'middle');
+        sym.setAttribute('fill', '#000');
+        sym.setAttribute('font-size', '16');
+        sym.textContent = '⛵';
+        shipEl.appendChild(sym);
+
+        this.overlaysGroup.appendChild(shipEl);
+      } else {
+        // Ensure starting position is set
+        shipEl.setAttribute('transform', `translate(${fromPos.x}, ${fromPos.y})`);
+      }
+
+      shipEl.classList.add('ship-gliding');
+
+      // Trigger movement
+      requestAnimationFrame(() => {
+        shipEl.setAttribute('transform', `translate(${toPos.x}, ${toPos.y})`);
+      });
+
+      setTimeout(() => {
+        shipEl.classList.remove('ship-gliding');
+        if (wakeLine.parentNode) wakeLine.parentNode.removeChild(wakeLine);
+        if (ephemeralShip && shipEl.parentNode) shipEl.parentNode.removeChild(shipEl);
+        resolve();
+      }, 680);
+    });
+  }
+
+  /**
+   * Animates a keep raid: targeting line, flying projectile, and success/fail keep reaction.
+   */
+  animateReaveTargeting(fromSeaNodeId, targetLandId, outcome, shipId = null) {
+    return new Promise((resolve) => {
+      const shipPos = this.getShipCoordinates(fromSeaNodeId, shipId);
+      const keepPos = this.getNodeCenter(targetLandId);
+
+      // 1. Draw animated targeting line
+      const targetLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      targetLine.setAttribute('class', 'raid-targeting-line');
+      targetLine.setAttribute('x1', shipPos.x);
+      targetLine.setAttribute('y1', shipPos.y);
+      targetLine.setAttribute('x2', keepPos.x);
+      targetLine.setAttribute('y2', keepPos.y);
+      this.overlaysGroup.appendChild(targetLine);
+
+      // 2. Flying projectile (Axe)
+      const projectile = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      projectile.setAttribute('class', 'raid-projectile');
+      projectile.setAttribute('x', shipPos.x);
+      projectile.setAttribute('y', shipPos.y);
+      projectile.textContent = '🪓';
+      projectile.style.transition = 'transform 0.4s cubic-bezier(0.2, 0.8, 0.4, 1)';
+      this.overlaysGroup.appendChild(projectile);
+
+      requestAnimationFrame(() => {
+        const dx = keepPos.x - shipPos.x;
+        const dy = keepPos.y - shipPos.y;
+        projectile.style.transform = `translate(${dx}px, ${dy}px) rotate(360deg)`;
+      });
+
+      setTimeout(() => {
+        if (projectile.parentNode) projectile.parentNode.removeChild(projectile);
+        if (targetLine.parentNode) targetLine.parentNode.removeChild(targetLine);
+
+        const keepEl = document.getElementById(`node-g-${targetLandId}`);
+
+        if (outcome && outcome.success) {
+          // --- RAID SUCCESS (SACKED) ---
+          if (keepEl) keepEl.classList.add('keep-sacked-flash');
+
+          // Spawn burst of gold coins & fire embers
+          const coinsGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+          const icons = ['💰', '🪙', '✨', '🔥'];
+          icons.forEach((c, i) => {
+            const pText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            pText.setAttribute('class', 'floating-loot-particle');
+            pText.setAttribute('x', keepPos.x);
+            pText.setAttribute('y', keepPos.y);
+            pText.textContent = c;
+            const spreadX = (Math.random() - 0.5) * 60;
+            const spreadY = -30 - Math.random() * 30;
+            const toShipX = shipPos.x - keepPos.x + (Math.random() - 0.5) * 20;
+            const toShipY = shipPos.y - keepPos.y + (Math.random() - 0.5) * 20;
+            pText.style.setProperty('--dx20', `${spreadX}px`);
+            pText.style.setProperty('--dy20', `${spreadY}px`);
+            pText.style.setProperty('--dx100', `${toShipX}px`);
+            pText.style.setProperty('--dy100', `${toShipY}px`);
+            pText.style.animationDelay = `${i * 80}ms`;
+            coinsGroup.appendChild(pText);
+          });
+          this.overlaysGroup.appendChild(coinsGroup);
+
+          setTimeout(() => {
+            if (keepEl) keepEl.classList.remove('keep-sacked-flash');
+            if (coinsGroup.parentNode) coinsGroup.parentNode.removeChild(coinsGroup);
+            resolve();
+          }, 950);
+        } else {
+          // --- RAID REPELLED (FAILED) ---
+          const shieldRing = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+          shieldRing.setAttribute('class', 'shield-repel-ring');
+          shieldRing.setAttribute('cx', keepPos.x);
+          shieldRing.setAttribute('cy', keepPos.y);
+          this.overlaysGroup.appendChild(shieldRing);
+
+          const shieldIcon = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          shieldIcon.setAttribute('class', 'shield-deflect-icon');
+          shieldIcon.setAttribute('x', keepPos.x);
+          shieldIcon.setAttribute('y', keepPos.y);
+          shieldIcon.textContent = '🛡️';
+          this.overlaysGroup.appendChild(shieldIcon);
+
+          setTimeout(() => {
+            if (shieldRing.parentNode) shieldRing.parentNode.removeChild(shieldRing);
+            if (shieldIcon.parentNode) shieldIcon.parentNode.removeChild(shieldIcon);
+            resolve();
+          }, 850);
+        }
+      }, 420);
+    });
+  }
+
+  /**
+   * Animates a naval battle clash alert at the contested sea node.
+   */
+  animateNavalClash(seaNodeId) {
+    return new Promise((resolve) => {
+      const center = this.getNodeCenter(seaNodeId);
+
+      const clashRing = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      clashRing.setAttribute('class', 'naval-clash-ring');
+      clashRing.setAttribute('cx', center.x);
+      clashRing.setAttribute('cy', center.y);
+      this.overlaysGroup.appendChild(clashRing);
+
+      const badgeG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      badgeG.setAttribute('class', 'naval-clash-badge');
+      badgeG.setAttribute('transform', `translate(${center.x}, ${center.y})`);
+
+      const swordText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      swordText.setAttribute('text-anchor', 'middle');
+      swordText.setAttribute('y', '8');
+      swordText.setAttribute('font-size', '44');
+      swordText.textContent = '⚔️';
+      badgeG.appendChild(swordText);
+
+      this.overlaysGroup.appendChild(badgeG);
+
+      setTimeout(() => {
+        if (clashRing.parentNode) clashRing.parentNode.removeChild(clashRing);
+        if (badgeG.parentNode) badgeG.parentNode.removeChild(badgeG);
+        resolve();
+      }, 750);
+    });
+  }
+
+  /**
+   * Animates ship defeat or sinking into a whirlpool.
+   */
+  animateShipDefeat(shipId, nodeId, outcomeType = 'sunk') {
+    return new Promise((resolve) => {
+      const shipPos = this.getShipCoordinates(nodeId, shipId);
+      const shipEl = document.getElementById(`ship-g-${shipId}`);
+
+      if (outcomeType === 'sunk') {
+        const splash = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        splash.setAttribute('class', 'whirlpool-splash');
+        splash.setAttribute('x', shipPos.x);
+        splash.setAttribute('y', shipPos.y + 6);
+        splash.setAttribute('text-anchor', 'middle');
+        splash.setAttribute('font-size', '48');
+        splash.textContent = '🌀';
+        this.overlaysGroup.appendChild(splash);
+
+        if (shipEl) {
+          shipEl.classList.add('ship-sinking');
+          shipEl.style.transform = `translate(${shipPos.x}px, ${shipPos.y}px) scale(0.2) rotate(35deg)`;
+          shipEl.style.opacity = '0';
+        }
+
+        setTimeout(() => {
+          if (splash.parentNode) splash.parentNode.removeChild(splash);
+          resolve();
+        }, 900);
+      } else {
+        // Retreat fallback
+        resolve();
+      }
+    });
   }
 }

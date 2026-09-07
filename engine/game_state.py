@@ -635,7 +635,7 @@ class GameStateManager:
         total_capacity = sum(s.max_crew - s.crew for s in friendly_ships)
         
         if friendly_ships and total_capacity <= 0:
-            return {"success": False, "error": f"Semua kapal di {node.name} sudah penuh ({friendly_ships[0].max_crew}/{friendly_ships[0].max_crew} crew)!"}
+            return {"success": False, "error": f"All ships at {node.name} are already at full capacity ({friendly_ships[0].max_crew}/{friendly_ships[0].max_crew} crew)!"}
 
         active.hoard -= cost
         crew_to_add = 3
