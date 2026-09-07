@@ -10,6 +10,8 @@ class KingsmootApp {
     this.gameState = null;
     this.currentSelection = { type: 'none' };
     this.aiAutoStepTimer = null;
+    this.currentBattle = null;
+    this.lastSeenHazardStr = null;
   }
 
   async init() {
@@ -43,20 +45,64 @@ class KingsmootApp {
       this.ui.renderDiceRoll(this.gameState.last_reave_outcome);
     }
 
-    // Auto-step AI if active player is a bot
-    if (autoCheckAi) {
+    // Hazard notifications (e.g. Storm Belt hazard)
+    if (this.gameState.last_hazard_outcome) {
+      const hazardKey = JSON.stringify(this.gameState.last_hazard_outcome);
+      if (this.lastSeenHazardStr !== hazardKey) {
+        this.lastSeenHazardStr = hazardKey;
+        this.ui.showHazardNotification(this.gameState.last_hazard_outcome);
+      }
+    }
+
+    // Check active battle
+    if (this.currentBattle) {
+      return;
+    }
+    if (this.gameState.active_battle) {
+      this.currentBattle = this.gameState.active_battle;
+      this.showBattle(this.currentBattle);
+      return;
+    }
+
+    // Auto-step AI if active player is a bot and no active battle
+    if (autoCheckAi && (!this.currentBattle || this.currentBattle.state === 'finished')) {
       this.checkAiTurn();
     }
   }
 
   handleSelection(selection) {
-    // Left-click only inspects or selects (prevents misclick moves)
-    if (this.currentSelection.type === 'ship' && selection.type === 'node') {
-      const targetNode = this.gameState.nodes[selection.nodeId];
-      if (targetNode && targetNode.kind === 'land') {
-        this.ui.enableReaveButton(this.currentSelection.shipId, targetNode);
-        this.currentSelection.targetLandId = targetNode.id;
-        return;
+    // Left-click targeting: if user already has an active owned ship selected
+    if (this.currentSelection.type === 'ship') {
+      const activeFaction = this.gameState.active_faction;
+      let shipObj = null;
+      for (const n of Object.values(this.gameState.nodes)) {
+        const s = n.occupants.find(x => x.id === this.currentSelection.shipId);
+        if (s) { shipObj = s; break; }
+      }
+
+      if (shipObj && shipObj.faction === activeFaction) {
+        let targetNodeId = null;
+        if (selection.type === 'node') {
+          targetNodeId = selection.nodeId;
+        } else if (selection.type === 'ship' && selection.shipId !== this.currentSelection.shipId) {
+          targetNodeId = selection.nodeId;
+        }
+
+        if (targetNodeId && this.gameState.nodes[targetNodeId]) {
+          const targetNode = this.gameState.nodes[targetNodeId];
+          if (targetNode.kind === 'land') {
+            this.ui.enableReaveButton(this.currentSelection.shipId, targetNode);
+            this.currentSelection.targetLandId = targetNode.id;
+            delete this.currentSelection.targetSeaId;
+            return;
+          } else if (targetNode.kind === 'sea' || targetNode.kind === 'isle') {
+            const hasEnemy = targetNode.occupants && targetNode.occupants.some(s => s.faction !== activeFaction && s.crew > 0);
+            this.ui.enableSailButton(this.currentSelection.shipId, targetNode, hasEnemy);
+            this.currentSelection.targetSeaId = targetNode.id;
+            delete this.currentSelection.targetLandId;
+            return;
+          }
+        }
       }
     }
 
@@ -169,6 +215,15 @@ class KingsmootApp {
       if (res.success) {
         this.gameState = res.state;
         this.currentSelection = { type: 'none' };
+
+        const battle = res.battle || (res.state && res.state.active_battle);
+        if (battle) {
+          this.currentBattle = battle;
+          this.refresh(false);
+          this.showBattle(this.currentBattle);
+          return;
+        }
+
         this.refresh();
       } else {
         this.ui.showToast(res.error || "Illegal move!", "error");
@@ -177,6 +232,18 @@ class KingsmootApp {
       console.error("Sail error:", err);
       this.ui.showToast("Failed to execute sail move", "error");
     }
+  }
+
+  executeSailFromButton() {
+    if (!this.currentSelection || !this.currentSelection.shipId) {
+      this.ui.showToast("Pilih kapal Anda terlebih dahulu!", "info");
+      return;
+    }
+    if (!this.currentSelection.targetSeaId) {
+      this.ui.showToast("Klik zona laut/pulau tujuan di peta untuk berlayar!", "info");
+      return;
+    }
+    this.executeSail(this.currentSelection.shipId, this.currentSelection.targetSeaId);
   }
 
   async executeReave() {
@@ -282,6 +349,14 @@ class KingsmootApp {
         const hasNewReave = res.state.last_reave_outcome && 
           (!prevReaveOutcome || JSON.stringify(prevReaveOutcome) !== JSON.stringify(res.state.last_reave_outcome));
 
+        const battle = res.battle || (res.state && res.state.active_battle);
+        if (battle) {
+          this.currentBattle = battle;
+          this.refresh(false);
+          this.showBattle(this.currentBattle);
+          return;
+        }
+
         if (hasNewReave) {
           this.refresh(false);
           this.ui.showReaveModal(res.state.last_reave_outcome, () => {
@@ -313,13 +388,127 @@ class KingsmootApp {
     }
   }
 
+  showBattle(battle) {
+    if (!battle) return;
+    const activePlayer = this.gameState.players[this.gameState.active_player_idx];
+    const playerFavor = activePlayer ? activePlayer.favor : 0;
+    const activeFaction = this.gameState.active_faction;
+
+    this.ui.showBattleModal(battle, {
+      onBloodPrice: () => this.handleBattleAction({ use_blood_price: true }),
+      onMiracleReroll: () => this.handleBattleAction({ miracle_cost: 2 }),
+      onMiracleAutowin: () => this.handleBattleAction({ miracle_cost: 6 }),
+      onRetreat: () => this.handleBattleAction({ retreat: true }),
+      onContinue: () => this.handleBattleAction({ continue_round: true }),
+      onDismiss: () => {
+        this.currentBattle = null;
+        if (this.ui.elements.modalBattle) {
+          this.ui.elements.modalBattle.style.display = 'none';
+        }
+        this.refresh();
+      }
+    }, activeFaction, playerFavor);
+  }
+
+  async handleBattleAction(actionPayload) {
+    if (!this.currentBattle) return;
+    try {
+      actionPayload.battle_id = this.currentBattle.battle_id;
+      const res = await API.sendAction('battle_round', actionPayload);
+      if (res.success) {
+        this.gameState = res.state;
+        const battle = res.battle || (res.state && res.state.active_battle);
+        if (battle) {
+          this.currentBattle = battle;
+          this.showBattle(this.currentBattle);
+        } else {
+          this.currentBattle = null;
+          if (this.ui.elements.modalBattle) {
+            this.ui.elements.modalBattle.style.display = 'none';
+          }
+          this.refresh();
+        }
+      } else {
+        this.ui.showToast(res.error || "Aksi pertempuran gagal!", "error");
+      }
+    } catch (err) {
+      console.error("Battle action error:", err);
+      this.ui.showToast("Gagal memproses aksi pertempuran", "error");
+    }
+  }
+
+  handleCallStormClick() {
+    if (!this.gameState || this.gameState.game_over) return;
+    const activePlayer = this.gameState.players[this.gameState.active_player_idx];
+    if (activePlayer.is_ai) {
+      this.ui.showToast("Bukan giliran Anda (Giliran Bot).", "error");
+      return;
+    }
+    if (activePlayer.favor < 4) {
+      this.ui.showToast("Drowned Favor tidak cukup! Butuh 4 Favor untuk Call Storm.", "error");
+      return;
+    }
+    if (this.gameState.actions_remaining <= 0) {
+      this.ui.showToast("Tidak ada sisa aksi putaran ini.", "error");
+      return;
+    }
+
+    const activeFaction = this.gameState.active_faction;
+    const validNodes = [];
+    for (const [nId, node] of Object.entries(this.gameState.nodes)) {
+      if (node.kind === 'sea') {
+        const hasEnemy = node.occupants && node.occupants.some(s => s.faction !== activeFaction && s.crew > 0);
+        if (hasEnemy) {
+          validNodes.push(nId);
+        }
+      }
+    }
+
+    if (validNodes.length === 0) {
+      this.ui.showToast("Tidak ada armada musuh di zona laut untuk diserang badai!", "error");
+      return;
+    }
+
+    this.ui.showToast("⚡ Klik zona laut target badai (berkedip merah)!", "info");
+    this.mapRenderer.setMiracleTargetMode(true, validNodes, (targetNodeId) => {
+      this.executeCallStorm(targetNodeId);
+    });
+  }
+
+  async executeCallStorm(targetNodeId) {
+    try {
+      const res = await API.sendAction('favor_miracle', {
+        miracle_type: 'call_storm',
+        target_node: targetNodeId
+      });
+
+      if (res.success) {
+        this.gameState = res.state;
+        this.refresh();
+        this.ui.showToast(`🌊 BADAI DIPANGGIL! Musuh di ${targetNodeId.toUpperCase()} disapu gelombang (-1 crew & terlempar)!`, "info");
+      } else {
+        this.ui.showToast(res.error || "Gagal memanggil badai!", "error");
+      }
+    } catch (err) {
+      console.error("Call Storm error:", err);
+      this.ui.showToast("Gagal memanggil badai Drowned God", "error");
+    }
+  }
+
   bindEvents() {
     // Action buttons
+    if (this.ui.elements.btnSail) {
+      this.ui.elements.btnSail.addEventListener('click', () => this.executeSailFromButton());
+    }
     this.ui.elements.btnReave.addEventListener('click', () => this.executeReave());
     this.ui.elements.btnMuster.addEventListener('click', () => this.executeMuster());
     this.ui.elements.btnPray.addEventListener('click', () => this.executePray());
     this.ui.elements.btnEndTurn.addEventListener('click', () => this.executeEndTurn());
     this.ui.elements.btnAiStep.addEventListener('click', () => this.stepAi());
+
+    if (this.ui.elements.btnCallStorm) {
+      this.ui.elements.btnCallStorm.addEventListener('click', () => this.handleCallStormClick());
+    }
 
     // New Game Button & Modals
     document.getElementById('btn-new-game').addEventListener('click', () => {
@@ -354,6 +543,8 @@ class KingsmootApp {
       });
 
       this.gameState = res.state;
+      this.currentBattle = null;
+      this.lastSeenHazardStr = null;
       this.ui.victoryModalShown = false;
       this.ui.elements.modalNewGame.style.display = 'none';
       this.currentSelection = { type: 'none' };

@@ -23,6 +23,7 @@ ironprice-kingsmoot/
 │   ├── map_engine.py    # Graph topology, edges, path distance, adjacency
 │   ├── combat.py        # Reave battle resolution, damage & plunder math
 │   ├── game_state.py    # GameStateManager: action handlers, season tracker, logging
+│   ├── logger.py        # Persistent file & error logger (logs/game.log, logs/error.log)
 │   └── ai.py            # SimpleAI heuristic agent for bot opponents
 ├── web/
 │   ├── index.html       # Single-page application markup & modals
@@ -36,6 +37,7 @@ ironprice-kingsmoot/
 │       └── app.js       # Main controller, event routing, AI turn pacing
 ├── tests/
 │   ├── test_engine.py   # Unit tests for state transitions, actions, AI simulation
+│   ├── test_phase2.py   # Unit tests for Phase 2 combat, favor, flagships, hazards
 │   └── test_server.py   # HTTP integration tests against server endpoints
 ├── server.py            # Custom HTTP server serving static files & JSON REST API
 ├── run_game.py          # One-click startup script launching server and browser
@@ -102,9 +104,10 @@ All requests and responses use `application/json`.
 
 | Endpoint | Method | Payload / Parameters | Description |
 | :--- | :--- | :--- | :--- |
-| `/api/map` | `GET` | None | Returns static map node coordinates, names, kinds, and graph edges. |
+| `/api/map_data` | `GET` | None | Returns static map node coordinates, names, kinds, and graph edges. |
 | `/api/state` | `GET` | None | Returns full active game state snapshot. |
-| `/api/action` | `POST` | `{"action": str, "params": dict}` | Executes player action (`sail`, `reave`, `muster`, `pray`, `end_turn`). |
+| `/api/logs` | `GET` | `?lines=100` | Returns recent log entries from persistent `logs/game.log`. |
+| `/api/action` | `POST` | `{"action_type": str, ...}` | Executes action (`sail`, `reave`, `muster`, `pray`, `battle_round`, `favor_miracle`, `end_turn`). |
 | `/api/new_game` | `POST` | `{"max_seasons": int, "ai_factions": list}` | Resets and initializes a fresh game session. |
 | `/api/ai_step` | `POST` | None | Advances the active AI bot by exactly one action. |
 
@@ -113,11 +116,11 @@ All requests and responses use `application/json`.
 ## 5. Map Coordinate & Dock Layout System (`web/js/map_renderer.js`)
 
 To prevent visual crowding and overlapping unit badges:
-* **SVG ViewBox**: `180 50 1620 950`
+* **SVG ViewBox**: `100 60 1690 890`
 * **Node Dimensions**:
   * Isles: Circle `r=58`, with large emoji icons and bold white text (`18px`).
   * Seas: Circle `r=64`, deep sea gradients, dynamic storm styling.
-  * Green Lands: Rect `170x104`, rounded `rx=12`, golden stats overlay (`16px`).
+  * Green Lands: Rect `166x104`, rounded `rx=12`, golden stats overlay (`16px`).
 * **Unit Dock Capsules**:
   * Size: `66x36px` with pill container (`rx=18`).
   * Left: Ship symbol (`★` Flagship or `⛵` Reaver).
@@ -125,7 +128,7 @@ To prevent visual crowding and overlapping unit badges:
   * Dock Offsets:
     * Isles: Anchored horizontally to the left (`offsetX = -108`).
     * Ironman's Bay: Anchored to the North (`offsetY = -95`).
-    * Storm Belt: Anchored to the South (`offsetY = +95`).
+    * Storm Belt: Anchored to the West (`offsetX = -108`) to avoid overlapping Banefort below.
     * Sunset Sea S: Anchored to the East (`offsetX = +108`).
     * Sunset Sea N & C: Anchored to the West (`offsetX = -108`).
     * Green Lands: Anchored above the keep (`offsetY = -78`).

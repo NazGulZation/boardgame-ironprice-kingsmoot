@@ -20,6 +20,7 @@ class UIController {
       btnReave: document.getElementById('btn-action-reave'),
       btnMuster: document.getElementById('btn-action-muster'),
       btnPray: document.getElementById('btn-action-pray'),
+      btnCallStorm: document.getElementById('btn-action-callstorm'),
       btnEndTurn: document.getElementById('btn-action-endturn'),
       btnAiStep: document.getElementById('btn-ai-step'),
 
@@ -59,7 +60,36 @@ class UIController {
       reaveOutcomeTitle: document.getElementById('reave-outcome-title'),
       reaveOutcomeDesc: document.getElementById('reave-outcome-desc'),
       reaveSpoilsRow: document.getElementById('reave-spoils-row'),
-      btnReaveConfirm: document.getElementById('btn-reave-confirm')
+      btnReaveConfirm: document.getElementById('btn-reave-confirm'),
+
+      // Naval Battle Modal (Phase 2)
+      modalBattle: document.getElementById('modal-battle'),
+      battleModalTitle: document.getElementById('battle-modal-title'),
+      battleRoundBadge: document.getElementById('battle-round-badge'),
+      battleAttackerName: document.getElementById('battle-attacker-name'),
+      battleAttackerShip: document.getElementById('battle-attacker-ship'),
+      battleAttackerDice: document.getElementById('battle-attacker-dice'),
+      battleAttackerTally: document.getElementById('battle-attacker-tally'),
+      battleAttackerTraits: document.getElementById('battle-attacker-traits'),
+      battleDefenderName: document.getElementById('battle-defender-name'),
+      battleDefenderShip: document.getElementById('battle-defender-ship'),
+      battleDefenderDice: document.getElementById('battle-defender-dice'),
+      battleDefenderTally: document.getElementById('battle-defender-tally'),
+      battleDefenderTraits: document.getElementById('battle-defender-traits'),
+      battleDmgToDefender: document.getElementById('battle-dmg-to-defender'),
+      battleDmgToAttacker: document.getElementById('battle-dmg-to-attacker'),
+      battlePowersBar: document.getElementById('battle-powers-bar'),
+      btnBattleBloodPrice: document.getElementById('btn-battle-blood-price'),
+      btnBattleMiracleReroll: document.getElementById('btn-battle-miracle-reroll'),
+      btnBattleMiracleAutowin: document.getElementById('btn-battle-miracle-autowin'),
+      battlePassiveNotice: document.getElementById('battle-passive-notice'),
+      battleOutcomeBanner: document.getElementById('battle-outcome-banner'),
+      battleOutcomeTitle: document.getElementById('battle-outcome-title'),
+      battleOutcomeDesc: document.getElementById('battle-outcome-desc'),
+      battleSpoilsRow: document.getElementById('battle-spoils-row'),
+      btnBattleRetreat: document.getElementById('btn-battle-retreat'),
+      btnBattleContinue: document.getElementById('btn-battle-continue'),
+      btnBattleDismiss: document.getElementById('btn-battle-dismiss')
     };
   }
 
@@ -198,14 +228,26 @@ class UIController {
       this.elements.btnReave.disabled = true;
     }
 
-    // Pray & End Turn
+    // Pray, Call Storm & End Turn
     this.elements.btnPray.disabled = !isHumanTurn || activePlayer.favor >= 7 || gameState.actions_remaining <= 0;
-    this.elements.btnEndTurn.disabled = !isHumanTurn || gameState.game_over;
+    if (this.elements.btnCallStorm) {
+      this.elements.btnCallStorm.disabled = !isHumanTurn || activePlayer.favor < 4 || gameState.actions_remaining <= 0 || gameState.active_battle !== null;
+    }
+    this.elements.btnEndTurn.disabled = !isHumanTurn || gameState.game_over || gameState.active_battle !== null;
   }
 
   enableReaveButton(shipId, targetLandNode) {
     this.elements.btnReave.disabled = false;
     this.elements.btnReave.querySelector('small').textContent = `Target: ${targetLandNode.name} (Def: ${targetLandNode.defense})`;
+  }
+
+  enableSailButton(shipId, targetNode, hasEnemy = false) {
+    this.elements.btnSail.disabled = false;
+    const actionDesc = hasEnemy ? `⚔️ Attack Fleet at ${targetNode.name}` : `Sail to ${targetNode.name}`;
+    const smallEl = this.elements.btnSail.querySelector('small');
+    if (smallEl) smallEl.textContent = actionDesc;
+    const strongEl = this.elements.btnSail.querySelector('strong');
+    if (strongEl) strongEl.textContent = hasEnemy ? 'Attack Fleet' : 'Sail Fleet';
   }
 
   renderDiceRoll(reaveOutcome) {
@@ -471,6 +513,149 @@ class UIController {
     this.elements.modalVictory.style.display = 'flex';
   }
 
+  showHazardNotification(hazard) {
+    if (!hazard) return;
+    const { die_face, outcome, crew_lost, favor_gained, ship_id } = hazard;
+    if (outcome === 'safe') {
+      this.showToast(`🌊 [Storm Belt] ${ship_id} navigated the storm safely! (Rolled ${die_face})`, 'info');
+    } else if (outcome === 'pushback') {
+      this.showToast(`💨 [Storm Belt] Violent gales repelled ${ship_id} back to harbor! (Rolled Shield)`, 'error');
+    } else if (outcome === 'casualty') {
+      this.showToast(`💀 [Storm Belt] Raging seas swallowed 1 warrior from ${ship_id}! (+1 Favor gained)`, 'error');
+    }
+  }
+
+  showBattleModal(battleState, callbacks = {}, activeFaction = null, playerFavor = 0) {
+    if (!battleState || !this.elements.modalBattle) return;
+
+    if (this.elements.btnBattleMiracleReroll) {
+      this.elements.btnBattleMiracleReroll.disabled = (playerFavor < 2);
+    }
+    if (this.elements.btnBattleMiracleAutowin) {
+      this.elements.btnBattleMiracleAutowin.disabled = (playerFavor < 6);
+    }
+
+    const {
+      battle_id,
+      node_id,
+      attacker_faction,
+      defender_faction,
+      attacker_ship_id,
+      defender_ship_id,
+      round_num,
+      state,
+      history,
+      winner,
+      is_stalemate,
+      retreated_faction,
+      hoard_plundered,
+      legend_awarded,
+      blood_price_available
+    } = battleState;
+
+    this.elements.modalBattle.style.display = 'flex';
+    this.elements.battleModalTitle.textContent = `⚔️ NAVAL CLASH: ${node_id.toUpperCase()}`;
+    this.elements.battleRoundBadge.textContent = `Round ${round_num} of 2`;
+
+    this.elements.battleAttackerName.textContent = attacker_faction;
+    this.elements.battleAttackerShip.textContent = attacker_ship_id;
+    this.elements.battleDefenderName.textContent = defender_faction;
+    this.elements.battleDefenderShip.textContent = defender_ship_id;
+
+    this.elements.battleAttackerTraits.innerHTML = (attacker_faction === 'Victarion' && node_id === 'bay')
+      ? '⚔️ <strong>Iron Captain</strong>: Axes deal 2 Hits in Ironman\'s Bay!'
+      : (attacker_faction === 'Euron' ? '👁️ <strong>Silence</strong>: First raid surprises defender' : '');
+    this.elements.battleDefenderTraits.innerHTML = (defender_faction === 'Victarion' && node_id === 'bay')
+      ? '⚔️ <strong>Iron Captain</strong>: Axes deal 2 Hits in Ironman\'s Bay!'
+      : '';
+
+    const currentRound = history && history.length > 0 ? history[history.length - 1] : null;
+
+    if (currentRound) {
+      this.elements.battleAttackerDice.innerHTML = '';
+      currentRound.attacker_roll.dice.forEach(face => {
+        const d = document.createElement('div');
+        d.className = `dice-face ${face.toLowerCase()} dice-settled`;
+        d.innerHTML = `<span class="dice-icon">${this._getDiceIcon(face)}</span><span class="reave-dice-val">${this._getDiceValueTag(face, true)}</span>`;
+        this.elements.battleAttackerDice.appendChild(d);
+      });
+      this.elements.battleAttackerTally.innerHTML = `⚔️ <strong>${currentRound.attacker_roll.hits}</strong> Hits • 🛡️ <strong>${currentRound.attacker_roll.blocks}</strong> Blocks`;
+
+      this.elements.battleDefenderDice.innerHTML = '';
+      currentRound.defender_roll.dice.forEach(face => {
+        const d = document.createElement('div');
+        d.className = `dice-face ${face.toLowerCase()} dice-settled`;
+        d.innerHTML = `<span class="dice-icon">${this._getDiceIcon(face)}</span><span class="reave-dice-val">${this._getDiceValueTag(face, false)}</span>`;
+        this.elements.battleDefenderDice.appendChild(d);
+      });
+      this.elements.battleDefenderTally.innerHTML = `⚔️ <strong>${currentRound.defender_roll.hits}</strong> Hits • 🛡️ <strong>${currentRound.defender_roll.blocks}</strong> Blocks`;
+
+      this.elements.battleDmgToDefender.textContent = `${currentRound.net_attacker_hits} Crew`;
+      this.elements.battleDmgToAttacker.textContent = `${currentRound.net_defender_hits} Crew`;
+    }
+
+    const isEuron = (activeFaction === 'Euron' || attacker_faction === 'Euron');
+    this.elements.btnBattleBloodPrice.style.display = (isEuron && blood_price_available && state !== 'finished') ? 'inline-block' : 'none';
+
+    if (state === 'finished') {
+      this.elements.battleOutcomeBanner.style.display = 'flex';
+      this.elements.battlePowersBar.style.display = 'none';
+      this.elements.btnBattleRetreat.style.display = 'none';
+      this.elements.btnBattleContinue.style.display = 'none';
+      this.elements.btnBattleDismiss.style.display = 'inline-block';
+
+      if (winner) {
+        const isWinner = (activeFaction === winner);
+        this.elements.battleOutcomeBanner.className = `battle-outcome-banner ${isWinner ? 'victory' : 'defeat'}`;
+        this.elements.battleOutcomeTitle.textContent = `${winner.toUpperCase()} VICTORIOUS!`;
+        this.elements.battleOutcomeDesc.textContent = retreated_faction 
+          ? `${retreated_faction} retreated from the clash!`
+          : `Opposing warship was wiped out or broken in line!`;
+
+        let spoilsHtml = '';
+        if (hoard_plundered > 0) spoilsHtml += `<span class="spoil-pill hoard">💰 +${hoard_plundered} Hoard Plundered</span>`;
+        if (legend_awarded > 0) spoilsHtml += `<span class="spoil-pill legend">👑 +${legend_awarded} Legend Awarded</span>`;
+        this.elements.battleSpoilsRow.innerHTML = spoilsHtml;
+      } else if (is_stalemate) {
+        this.elements.battleOutcomeBanner.className = 'battle-outcome-banner stalemate';
+        this.elements.battleOutcomeTitle.textContent = 'STALEMATE!';
+        this.elements.battleOutcomeDesc.textContent = 'Both dreadnoughts traded heavy broadsides and fell back.';
+        this.elements.battleSpoilsRow.innerHTML = '';
+      }
+    } else {
+      this.elements.battleOutcomeBanner.style.display = 'none';
+      this.elements.battlePowersBar.style.display = 'flex';
+      this.elements.btnBattleRetreat.style.display = 'inline-block';
+      this.elements.btnBattleContinue.style.display = 'inline-block';
+      this.elements.btnBattleDismiss.style.display = 'none';
+
+      if (activeFaction === 'Asha') {
+        this.elements.btnBattleRetreat.innerHTML = '🏳️ Retreat (Free for Asha)';
+      } else {
+        this.elements.btnBattleRetreat.innerHTML = '🏳️ Retreat (Sacrifice 1 Crew)';
+      }
+    }
+
+    this.elements.btnBattleBloodPrice.onclick = () => callbacks.onBloodPrice && callbacks.onBloodPrice();
+    this.elements.btnBattleMiracleReroll.onclick = () => callbacks.onMiracleReroll && callbacks.onMiracleReroll();
+    this.elements.btnBattleMiracleAutowin.onclick = () => callbacks.onMiracleAutowin && callbacks.onMiracleAutowin();
+    this.elements.btnBattleRetreat.onclick = () => callbacks.onRetreat && callbacks.onRetreat();
+    this.elements.btnBattleContinue.onclick = () => callbacks.onContinue && callbacks.onContinue();
+    this.elements.btnBattleDismiss.onclick = () => {
+      this.elements.modalBattle.style.display = 'none';
+      if (callbacks.onDismiss) callbacks.onDismiss();
+    };
+
+    const closeX = document.getElementById('btn-close-battle-x');
+    if (closeX) {
+      closeX.style.display = (state === 'finished') ? 'block' : 'none';
+      closeX.onclick = () => {
+        this.elements.modalBattle.style.display = 'none';
+        if (callbacks.onDismiss) callbacks.onDismiss();
+      };
+    }
+  }
+
   showToast(message, type = 'info') {
     if (!this.elements.toastContainer) return;
     const toast = document.createElement('div');
@@ -486,3 +671,4 @@ class UIController {
     }, 2800);
   }
 }
+

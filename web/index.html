@@ -20,7 +20,7 @@
         <h1 class="game-title"><span class="iron">IRON PRICE</span> <span class="divider">⚔️</span> <span class="sub">KINGSMOOT</span></h1>
         <div class="header-motto">"WE DO NOT SOW" • WHAT IS DEAD MAY NEVER DIE</div>
       </div>
-      <span class="phase-badge">Phase 1 MVP</span>
+      <span class="phase-badge">Phase 2: Fleet Battles & Favor</span>
     </div>
 
     <div class="header-center">
@@ -188,7 +188,7 @@
           <div class="action-btn-wrapper">
             <button class="action-btn" id="btn-action-sail" disabled>
               <span class="btn-icon">⛵</span>
-              <span class="btn-text"><strong>Sail Fleet</strong><small>Traverse seas up to 2 nodes</small></span>
+              <span class="btn-text"><strong>Sail Fleet</strong><small>Traverse seas up to 2-3 nodes</small></span>
             </button>
           </div>
 
@@ -213,6 +213,14 @@
             <button class="action-btn btn-drowned" id="btn-action-pray">
               <span class="btn-icon">🌊</span>
               <span class="btn-text"><strong>Pray to Drowned God</strong><small>+1 Favor (Blessing of Nagga)</small></span>
+            </button>
+          </div>
+
+          <!-- Call Storm Miracle (4 Favor) -->
+          <div class="action-btn-wrapper">
+            <button class="action-btn btn-miracle-action" id="btn-action-callstorm" disabled>
+              <span class="btn-icon">⚡</span>
+              <span class="btn-text"><strong>Call Storm (4 🌊)</strong><small>Batter adjacent rival fleet & push back</small></span>
             </button>
           </div>
         </div>
@@ -382,6 +390,108 @@
     </div>
   </div>
 
+  <!-- Naval Battle Arena Modal (Phase 2 PvP Fleet Combat) -->
+  <div class="modal-backdrop" id="modal-battle" style="display: none;">
+    <div class="modal-battle-card">
+      <div class="battle-modal-header">
+        <div class="battle-header-left">
+          <h2 class="battle-modal-title" id="battle-modal-title">⚔️ NAVAL CLASH: IRONMAN'S BAY</h2>
+          <span class="battle-round-badge" id="battle-round-badge">Round 1 of 2</span>
+        </div>
+        <button class="modal-close" id="btn-close-battle-x" style="display: none;">&times;</button>
+      </div>
+
+      <div class="battle-combat-arena">
+        <!-- Attacker Column -->
+        <div class="battle-side attacker-side" id="battle-attacker-side">
+          <div class="battle-side-header">
+            <span class="battle-side-role">ATTACKING DREADNOUGHT</span>
+            <h3 class="battle-side-name" id="battle-attacker-name">Euron Greyjoy</h3>
+            <span class="battle-side-ship" id="battle-attacker-ship">The Silence (4/4 Crew)</span>
+          </div>
+          <div class="battle-dice-box" id="battle-attacker-dice">
+            <!-- Animated dice populated dynamically -->
+          </div>
+          <div class="battle-side-tally" id="battle-attacker-tally">⚔️ Rolling...</div>
+          <div class="battle-trait-box" id="battle-attacker-traits"></div>
+        </div>
+
+        <!-- Clash VS -->
+        <div class="battle-vs-col">
+          <div class="battle-vs-clash">VS</div>
+          <span class="battle-vs-sub">BROADSIDE</span>
+        </div>
+
+        <!-- Defender Column -->
+        <div class="battle-side defender-side" id="battle-defender-side">
+          <div class="battle-side-header">
+            <span class="battle-side-role">DEFENDING WARSHIP</span>
+            <h3 class="battle-side-name" id="battle-defender-name">Victarion Greyjoy</h3>
+            <span class="battle-side-ship" id="battle-defender-ship">Iron Victory (6/6 Crew)</span>
+          </div>
+          <div class="battle-dice-box" id="battle-defender-dice">
+            <!-- Animated dice populated dynamically -->
+          </div>
+          <div class="battle-side-tally" id="battle-defender-tally">🛡️ Rolling...</div>
+          <div class="battle-trait-box" id="battle-defender-traits"></div>
+        </div>
+      </div>
+
+      <!-- Formula / Damage Calculation Bar -->
+      <div class="battle-formula-bar" id="battle-formula-bar">
+        <div class="battle-formula-col">
+          <span>Damage to Defender:</span>
+          <strong id="battle-dmg-to-defender">0 Crew</strong>
+        </div>
+        <div class="battle-formula-divider">|</div>
+        <div class="battle-formula-col">
+          <span>Damage to Attacker:</span>
+          <strong id="battle-dmg-to-attacker">0 Crew</strong>
+        </div>
+      </div>
+
+      <!-- Special Powers & Miracles Section -->
+      <div class="battle-powers-bar" id="battle-powers-bar">
+        <div class="battle-power-group">
+          <span class="battle-power-title">🔥 Faction Powers:</span>
+          <button class="btn btn-sm btn-blood" id="btn-battle-blood-price" style="display: none;">
+            🩸 Blood Price (Re-roll • Eye: +1🌊/-1⚔️)
+          </button>
+          <span class="battle-passive-notice" id="battle-passive-notice"></span>
+        </div>
+        <div class="battle-miracles-group">
+          <span class="battle-power-title">🌊 Drowned Miracles:</span>
+          <button class="btn btn-sm btn-miracle" id="btn-battle-miracle-reroll" title="Spend 2 Favor to re-roll tactical dice">
+            🌊 Re-roll (2 Favor)
+          </button>
+          <button class="btn btn-sm btn-miracle-gold" id="btn-battle-miracle-autowin" title="Spend 6 Favor to deal 5 unblockable hits">
+            ⚡ Auto-Win Round (6 Favor)
+          </button>
+        </div>
+      </div>
+
+      <!-- Outcome Banner if Battle Finished -->
+      <div class="battle-outcome-banner" id="battle-outcome-banner" style="display: none;">
+        <div class="battle-outcome-title" id="battle-outcome-title">VICTORY!</div>
+        <div class="battle-outcome-desc" id="battle-outcome-desc">Enemy warship sunk!</div>
+        <div class="battle-spoils-row" id="battle-spoils-row"></div>
+      </div>
+
+      <!-- Battle Controls Footer -->
+      <div class="battle-modal-footer" id="battle-modal-footer">
+        <button class="btn btn-secondary btn-iron" id="btn-battle-retreat">
+          🏳️ Retreat Fleet
+        </button>
+        <button class="btn btn-primary" id="btn-battle-continue">
+          ⚔️ Fight Round 2
+        </button>
+        <button class="btn btn-primary" id="btn-battle-dismiss" style="display: none;">
+          Done
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Kingsmoot Victory Ceremony Modal -->
   <div class="modal-backdrop" id="modal-victory" style="display: none;">
     <div class="modal-card modal-victory-card">
@@ -405,9 +515,9 @@
   </div>
 
   <!-- JS Application Scripts with Cache Buster -->
-  <script src="js/api.js?v=1.9"></script>
-  <script src="js/map_renderer.js?v=1.9"></script>
-  <script src="js/ui.js?v=1.9"></script>
-  <script src="js/app.js?v=1.9"></script>
+  <script src="js/api.js?v=2.4"></script>
+  <script src="js/map_renderer.js?v=2.4"></script>
+  <script src="js/ui.js?v=2.4"></script>
+  <script src="js/app.js?v=2.4"></script>
 </body>
 </html>

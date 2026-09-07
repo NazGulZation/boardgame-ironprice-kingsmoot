@@ -77,6 +77,17 @@ class TestServerIntegration(unittest.TestCase):
             data = json.loads(response.read().decode("utf-8"))
             self.assertTrue(data["success"])
 
+    def test_get_logs(self):
+        """Test GET /api/logs returns recent log entries and logs file is populated."""
+        url = f"http://localhost:{self.port}/api/logs?lines=50"
+        req = urllib.request.Request(url)
+        with urllib.request.urlopen(req) as response:
+            self.assertEqual(response.status, 200)
+            data = json.loads(response.read().decode("utf-8"))
+            self.assertTrue(data["success"])
+            self.assertIsInstance(data["logs"], list)
+            self.assertGreater(len(data["logs"]), 0)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -124,6 +124,21 @@ class TestPhase1Engine(unittest.TestCase):
         self.assertIn("success", outcome)
         self.assertIn("attacker_roll", outcome)
 
+    def test_sea_south_and_storm_raid_targets(self):
+        """Verify Sunset Sea S can raid Fair Isle, Banefort, Flint's Finger, Shield, Oldtown, and Arbor."""
+        neighbors_seaS = self.map_engine.get_neighbors("seaS")
+        self.assertIn("fair", neighbors_seaS)
+        self.assertIn("banefort", neighbors_seaS)
+        self.assertIn("flint", neighbors_seaS)
+        self.assertIn("shield", neighbors_seaS)
+        self.assertIn("oldtown", neighbors_seaS)
+        self.assertIn("arbor", neighbors_seaS)
+
+        neighbors_storm = self.map_engine.get_neighbors("storm")
+        self.assertIn("fair", neighbors_storm)
+        self.assertIn("banefort", neighbors_storm)
+        self.assertIn("flint", neighbors_storm)
+
     def test_full_season_and_ai_cycle(self):
         """Run simulated game steps with SimpleAI."""
         game = GameStateManager(max_seasons=2)

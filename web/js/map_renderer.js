@@ -331,6 +331,29 @@ class MapRenderer {
         g.appendChild(text);
 
         if (node.id === 'storm') {
+          // Atmospheric animated storm vortex
+          const vortex = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+          vortex.setAttribute('class', 'storm-vortex');
+          for (let i = 0; i < 3; i++) {
+            const arc = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            arc.setAttribute('r', `${48 + i * 8}`);
+            arc.setAttribute('fill', 'none');
+            arc.setAttribute('stroke', '#a29bfe');
+            arc.setAttribute('stroke-width', '2');
+            arc.setAttribute('stroke-dasharray', '14,26');
+            arc.setAttribute('opacity', '0.65');
+            vortex.appendChild(arc);
+          }
+          g.appendChild(vortex);
+
+          const lightning = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+          lightning.setAttribute('class', 'storm-lightning');
+          lightning.setAttribute('points', '-5,-40 2,-22 -3,-22 5,-4 -2,-4 3,12');
+          lightning.setAttribute('fill', '#f1c40f');
+          lightning.setAttribute('stroke', '#ffffff');
+          lightning.setAttribute('stroke-width', '1');
+          g.appendChild(lightning);
+
           const sub = document.createElementNS('http://www.w3.org/2000/svg', 'text');
           sub.setAttribute('y', '38');
           sub.setAttribute('text-anchor', 'middle');
@@ -527,9 +550,15 @@ class MapRenderer {
             offsetY = -95;
             offsetX = (count === 1) ? 0 : (idx - (count - 1) / 2) * 72;
           } else if (node.id === 'storm') {
-            // Storm Belt: dock to South (wide open ocean)
-            offsetY = +95;
-            offsetX = (count === 1) ? 0 : (idx - (count - 1) / 2) * 72;
+            // Storm Belt: dock to West to leave South open for reave keeps
+            offsetX = -108;
+            if (count === 1) {
+              offsetY = 0;
+            } else if (count === 2) {
+              offsetY = (idx === 0) ? -24 : 24;
+            } else {
+              offsetY = (idx - 1) * 44;
+            }
           } else if (node.id === 'seaS') {
             // Sunset Sea South: dock to East (towards Shield Isles)
             offsetX = +108;
@@ -641,7 +670,26 @@ class MapRenderer {
     });
   }
 
+  setMiracleTargetMode(enabled, validSeaNodes = [], onTargetChosen = null) {
+    this.miracleTargetMode = enabled;
+    this.validMiracleNodes = validSeaNodes;
+    this.onMiracleTargetChosen = onTargetChosen;
+    this.highlightSelection();
+  }
+
   handleNodeClick(nodeId) {
+    if (this.miracleTargetMode) {
+      if (this.validMiracleNodes && this.validMiracleNodes.includes(nodeId)) {
+        if (this.onMiracleTargetChosen) {
+          const cb = this.onMiracleTargetChosen;
+          this.setMiracleTargetMode(false);
+          cb(nodeId);
+          return;
+        }
+      }
+      this.setMiracleTargetMode(false);
+    }
+
     this.selectedNodeId = nodeId;
     this.selectedShipId = null;
     this.highlightSelection();
@@ -674,6 +722,13 @@ class MapRenderer {
     document.querySelectorAll('.target-highlight').forEach(el => el.classList.remove('target-highlight'));
     document.querySelectorAll('.reave-highlight').forEach(el => el.classList.remove('reave-highlight'));
     document.querySelectorAll('.ship-halo, .ship-pointer').forEach(el => el.remove());
+
+    if (this.miracleTargetMode && this.validMiracleNodes) {
+      this.validMiracleNodes.forEach(nId => {
+        const el = document.getElementById(`node-g-${nId}`);
+        if (el) el.classList.add('reave-highlight');
+      });
+    }
 
     if (this.selectedNodeId) {
       const g = document.getElementById(`node-g-${this.selectedNodeId}`);

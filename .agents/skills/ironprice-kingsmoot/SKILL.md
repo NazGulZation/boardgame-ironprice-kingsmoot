@@ -125,11 +125,13 @@ When implementing subsequent game phases, follow the phase specifications:
 * **Phase 1: Tactical Engine** (Completed)
   * Implemented: Movement, Reave combat dice, Muster with overflow, Pray, End Turn, 3 AI claimants, Web UI.
   * Spec: [MVP-Phase-1-Tactical-Engine.md](../../../MVP-Phase-1-Tactical-Engine.md).
-* **Phase 2: Combat & Favor** (Next)
-  * Add: Direct naval battle when entering enemy ship sea zone.
-  * Add: Favor spending for battle rerolls and special Drowned God blessings.
+* **Phase 2: Combat & Favor** (Completed)
+  * Implemented: Direct naval battle when entering enemy ship sea zone, tactical dice rolling with net damage, retreat mechanics.
+  * Implemented: Drowned Favor track (0–7), tactical reroll (2 Favor), Call Storm (4 Favor) and Auto-Win (6 Favor) miracles.
+  * Implemented: Asymmetric flagships (Silence speed 3 & Blood Price, Iron Victory 6 capacity & Iron Captain bonus, Black Wind storm immunity & free retreat).
+  * Implemented: Storm Belt hazards, no-elimination respawn ("What is dead may never die"), southern map re-routing, and persistent logging subsystem (`logs/game.log`, `logs/error.log`).
   * Spec: [MVP-Phase-2-Combat-Favor.md](../../../MVP-Phase-2-Combat-Favor.md).
-* **Phase 3: Tide & Faction Cards**
+* **Phase 3: Tide & Faction Cards** (Next)
   * Add: 30 Tide event deck (Winter storms, Merchant convoys, Kraken sightings).
   * Add: Faction tactical action cards for Asha, Euron, and Victarion.
   * Spec: [MVP-Phase-3-Tide-Faction-Cards.md](../../../MVP-Phase-3-Tide-Faction-Cards.md).

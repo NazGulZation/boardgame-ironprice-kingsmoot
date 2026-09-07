@@ -5,6 +5,7 @@ __pycache__/
 .coverage
 htmlcov/
 *.log
+logs/
 .DS_Store
 Thumbs.db
 .vscode/

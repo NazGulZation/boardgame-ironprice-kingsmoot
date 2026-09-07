@@ -166,8 +166,8 @@
       "id": "fair",
       "name": "Fair Isle",
       "kind": "land",
-      "x": 1460,
-      "y": 680,
+      "x": 520,
+      "y": 820,
       "defense": 2,
       "hoard": 2,
       "legend": 1
@@ -177,7 +177,7 @@
       "name": "Oldtown",
       "kind": "land",
       "x": 1670,
-      "y": 700,
+      "y": 660,
       "defense": 5,
       "hoard": 4,
       "legend": 2
@@ -186,8 +186,8 @@
       "id": "banefort",
       "name": "Banefort",
       "kind": "land",
-      "x": 1250,
-      "y": 860,
+      "x": 720,
+      "y": 820,
       "defense": 3,
       "hoard": 3,
       "legend": 1
@@ -197,7 +197,7 @@
       "name": "The Arbor",
       "kind": "land",
       "x": 1460,
-      "y": 860,
+      "y": 660,
       "defense": 2,
       "hoard": 2,
       "legend": 1
@@ -206,8 +206,8 @@
       "id": "flint",
       "name": "Flint's Finger",
       "kind": "land",
-      "x": 1670,
-      "y": 880,
+      "x": 920,
+      "y": 820,
       "defense": 3,
       "hoard": 3,
       "legend": 1
@@ -241,10 +241,6 @@
     [
       "bay",
       "seaC"
-    ],
-    [
-      "bay",
-      "seaS"
     ],
     [
       "bay",
@@ -288,15 +284,23 @@
     ],
     [
       "seaS",
-      "fair"
-    ],
-    [
-      "seaS",
       "oldtown"
     ],
     [
       "seaS",
       "arbor"
+    ],
+    [
+      "seaS",
+      "fair"
+    ],
+    [
+      "seaS",
+      "banefort"
+    ],
+    [
+      "seaS",
+      "flint"
     ],
     [
       "storm",
@@ -313,14 +317,6 @@
     [
       "storm",
       "fair"
-    ],
-    [
-      "seaS",
-      "banefort"
-    ],
-    [
-      "seaS",
-      "flint"
     ]
   ],
   "dice": {

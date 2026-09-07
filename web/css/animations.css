@@ -208,3 +208,28 @@
   animation: bloodAura 1.4s infinite ease-in-out;
 }
 
+/* ---------------- PHASE 2: STORM BELT ATMOSPHERIC FX ---------------- */
+
+@keyframes stormSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes stormLightning {
+  0%, 94%, 98% { opacity: 0.2; }
+  95%, 97% { opacity: 0.9; filter: drop-shadow(0 0 10px #70d6ff); }
+}
+
+.storm-vortex {
+  animation: stormSpin 18s linear infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+  pointer-events: none;
+}
+
+.storm-lightning {
+  animation: stormLightning 6s infinite ease-in-out;
+  pointer-events: none;
+}
+
+
