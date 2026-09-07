@@ -28,6 +28,10 @@ This skill provides the architecture guide, coding standards, UI conventions, an
 5. **Deterministic State Management**:
    * All game rules must reside in `engine/` and be callable headlessly via `GameStateManager`.
    * The server is a thin JSON RPC wrapper around `GameStateManager`.
+6. **Strict 700-Line File Quota**:
+   * No file in the repository (Python, JS, CSS, JSON, Markdown, etc.) may exceed **700 lines** to prevent code bloat.
+   * When any file exceeds this quota, it must be immediately refactored and modularized into focused, single-responsibility submodules.
+   * Continuously enforced and validated by `tests/test_file_size.py`.
 
 ---
 

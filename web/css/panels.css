@@ -1,0 +1,333 @@
+/* ==========================================================================
+   IRON PRICE: Kingsmoot — Panels Stylesheet (Sidebar, Orders, Chronicle)
+   ========================================================================== */
+
+/* ---------------- SIDEBAR SECTION (RIVETED SLATE ARMOR) ---------------- */
+
+.sidebar-section {
+ background: linear-gradient(180deg, #0f1622 0%, #090e16 100%);
+ display: flex;
+ flex-direction: column;
+ overflow-y: auto;
+ gap: 12px;
+ padding: 14px;
+ border-left: 1px solid #1c2736;
+}
+
+.sidebar-card {
+ background: linear-gradient(180deg, #141f2d 0%, #0d1520 100%);
+ border: 1px solid #2d3e52;
+ border-radius: 5px;
+ padding: 14px;
+ box-shadow: var(--shadow-iron);
+ position: relative;
+}
+
+.sidebar-card::before,
+.sidebar-card::after {
+ content: '';
+ position: absolute;
+ width: 5px;
+ height: 5px;
+ border-radius: 50%;
+ background: radial-gradient(circle at 35% 35%, #9ab3cf, #2d3f54);
+ box-shadow: 0 1px 2px #000;
+}
+.sidebar-card::before { top: 6px; left: 6px; }
+.sidebar-card::after { top: 6px; right: 6px; }
+
+.section-title {
+ font-family: 'Cinzel', serif;
+ font-size: 0.95rem;
+ font-weight: 800;
+ color: var(--gold-accent);
+ letter-spacing: 0.8px;
+ text-shadow: 0 1px 3px #000;
+ display: flex;
+ align-items: center;
+ justify-content: space-between;
+ margin-bottom: 8px;
+}
+
+.panel-header-iron {
+ display: flex;
+ justify-content: space-between;
+ align-items: center;
+ margin-bottom: 10px;
+}
+
+.panel-sub-label {
+ font-family: 'Cinzel', serif;
+ font-size: 0.68rem;
+ font-weight: 700;
+ color: #7d90a4;
+ letter-spacing: 1px;
+ text-transform: uppercase;
+}
+
+/* ---------------- CLAIMANTS LIST (WAR BANNERS) ---------------- */
+
+.claimants-list {
+ display: flex;
+ flex-direction: column;
+ gap: 10px;
+}
+
+.claimant-card {
+ background: linear-gradient(180deg, #0f1824 0%, #090e16 100%);
+ border: 1px solid #283749;
+ border-radius: 4px;
+ padding: 10px 12px;
+ display: flex;
+ flex-direction: column;
+ gap: 6px;
+ transition: all 0.25s ease;
+ position: relative;
+ box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 3px 8px rgba(0,0,0,0.5);
+}
+
+.claimant-card.active-card {
+ border-color: var(--gold-accent);
+ box-shadow: 0 0 14px var(--gold-glow), inset 0 1px 0 rgba(255,255,255,0.12);
+ background: linear-gradient(180deg, rgba(243, 195, 72, 0.08) 0%, #0d1522 100%);
+}
+
+.claimant-header {
+ display: flex;
+ justify-content: space-between;
+ align-items: center;
+}
+
+.claimant-name {
+ font-family: 'Cinzel', serif;
+ font-weight: 800;
+ font-size: 0.88rem;
+ display: flex;
+ align-items: center;
+ gap: 6px;
+ letter-spacing: 0.5px;
+ text-shadow: 0 1px 3px #000;
+}
+
+.claimant-role-badge {
+ font-family: 'Inter', sans-serif;
+ font-size: 0.65rem;
+ font-weight: 700;
+ padding: 2px 7px;
+ border-radius: 3px;
+ background: #172433;
+ color: #8fa2b6;
+ border: 1px solid #2b3e52;
+ letter-spacing: 0.5px;
+}
+
+.claimant-stats-row {
+ display: grid;
+ grid-template-columns: repeat(4, 1fr);
+ gap: 5px;
+}
+
+.c-stat {
+ background: var(--bg-stone-sunken);
+ border: 1px solid #1a2736;
+ padding: 5px 6px;
+ border-radius: 3px;
+ text-align: center;
+ box-shadow: inset 0 2px 5px rgba(0,0,0,0.7);
+}
+
+.c-stat-label {
+ font-family: 'Cinzel', serif;
+ font-size: 0.58rem;
+ font-weight: 800;
+ color: #6d8094;
+ display: block;
+ letter-spacing: 0.8px;
+}
+
+.c-stat-val {
+ font-family: 'Cinzel', serif;
+ font-weight: 900;
+ font-size: 0.88rem;
+ margin-top: 1px;
+ text-shadow: 0 1px 2px #000;
+}
+
+.c-stat-val.gold { color: #f3c348; }
+.c-stat-val.legend { color: #e67e22; }
+.c-stat-val.favor { color: #3498db; }
+.c-stat-val.crew { color: #2ecc71; }
+
+/* ---------------- ACTION PANEL (REAVER ORDERS) ---------------- */
+
+.action-panel .panel-header {
+ display: flex;
+ justify-content: space-between;
+ align-items: center;
+ margin-bottom: 10px;
+}
+
+.active-badge {
+ font-family: 'Cinzel', serif;
+ font-size: 0.68rem;
+ font-weight: 800;
+ padding: 3px 9px;
+ border-radius: 3px;
+ background: linear-gradient(180deg, #f3c348 0%, #c49320 100%);
+ color: #0c0803;
+ letter-spacing: 0.8px;
+ box-shadow: 0 0 10px rgba(243, 195, 72, 0.4);
+}
+
+.selection-info-box {
+ background: rgba(4, 7, 12, 0.65);
+ border: 1px solid #233446;
+ border-radius: 4px;
+ padding: 8px 12px;
+ margin-bottom: 12px;
+ box-shadow: inset 0 2px 6px rgba(0,0,0,0.7);
+}
+
+.selection-info-box .info-label {
+ font-family: 'Cinzel', serif;
+ font-size: 0.65rem;
+ font-weight: 800;
+ color: #778b9e;
+ letter-spacing: 0.8px;
+}
+
+.selection-info-box .info-value {
+ font-family: 'Cinzel', serif;
+ font-size: 0.85rem;
+ font-weight: 800;
+ color: #fff;
+ letter-spacing: 0.5px;
+ text-shadow: 0 1px 2px #000;
+}
+
+.action-buttons-grid {
+ display: flex;
+ flex-direction: column;
+ gap: 8px;
+ margin-bottom: 12px;
+}
+
+.action-btn {
+ width: 100%;
+ background: linear-gradient(180deg, #1b2737 0%, #101924 100%);
+ border: 1px solid #2c3e52;
+ border-radius: 4px;
+ padding: 10px 14px;
+ color: var(--text-main);
+ cursor: pointer;
+ display: flex;
+ align-items: center;
+ gap: 12px;
+ text-align: left;
+ transition: all 0.2s ease;
+ box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 3px 8px rgba(0,0,0,0.5);
+ position: relative;
+}
+
+.action-btn:hover:not(:disabled) {
+ background: linear-gradient(180deg, #24354b 0%, #14202e 100%);
+ border-color: var(--border-gold);
+ box-shadow: 0 0 12px var(--gold-glow);
+ transform: translateX(2px);
+}
+
+.action-btn:active:not(:disabled) {
+ transform: translateY(1px);
+ box-shadow: inset 0 2px 6px #000;
+}
+
+.action-btn:disabled {
+ opacity: 0.35;
+ filter: grayscale(0.8);
+ cursor: not-allowed;
+}
+
+.action-btn.btn-danger {
+ background: linear-gradient(180deg, #381212 0%, #1a0808 100%);
+ border-color: #631d1d;
+}
+.action-btn.btn-danger:hover:not(:disabled) {
+ background: linear-gradient(180deg, #571a1a 0%, #290d0d 100%);
+ border-color: #e74c3c;
+ box-shadow: 0 0 14px rgba(231, 76, 60, 0.4);
+}
+
+.action-btn.btn-drowned {
+ background: linear-gradient(180deg, #102932 0%, #09171d 100%);
+ border-color: #1a4955;
+}
+.action-btn.btn-drowned:hover:not(:disabled) {
+ background: linear-gradient(180deg, #173d4a 0%, #0d222b 100%);
+ border-color: #2ecc71;
+ box-shadow: 0 0 14px rgba(46, 204, 113, 0.4);
+}
+
+.action-btn .btn-icon {
+ font-size: 1.45rem;
+ line-height: 1;
+ filter: drop-shadow(0 2px 4px #000);
+}
+
+.action-btn .btn-text strong {
+ display: block;
+ font-family: 'Cinzel', serif;
+ font-size: 0.86rem;
+ font-weight: 800;
+ letter-spacing: 0.5px;
+ color: #fff;
+}
+
+.action-btn .btn-text small {
+ display: block;
+ font-size: 0.68rem;
+ color: #7e91a4;
+ margin-top: 1px;
+}
+
+.action-footer {
+ display: flex;
+ flex-direction: column;
+ gap: 8px;
+}
+
+/* ---------------- LOG PANEL (IRON CHRONICLE) ---------------- */
+
+.log-panel {
+ flex: 1;
+ min-height: 160px;
+ display: flex;
+ flex-direction: column;
+}
+
+.log-entries-container {
+ flex: 1;
+ max-height: 200px;
+ overflow-y: auto;
+ display: flex;
+ flex-direction: column;
+ gap: 6px;
+ font-size: 0.76rem;
+ padding-right: 4px;
+}
+
+.log-entry {
+ background: rgba(4, 7, 12, 0.55);
+ border-left: 3px solid #3c5168;
+ padding: 6px 10px;
+ border-radius: 0 3px 3px 0;
+ line-height: 1.35;
+ color: #bac9d8;
+ box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+}
+
+.log-entry.system {
+ border-color: var(--gold-accent);
+ color: #f7dda2;
+ font-style: italic;
+}
+

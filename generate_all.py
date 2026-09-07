@@ -131,7 +131,24 @@ def build_json():
         "all_cards": tide_full,
         "dice": DICE,
     }
-    (BASE / "cards.json").write_text(json.dumps(cards_json, indent=2), encoding="utf-8")
+    def _compact_card_json(d):
+        lines = ['{', f'  "game": {json.dumps(d["game"])},', f'  "counts": {json.dumps(d["counts"])},', '  "tide_types": [']
+        for i, item in enumerate(d.get("tide_types", [])):
+            comma = ',' if i < len(d["tide_types"]) - 1 else ''
+            lines.append('    ' + json.dumps(item) + comma)
+        lines.append('  ],\n  "faction_cards": [')
+        for i, item in enumerate(d.get("faction_cards", [])):
+            comma = ',' if i < len(d["faction_cards"]) - 1 else ''
+            lines.append('    ' + json.dumps(item) + comma)
+        lines.append('  ],\n  "all_cards": [')
+        for i, item in enumerate(d.get("all_cards", [])):
+            comma = ',' if i < len(d["all_cards"]) - 1 else ''
+            lines.append('    ' + json.dumps(item) + comma)
+        lines.append('  ],')
+        lines.append('  "dice": ' + json.dumps(d["dice"], indent=4).replace('\n', '\n  '))
+        lines.append('}\n')
+        return '\n'.join(lines)
+    (BASE / "cards.json").write_text(_compact_card_json(cards_json), encoding="utf-8")
 
     map_json = {"game": "IRON PRICE: Kingsmoot", "nodes": NODES, "edges": EDGES, "dice": DICE,
                 "rules_summary": "5 seasons x 3 turns x 2 actions. Most Legend wins."}
