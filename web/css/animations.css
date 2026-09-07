@@ -174,3 +174,37 @@
   transform-origin: center;
 }
 
+/* ---------------- IRONBORN THEMATIC GLOWS & SHEENS ---------------- */
+
+@keyframes krakenSheen {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.action-btn:hover:not(:disabled)::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(243, 195, 72, 0.15), transparent);
+  background-size: 200% 100%;
+  animation: krakenSheen 1.5s infinite;
+  pointer-events: none;
+}
+
+@keyframes bloodAura {
+  0% { box-shadow: 0 0 6px rgba(231, 76, 60, 0.4); }
+  50% { box-shadow: 0 0 18px rgba(231, 76, 60, 0.8); }
+  100% { box-shadow: 0 0 6px rgba(231, 76, 60, 0.4); }
+}
+
+.action-btn.btn-danger:hover:not(:disabled) {
+  animation: bloodAura 1.4s infinite ease-in-out;
+}
+

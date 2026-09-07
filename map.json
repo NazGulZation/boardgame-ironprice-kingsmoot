@@ -8,7 +8,8 @@
       "x": 300,
       "y": 400,
       "special": "Euron starts. Port: +1 card",
-      "control": "Euron"
+      "control": "Euron",
+      "image": "assets/nodes/pyke.jpg"
     },
     {
       "id": "harlaw",
@@ -17,7 +18,8 @@
       "x": 350,
       "y": 250,
       "special": "Asha starts. Port: +1 card",
-      "control": "Asha"
+      "control": "Asha",
+      "image": "assets/nodes/harlaw.jpg"
     },
     {
       "id": "greatwyk",
@@ -26,7 +28,8 @@
       "x": 280,
       "y": 550,
       "special": "Victarion starts. Muster 2 Hoard",
-      "control": "Victarion"
+      "control": "Victarion",
+      "image": "assets/nodes/greatwyk.jpg"
     },
     {
       "id": "oldwyk",
@@ -35,7 +38,8 @@
       "x": 450,
       "y": 400,
       "special": "Kingsmoot: +1 Favor +1 Legend",
-      "defense": 2
+      "defense": 2,
+      "image": "assets/nodes/oldwyk.jpg"
     },
     {
       "id": "orkmont",
@@ -44,7 +48,8 @@
       "x": 420,
       "y": 560,
       "special": "+2 Hoard at season end",
-      "defense": 2
+      "defense": 2,
+      "image": "assets/nodes/orkmont.jpg"
     },
     {
       "id": "bay",
@@ -52,7 +57,8 @@
       "kind": "sea",
       "x": 620,
       "y": 410,
-      "special": "Home waters (safe)"
+      "special": "Home waters (safe)",
+      "image": "assets/nodes/bay.jpg"
     },
     {
       "id": "seaN",

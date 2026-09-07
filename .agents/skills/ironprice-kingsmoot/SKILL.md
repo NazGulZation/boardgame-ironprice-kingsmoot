@@ -95,12 +95,26 @@ Web UI will be live at: `http://localhost:8000`
    * All decorative highlight SVG elements must have `pointer-events: none` so they don't block clicks.
 4. **State Synchronization**:
    * `MapRenderer.update(gameState, selection)` must reapply `this.highlightSelection()` on every render cycle so highlights are never wiped by DOM rebuilds.
-5. **Dice Tray & Combat Modal Guidelines**:
-   * Bottom dice tray (`.dice-tray-panel`) must use `min-height: 154px; height: auto; flex-shrink: 0;` and `.map-viewport` must have `min-height: 0;` to prevent layout clipping and ensure comfortable padding for result summary text.
-   * Reave combat modal (`#modal-reave`) must provide high-suspense animated 3D dice tumbling (`.dice-tumbling`), lock-in settles (`.dice-settled`), attacker vs defender formula bars, and pause AI auto-step pacing while the modal is open.
-6. **Thematic Board Map Illustration**:
+5. **Dice Tray & Combat Modal Readability**:
+   * Bottom dice tray (`.dice-tray-panel`) must use `min-height: 168px; height: auto; flex-shrink: 0;` and `.map-viewport` must have `min-height: 0;` to prevent layout clipping and ensure comfortable padding for result summary text.
+   * Bottom tray dice (`.dice-face`) are scaled to `64px × 64px` with `1.75rem` icons and `.dice-val` combat effect tags (`+2 Hits`, `+1 Hit`, `⚔️ 1 Hit`, `🛡️ 1 Block`).
+   * Reave combat modal (`#modal-reave`, `.modal-reave-card`) has `max-width: 800px; width: 96%;`, dice scaled to `88px × 88px` (`.reave-dice-face`) with `2.85rem` icons and `1.00rem` high-contrast tags.
+   * Must provide high-suspense animated 3D dice tumbling (`.dice-tumbling`), lock-in settles (`.dice-settled`), attacker vs defender formula bars, and pause AI auto-step pacing while the modal is open.
+   * **Casualty Resolution Transparency**: Always display both Keep Garrison counter-attack hits (`⚔️ 1 Hit`, `⚔️ 2 Hits`) and net casualties:
+     `crew_lost = max(0, min(ship.crew, garrison_hits - attacker_blocks))`
+     Clearly break down retaliation in outcome banners and summary trays.
+6. **Thematic Board Map & Node Artwork Pipeline**:
    * The map SVG embeds `web/assets/board_map.jpg` as the background art with an atmospheric multiply overlay.
    * Sea routes and edges include dark underlay contrast strokes so navigation paths and nodes remain distinct and legible over the nautical illustration.
+   * **Node Illustration Tokens**:
+     * Nodes in `map.json` can specify `"image": "assets/nodes/<node_id>.jpg"`.
+     * `MapNode` in `engine/models.py` supports `image: str = ""`.
+     * `MapRenderer` dynamically registers an SVG `<defs>` entry with a circular `<clipPath id="clip-<id>">` and a dark radial gradient vignette (`#node-vignette-<id>`).
+     * The node artwork is rendered with `preserveAspectRatio="xMidYMid slice"`, overlaid by the vignette and high-contrast text pill so titles and garrison counts are always legible.
+7. **House Greyjoy Thematic UI Styling**:
+   * **Visual Language**: Heavy forged iron plates, beveled corner rivets (`.panel-rivet`), tarnished kraken gold highlights (`#f3c348`, `#c5972c`), and abyssal dark slate (`#06090d`, `#0b121b`).
+   * **Ancestral Heraldry**: Kraken sigil (`🦑`), House motto *"WE DO NOT SOW" • WHAT IS DEAD MAY NEVER DIE*.
+   * **Tactical Actions**: Heavy tactile button states with metallic `krakenSheen` glints and `bloodAura` combat pulsation for Reave actions.
 
 ---
 

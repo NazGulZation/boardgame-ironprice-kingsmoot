@@ -188,12 +188,57 @@ class MapRenderer {
         circle.setAttribute('filter', 'url(#drop-shadow)');
         g.appendChild(circle);
 
-        const icon = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        icon.setAttribute('y', '-16');
-        icon.setAttribute('text-anchor', 'middle');
-        icon.setAttribute('font-size', '28');
-        icon.textContent = '🏰';
-        g.appendChild(icon);
+        if (node.image) {
+          const clipId = `clip-node-${node.id}`;
+          let clipEl = document.getElementById(clipId);
+          if (!clipEl) {
+            clipEl = document.createElementNS('http://www.w3.org/2000/svg', 'clipPath');
+            clipEl.setAttribute('id', clipId);
+            const clipCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            clipCircle.setAttribute('r', '56');
+            clipCircle.setAttribute('cx', '0');
+            clipCircle.setAttribute('cy', '0');
+            clipEl.appendChild(clipCircle);
+            const defs = this.svg.querySelector('defs') || this.svg;
+            defs.appendChild(clipEl);
+          }
+
+          const img = document.createElementNS('http://www.w3.org/2000/svg', 'image');
+          img.setAttribute('href', node.image);
+          img.setAttribute('x', '-56');
+          img.setAttribute('y', '-56');
+          img.setAttribute('width', '112');
+          img.setAttribute('height', '112');
+          img.setAttribute('preserveAspectRatio', 'xMidYMid slice');
+          img.setAttribute('clip-path', `url(#${clipId})`);
+          g.appendChild(img);
+
+          const vig = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+          vig.setAttribute('r', '56');
+          vig.setAttribute('fill', 'url(#nodeImageVignette)');
+          vig.setAttribute('clip-path', `url(#${clipId})`);
+          g.appendChild(vig);
+
+          const innerShadow = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+          innerShadow.setAttribute('r', '56');
+          innerShadow.setAttribute('fill', 'url(#nodeImageInnerShadow)');
+          innerShadow.setAttribute('clip-path', `url(#${clipId})`);
+          g.appendChild(innerShadow);
+
+          const ring = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+          ring.setAttribute('r', '58');
+          ring.setAttribute('fill', 'none');
+          ring.setAttribute('stroke', '#bdc3c7');
+          ring.setAttribute('stroke-width', '4');
+          g.appendChild(ring);
+        } else {
+          const icon = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          icon.setAttribute('y', '-16');
+          icon.setAttribute('text-anchor', 'middle');
+          icon.setAttribute('font-size', '28');
+          icon.textContent = '🏰';
+          g.appendChild(icon);
+        }
 
         // Clear high-contrast title text
         const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
@@ -228,12 +273,51 @@ class MapRenderer {
         circle.setAttribute('filter', 'url(#drop-shadow)');
         g.appendChild(circle);
 
-        const icon = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        icon.setAttribute('y', '-16');
-        icon.setAttribute('text-anchor', 'middle');
-        icon.setAttribute('font-size', '30');
-        icon.textContent = node.id === 'storm' ? '⚡' : '🌊';
-        g.appendChild(icon);
+        if (node.image) {
+          const clipId = `clip-node-${node.id}`;
+          let clipEl = document.getElementById(clipId);
+          if (!clipEl) {
+            clipEl = document.createElementNS('http://www.w3.org/2000/svg', 'clipPath');
+            clipEl.setAttribute('id', clipId);
+            const clipCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            clipCircle.setAttribute('r', '62');
+            clipCircle.setAttribute('cx', '0');
+            clipCircle.setAttribute('cy', '0');
+            clipEl.appendChild(clipCircle);
+            const defs = this.svg.querySelector('defs') || this.svg;
+            defs.appendChild(clipEl);
+          }
+
+          const img = document.createElementNS('http://www.w3.org/2000/svg', 'image');
+          img.setAttribute('href', node.image);
+          img.setAttribute('x', '-62');
+          img.setAttribute('y', '-62');
+          img.setAttribute('width', '124');
+          img.setAttribute('height', '124');
+          img.setAttribute('preserveAspectRatio', 'xMidYMid slice');
+          img.setAttribute('clip-path', `url(#${clipId})`);
+          g.appendChild(img);
+
+          const vig = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+          vig.setAttribute('r', '62');
+          vig.setAttribute('fill', 'url(#nodeImageVignette)');
+          vig.setAttribute('clip-path', `url(#${clipId})`);
+          g.appendChild(vig);
+
+          const ring = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+          ring.setAttribute('r', '64');
+          ring.setAttribute('fill', 'none');
+          ring.setAttribute('stroke', node.id === 'storm' ? '#9b59b6' : '#2980b9');
+          ring.setAttribute('stroke-width', '4');
+          g.appendChild(ring);
+        } else {
+          const icon = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          icon.setAttribute('y', '-16');
+          icon.setAttribute('text-anchor', 'middle');
+          icon.setAttribute('font-size', '30');
+          icon.textContent = node.id === 'storm' ? '⚡' : '🌊';
+          g.appendChild(icon);
+        }
 
         const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
         text.setAttribute('y', '16');
@@ -274,12 +358,50 @@ class MapRenderer {
         rect.setAttribute('class', 'land-rect');
         g.appendChild(rect);
 
-        const icon = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        icon.setAttribute('y', '-18');
-        icon.setAttribute('text-anchor', 'middle');
-        icon.setAttribute('font-size', '24');
-        icon.textContent = '🛡️';
-        g.appendChild(icon);
+        if (node.image) {
+          const clipId = `clip-node-${node.id}`;
+          let clipEl = document.getElementById(clipId);
+          if (!clipEl) {
+            clipEl = document.createElementNS('http://www.w3.org/2000/svg', 'clipPath');
+            clipEl.setAttribute('id', clipId);
+            const clipRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            clipRect.setAttribute('x', '-83');
+            clipRect.setAttribute('y', '-50');
+            clipRect.setAttribute('width', '166');
+            clipRect.setAttribute('height', '100');
+            clipRect.setAttribute('rx', '10');
+            clipEl.appendChild(clipRect);
+            const defs = this.svg.querySelector('defs') || this.svg;
+            defs.appendChild(clipEl);
+          }
+
+          const img = document.createElementNS('http://www.w3.org/2000/svg', 'image');
+          img.setAttribute('href', node.image);
+          img.setAttribute('x', '-83');
+          img.setAttribute('y', '-50');
+          img.setAttribute('width', '166');
+          img.setAttribute('height', '100');
+          img.setAttribute('preserveAspectRatio', 'xMidYMid slice');
+          img.setAttribute('clip-path', `url(#${clipId})`);
+          g.appendChild(img);
+
+          const vig = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+          vig.setAttribute('x', '-83');
+          vig.setAttribute('y', '-50');
+          vig.setAttribute('width', '166');
+          vig.setAttribute('height', '100');
+          vig.setAttribute('rx', '10');
+          vig.setAttribute('fill', 'url(#nodeImageVignette)');
+          vig.setAttribute('clip-path', `url(#${clipId})`);
+          g.appendChild(vig);
+        } else {
+          const icon = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          icon.setAttribute('y', '-18');
+          icon.setAttribute('text-anchor', 'middle');
+          icon.setAttribute('font-size', '24');
+          icon.textContent = '🛡️';
+          g.appendChild(icon);
+        }
 
         const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
         text.setAttribute('y', '12');

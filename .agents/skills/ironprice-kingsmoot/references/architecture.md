@@ -74,6 +74,7 @@ class Node:
     control: Optional[str] = None # Controlling faction name
     occupants: List[Ship] = field(default_factory=list) # Stationed longships
     neutral_crew: int = 0 # Isle garrison defense
+    image: str = ""   # Relative path to circular node illustration
 ```
 
 ### `PlayerState`

@@ -45,7 +45,8 @@ class MapEngine:
                 is_burned=False,
                 control=n.get("control", None),
                 occupants=[],
-                neutral_crew=2 if n["id"] in ["oldwyk", "orkmont"] else 0
+                neutral_crew=2 if n["id"] in ["oldwyk", "orkmont"] else 0,
+                image=n.get("image", None)
             )
             nodes[node.id] = node
         return nodes

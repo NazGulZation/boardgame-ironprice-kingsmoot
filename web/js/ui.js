@@ -99,17 +99,30 @@ class UIController {
         });
       });
 
+      const factionIcons = {
+        'Asha': '🦅',
+        'Euron': '👁️',
+        'Victarion': '🪓'
+      };
+      const factionFlagships = {
+        'Asha': 'The Black Wind',
+        'Euron': 'The Silence',
+        'Victarion': 'Iron Victory'
+      };
+      const fIcon = factionIcons[p.faction] || '⚔️';
+      const flagName = factionFlagships[p.faction] || 'Longship';
+
       const card = document.createElement('div');
       card.className = `claimant-card ${isActive ? 'active-card' : ''}`;
-      card.style.borderLeft = `4px solid ${p.color}`;
+      card.style.borderLeft = `5px solid ${p.color}`;
 
       card.innerHTML = `
         <div class="claimant-header">
           <span class="claimant-name" style="color: ${p.color}">
-            ${p.name}
-            ${p.is_ai ? '<span class="claimant-role-badge">BOT</span>' : '<span class="claimant-role-badge" style="background:#27ae60;color:#fff">YOU</span>'}
+            <span>${fIcon}</span> ${p.name}
+            ${p.is_ai ? '<span class="claimant-role-badge">BOT</span>' : '<span class="claimant-role-badge" style="background:#143e28;color:#2ecc71;border-color:#2ecc71">CLAIMANT (YOU)</span>'}
           </span>
-          <span class="claimant-role-badge">${p.title}</span>
+          <span class="claimant-role-badge" title="Flagship: ${flagName}">${p.title}</span>
         </div>
         <div class="claimant-stats-row">
           <div class="c-stat">
@@ -125,7 +138,7 @@ class UIController {
             <span class="c-stat-val favor">${p.favor}/7 🌊</span>
           </div>
           <div class="c-stat">
-            <span class="c-stat-label">CREW</span>
+            <span class="c-stat-label">WARRIORS</span>
             <span class="c-stat-val crew">${deployedCrew} ⚔️</span>
           </div>
         </div>
@@ -156,7 +169,7 @@ class UIController {
 
     // Selection details
     if (!selection || selection.type === 'none') {
-      this.elements.selectedEntityName.textContent = 'None (Click a ship or node on map)';
+      this.elements.selectedEntityName.textContent = 'None (Select Longship or Island Haven)';
       this.elements.btnSail.disabled = true;
       this.elements.btnReave.disabled = true;
       this.elements.btnMuster.disabled = true;
@@ -167,7 +180,7 @@ class UIController {
         shipObj = nodeObj.occupants.find(s => s.id === selection.shipId);
       }
       
-      const shipDesc = shipObj ? `${shipObj.faction} ${shipObj.is_flagship ? 'Flagship' : 'Reaver'} (${shipObj.crew} crew)` : selection.shipId;
+      const shipDesc = shipObj ? `${shipObj.faction} ${shipObj.is_flagship ? 'Flagship ★' : 'War Longship ⛵'} (${shipObj.crew} warriors)` : selection.shipId;
       this.elements.selectedEntityName.textContent = `${shipDesc} @ ${nodeObj ? nodeObj.name : selection.nodeId}`;
 
       const isOwned = shipObj && (shipObj.faction === activePlayer.faction);
@@ -207,7 +220,7 @@ class UIController {
       die.className = `dice-face ${face.toLowerCase()} dice-rolling`;
       die.innerHTML = `
         <span class="dice-icon">${this._getDiceIcon(face)}</span>
-        <span>${face}</span>
+        <span class="dice-val">${this._getDiceValueTag(face, true)}</span>
       `;
       this.elements.attackerDiceContainer.appendChild(die);
     });
@@ -219,7 +232,7 @@ class UIController {
       die.className = `dice-face ${face.toLowerCase()} dice-rolling`;
       die.innerHTML = `
         <span class="dice-icon">${this._getDiceIcon(face)}</span>
-        <span>${face}</span>
+        <span class="dice-val">${this._getDiceValueTag(face, false)}</span>
       `;
       this.elements.defenderDiceContainer.appendChild(die);
     });
@@ -227,17 +240,17 @@ class UIController {
     // Summary banner
     this.elements.diceSummaryBanner.style.display = 'block';
     if (reaveOutcome.success) {
-      this.elements.diceSummaryBanner.style.borderColor = '#2ecc71';
-      this.elements.diceSummaryBanner.style.background = 'rgba(46, 204, 113, 0.15)';
+      this.elements.diceSummaryBanner.style.borderColor = 'var(--gold-accent)';
+      this.elements.diceSummaryBanner.style.background = 'linear-gradient(180deg, rgba(243, 195, 72, 0.15) 0%, rgba(13, 22, 32, 0.9) 100%)';
       this.elements.diceSummaryBanner.innerHTML = `
-        🎉 <strong>VICTORY!</strong> ${reaveOutcome.target_name} Sacked! Dealt <strong>${reaveOutcome.net_attacker_hits}</strong> unblocked hits (Needed ${reaveOutcome.defense_required}). 
-        Gained <strong>+${reaveOutcome.hoard_gained} Hoard</strong> and <strong>+${reaveOutcome.legend_gained} Legend</strong>. Lost ${reaveOutcome.crew_lost} crew.
+        ⚔️ <strong>THE IRON PRICE IS PAID!</strong> ${reaveOutcome.target_name} Sacked! Dealt <strong>${reaveOutcome.net_attacker_hits}</strong> unblocked hits (Needed ${reaveOutcome.defense_required}). 
+        Plundered <strong>+${reaveOutcome.hoard_gained} Hoard 💰</strong> and carved <strong>+${reaveOutcome.legend_gained} Legend 👑</strong>. Lost ${reaveOutcome.crew_lost} warriors.
       `;
     } else {
       this.elements.diceSummaryBanner.style.borderColor = '#e74c3c';
-      this.elements.diceSummaryBanner.style.background = 'rgba(231, 76, 60, 0.15)';
+      this.elements.diceSummaryBanner.style.background = 'linear-gradient(180deg, rgba(231, 76, 60, 0.15) 0%, rgba(20, 10, 10, 0.9) 100%)';
       this.elements.diceSummaryBanner.innerHTML = `
-        🛡️ <strong>REPELLED!</strong> Dealt only <strong>${reaveOutcome.net_attacker_hits}</strong> unblocked hits (Needed ${reaveOutcome.defense_required}). Lost ${reaveOutcome.crew_lost} crew.
+        🛡️ <strong>DEFENDERS HELD!</strong> Dealt only <strong>${reaveOutcome.net_attacker_hits}</strong> unblocked hits (Needed ${reaveOutcome.defense_required}). Lost ${reaveOutcome.crew_lost} warriors to the stones.
       `;
     }
   }
@@ -251,10 +264,10 @@ class UIController {
   }
 
   _getDiceValueTag(face, isAttacker) {
-    if (face === 'Kraken') return isAttacker ? '+2 Hits' : '0';
-    if (face === 'Axe') return isAttacker ? '+1 Hit' : '0';
-    if (face === 'Shield') return isAttacker ? '0' : '+1 Block';
-    if (face === 'Eye') return '0';
+    if (face === 'Kraken') return isAttacker ? '+2 Hits' : '⚔️ 2 Hits';
+    if (face === 'Axe') return isAttacker ? '+1 Hit' : '⚔️ 1 Hit';
+    if (face === 'Shield') return isAttacker ? '🛡️ 1 Block' : '🛡️ 1 Block';
+    if (face === 'Eye') return '👁️ Eye';
     return face;
   }
 
@@ -350,7 +363,7 @@ class UIController {
           <span class="reave-dice-val">${valTag}</span>
         `;
       });
-      this.elements.reaveAttackerTally.innerHTML = `⚔️ <strong>${attacker_roll.hits}</strong> Total Hits`;
+      this.elements.reaveAttackerTally.innerHTML = `⚔️ <strong>${attacker_roll.hits}</strong> Hits ${attacker_roll.blocks > 0 ? `• 🛡️ <strong>${attacker_roll.blocks}</strong> Blocks` : ''}`;
 
       // Lock Defender Dice
       defenderDiceEls.forEach((el, idx) => {
@@ -362,7 +375,7 @@ class UIController {
           <span class="reave-dice-val">${valTag}</span>
         `;
       });
-      this.elements.reaveDefenderTally.innerHTML = `🛡️ <strong>${defender_roll.blocks}</strong> Total Blocks`;
+      this.elements.reaveDefenderTally.innerHTML = `🛡️ <strong>${defender_roll.blocks}</strong> Blocks • ⚔️ <strong>${defender_roll.hits}</strong> Counter Hits`;
 
       // Update Formula Stats
       this.elements.reaveStatHits.textContent = `${attacker_roll.hits}`;
@@ -384,7 +397,7 @@ class UIController {
           <span class="spoil-pill legend">👑 +${legend_gained} Legend</span>
         `;
         if (crew_lost > 0) {
-          spoilsHtml += `<span class="spoil-pill casualty">💀 -${crew_lost} Crew Lost</span>`;
+          spoilsHtml += `<span class="spoil-pill casualty">💀 -${crew_lost} Crew Lost (${defender_roll.hits} counter hits − ${attacker_roll.blocks} blocks)</span>`;
         } else {
           spoilsHtml += `<span class="spoil-pill safe">✨ Zero Casualties</span>`;
         }
@@ -393,9 +406,9 @@ class UIController {
       } else {
         this.elements.reaveOutcomeCard.className = 'reave-outcome-card repelled result-banner-pop';
         this.elements.reaveOutcomeTitle.textContent = `🛡️ RAID REPELLED AT ${target_name.toUpperCase()}!`;
-        this.elements.reaveOutcomeDesc.textContent = `Scored only ${net_attacker_hits} net hits against ${defense_required} required defense. The assault was driven back!`;
+        this.elements.reaveOutcomeDesc.textContent = `Scored only ${net_attacker_hits} net hits against ${defense_required} required defense. Garrison counter-attack dealt ${defender_roll.hits} hits!`;
 
-        let casualtiesHtml = `<span class="spoil-pill casualty">💀 -${crew_lost} Crew Lost</span>`;
+        let casualtiesHtml = `<span class="spoil-pill casualty">💀 -${crew_lost} Crew Lost (${defender_roll.hits} counter hits − ${attacker_roll.blocks} blocks)</span>`;
         this.elements.reaveSpoilsRow.innerHTML = casualtiesHtml;
         this.elements.btnReaveConfirm.textContent = 'Fall Back & Continue';
       }

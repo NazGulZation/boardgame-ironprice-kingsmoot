@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>IRON PRICE: Kingsmoot — Board Game</title>
-  <link rel="stylesheet" href="css/style.css?v=1.9">
-  <link rel="stylesheet" href="css/animations.css?v=1.9">
+  <link rel="stylesheet" href="css/style.css?v=2.0">
+  <link rel="stylesheet" href="css/animations.css?v=2.0">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800;900&family=Metamorphous&family=MedievalSharp&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -15,7 +15,11 @@
   <!-- Top Header Bar -->
   <header class="game-header">
     <div class="header-left">
-      <h1 class="game-title"><span class="iron">IRON PRICE</span> <span class="divider">⚔️</span> <span class="sub">KINGSMOOT</span></h1>
+      <div class="header-sigil">🦑</div>
+      <div>
+        <h1 class="game-title"><span class="iron">IRON PRICE</span> <span class="divider">⚔️</span> <span class="sub">KINGSMOOT</span></h1>
+        <div class="header-motto">"WE DO NOT SOW" • WHAT IS DEAD MAY NEVER DIE</div>
+      </div>
       <span class="phase-badge">Phase 1 MVP</span>
     </div>
 
@@ -42,8 +46,8 @@
     </div>
 
     <div class="header-right">
-      <button class="btn btn-secondary" id="btn-new-game">🔄 New Game</button>
-      <button class="btn btn-secondary" id="btn-rules">📜 Rules</button>
+      <button class="btn btn-secondary btn-iron" id="btn-new-game">🔄 New Game</button>
+      <button class="btn btn-secondary btn-iron" id="btn-rules">📜 Rules</button>
     </div>
   </header>
 
@@ -93,6 +97,15 @@
               <stop offset="0%" stop-color="#2c3e50"/>
               <stop offset="100%" stop-color="#34495e"/>
             </linearGradient>
+            <linearGradient id="nodeImageVignette" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="#000000" stop-opacity="0.15"/>
+              <stop offset="45%" stop-color="#050c18" stop-opacity="0.35"/>
+              <stop offset="100%" stop-color="#02060e" stop-opacity="0.88"/>
+            </linearGradient>
+            <radialGradient id="nodeImageInnerShadow" cx="50%" cy="50%" r="50%">
+              <stop offset="65%" stop-color="#000000" stop-opacity="0"/>
+              <stop offset="100%" stop-color="#000000" stop-opacity="0.6"/>
+            </radialGradient>
           </defs>
 
           <!-- Background Layer: Thematic Board Map Illustration -->
@@ -117,21 +130,21 @@
       <!-- Bottom Dice Rolling Tray -->
       <div class="dice-tray-panel" id="dice-tray">
         <div class="dice-tray-header">
-          <span class="dice-tray-title">🎲 Raid Dice Tray</span>
-          <span class="dice-tray-subtitle" id="dice-tray-subtitle">Ready for action</span>
+          <span class="dice-tray-title">🎲 Reaver's Iron & Oak Dice Tray</span>
+          <span class="dice-tray-subtitle" id="dice-tray-subtitle">The Drowned God Watches • What Is Dead May Never Die</span>
         </div>
         <div class="dice-tray-body">
           <div class="dice-group" id="attacker-dice-group">
-            <div class="dice-group-label">Attacker Roll:</div>
+            <div class="dice-group-label">⚔️ Reaver Warband:</div>
             <div class="dice-container" id="attacker-dice-container">
-              <span class="dice-placeholder">No rolls yet</span>
+              <span class="dice-placeholder">No raid engaged</span>
             </div>
           </div>
           <div class="dice-vs-badge">VS</div>
           <div class="dice-group" id="defender-dice-group">
-            <div class="dice-group-label">Keep Defense Roll:</div>
+            <div class="dice-group-label">🛡️ Keep Garrison:</div>
             <div class="dice-container" id="defender-dice-container">
-              <span class="dice-placeholder">No rolls yet</span>
+              <span class="dice-placeholder">No defense roll</span>
             </div>
           </div>
         </div>
@@ -146,7 +159,10 @@
       
       <!-- Faction Cards Panel -->
       <div class="sidebar-card factions-panel">
-        <h2 class="section-title">👑 The Three Claimants</h2>
+        <div class="panel-header-iron">
+          <h2 class="section-title">👑 The Ironborn Claimants</h2>
+          <span class="panel-sub-label">House Greyjoy</span>
+        </div>
         <div class="claimants-list" id="claimants-list">
           <!-- Populated dynamically by UI -->
         </div>
@@ -155,16 +171,16 @@
       <!-- Action Controls Panel -->
       <div class="sidebar-card action-panel">
         <div class="panel-header">
-          <h2 class="section-title">⚔️ Actions (2/turn)</h2>
+          <h2 class="section-title">⚔️ Reaver Orders (2 / Turn)</h2>
           <span class="active-badge" id="panel-active-indicator">Your Turn</span>
         </div>
 
         <div class="selection-info-box" id="selection-info">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-            <span class="info-label">Selected Unit / Node:</span>
-            <span style="font-size: 0.7rem; color: #f5c518; font-weight: bold;">🖱️ Klik Kanan = Sail / Reave</span>
+            <span class="info-label">TARGET SHIP / HAVEN:</span>
+            <span style="font-size: 0.68rem; color: #f5c518; font-weight: bold; letter-spacing: 0.5px;">🖱️ Right-Click = Sail / Reave</span>
           </div>
-          <span class="info-value" id="selected-entity-name">None (Klik kiri kapal atau pulau)</span>
+          <span class="info-value" id="selected-entity-name">None (Select longship or island)</span>
         </div>
 
         <div class="action-buttons-grid">
@@ -172,7 +188,7 @@
           <div class="action-btn-wrapper">
             <button class="action-btn" id="btn-action-sail" disabled>
               <span class="btn-icon">⛵</span>
-              <span class="btn-text"><strong>Sail Fleet</strong><small>Move up to 2 nodes</small></span>
+              <span class="btn-text"><strong>Sail Fleet</strong><small>Traverse seas up to 2 nodes</small></span>
             </button>
           </div>
 
@@ -180,7 +196,7 @@
           <div class="action-btn-wrapper">
             <button class="action-btn btn-danger" id="btn-action-reave" disabled>
               <span class="btn-icon">🪓</span>
-              <span class="btn-text"><strong>Reave Land</strong><small>Attack adjacent Green Land</small></span>
+              <span class="btn-text"><strong>Reave Green Land</strong><small>Pay the Iron Price for Hoard & Legend</small></span>
             </button>
           </div>
 
@@ -188,30 +204,30 @@
           <div class="action-btn-wrapper">
             <button class="action-btn" id="btn-action-muster" disabled>
               <span class="btn-icon">🛡️</span>
-              <span class="btn-text"><strong>Muster Crew</strong><small>Pay Hoard -> +3 Crew at Port</small></span>
+              <span class="btn-text"><strong>Muster Warriors</strong><small>Spend Hoard ➔ +3 Crew at Port</small></span>
             </button>
           </div>
 
           <!-- Pray Action -->
           <div class="action-btn-wrapper">
-            <button class="action-btn" id="btn-action-pray">
+            <button class="action-btn btn-drowned" id="btn-action-pray">
               <span class="btn-icon">🌊</span>
-              <span class="btn-text"><strong>Pray to Drowned God</strong><small>+1 Favor (Track 0-7)</small></span>
+              <span class="btn-text"><strong>Pray to Drowned God</strong><small>+1 Favor (Blessing of Nagga)</small></span>
             </button>
           </div>
         </div>
 
         <div class="action-footer">
-          <button class="btn btn-warning btn-block" id="btn-action-endturn">Pass / End Turn</button>
+          <button class="btn btn-warning btn-block btn-iron" id="btn-action-endturn">Pass Turn / Hold Tide</button>
           <button class="btn btn-ai btn-block" id="btn-ai-step" style="display: none;">🤖 Step AI Turn</button>
         </div>
       </div>
 
       <!-- Live Event & Combat Log -->
       <div class="sidebar-card log-panel">
-        <h2 class="section-title">📜 Iron Chronicle</h2>
+        <h2 class="section-title">📜 The Iron Chronicle</h2>
         <div class="log-entries-container" id="log-container">
-          <div class="log-entry system">Welcome to IRON PRICE: Kingsmoot. Sacking Green Lands awards Hoard & Legend.</div>
+          <div class="log-entry system">"We Do Not Sow." The Iron Price must be paid in blood and plunder.</div>
         </div>
       </div>
 

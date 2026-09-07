@@ -56,6 +56,7 @@ class MapNode:
     control: Optional[str] = None
     occupants: List[Ship] = field(default_factory=list)
     neutral_crew: int = 0
+    image: Optional[str] = None
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -71,7 +72,8 @@ class MapNode:
             "is_burned": self.is_burned,
             "control": self.control,
             "occupants": [s.to_dict() for s in self.occupants],
-            "neutral_crew": self.neutral_crew
+            "neutral_crew": self.neutral_crew,
+            "image": self.image
         }
 
 
