@@ -11,9 +11,17 @@
 - `map.png` — 1920x1080 schematic map. Print A3.
 - `generate_all.py` — regenerate everything: `python generate_all.py`
 
+## Web Game MVP Documentation
+- [MVP.md](file:///d:/Python/Boardgame/ironprice-kingsmoot/MVP.md) — Master 4-Phase MVP Architecture & Specification
+- [MVP-Phase-1-Tactical-Engine.md](file:///d:/Python/Boardgame/ironprice-kingsmoot/MVP-Phase-1-Tactical-Engine.md) — Phase 1: Core Tactical Engine & Map Reaving (Playable Prototype)
+- [MVP-Phase-2-Combat-Favor.md](file:///d:/Python/Boardgame/ironprice-kingsmoot/MVP-Phase-2-Combat-Favor.md) — Phase 2: Fleet Battles, Favor Miracles & Sea Hazards
+- [MVP-Phase-3-Tide-Faction-Cards.md](file:///d:/Python/Boardgame/ironprice-kingsmoot/MVP-Phase-3-Tide-Faction-Cards.md) — Phase 3: Tide Deck, Faction Cards & Hand Management
+- [MVP-Phase-4-Kingsmoot-AI.md](file:///d:/Python/Boardgame/ironprice-kingsmoot/MVP-Phase-4-Kingsmoot-AI.md) — Phase 4: Full Kingsmoot Campaign, AI Bots & Visual Polish
+
 ## Quick start
 1. Print map + cards, grab 18 d6 (6=Kraken, 4-5=Axe, 3=Shield, 1=Eye, 2=miss).
 2. Read How-to-Play Setup (5 min).
 3. Learning game: 3 Seasons, ignore Storm Belt + 4/6 Favor miracles.
 
 Fan-made, unofficial, non-commercial. Set in the world of ASoIaF.
+

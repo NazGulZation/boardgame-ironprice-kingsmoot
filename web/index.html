@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IRON PRICE: Kingsmoot — Board Game</title>
+  <link rel="stylesheet" href="css/style.css?v=1.6">
+  <link rel="stylesheet" href="css/animations.css?v=1.6">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800;900&family=Metamorphous&family=MedievalSharp&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Top Header Bar -->
+  <header class="game-header">
+    <div class="header-left">
+      <h1 class="game-title"><span class="iron">IRON PRICE</span> <span class="divider">⚔️</span> <span class="sub">KINGSMOOT</span></h1>
+      <span class="phase-badge">Phase 1 MVP</span>
+    </div>
+
+    <div class="header-center">
+      <div class="tracker-item">
+        <span class="tracker-label">SEASON</span>
+        <span class="tracker-value" id="season-display">1 / 5</span>
+      </div>
+      <div class="tracker-item">
+        <span class="tracker-label">ROUND TURN</span>
+        <span class="tracker-value" id="turn-display">1 / 3</span>
+      </div>
+      <div class="tracker-item active-player-box" id="active-player-badge">
+        <span class="tracker-label">ACTIVE CLAIMANT</span>
+        <span class="tracker-value active-name" id="active-name-display">Asha Greyjoy</span>
+      </div>
+      <div class="tracker-item actions-box">
+        <span class="tracker-label">ACTIONS LEFT</span>
+        <div class="actions-pips" id="actions-pips-display">
+          <span class="pip active"></span>
+          <span class="pip active"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <button class="btn btn-secondary" id="btn-new-game">🔄 New Game</button>
+      <button class="btn btn-secondary" id="btn-rules">📜 Rules</button>
+    </div>
+  </header>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Main Game Container -->
+  <main class="game-container">
+    
+    <!-- Left / Center: Interactive Map Area -->
+    <section class="map-section">
+      <div class="map-toolbar">
+        <span class="toolbar-title">🗺️ The Iron Isles & The Sunset Sea</span>
+        <div class="map-controls">
+          <button class="tool-btn" id="btn-zoom-in" title="Zoom In">🔍 +</button>
+          <button class="tool-btn" id="btn-zoom-out" title="Zoom Out">🔍 −</button>
+          <button class="tool-btn" id="btn-zoom-reset" title="Fit to Screen">🎯 Fit</button>
+        </div>
+        <div class="map-legend">
+          <span class="legend-item"><span class="dot isle-dot"></span> Iron Isle</span>
+          <span class="legend-item"><span class="dot sea-dot"></span> Sea Zone</span>
+          <span class="legend-item"><span class="dot land-dot"></span> Green Land</span>
+          <span class="legend-item"><span class="dot burned-dot"></span> Burned</span>
+        </div>
+      </div>
+
+      <div class="map-viewport" id="map-viewport">
+        <svg id="game-map-svg" viewBox="100 60 1690 890" preserveAspectRatio="xMidYMid meet">
+          <!-- Defined Defs & Filters -->
+          <defs>
+            <filter id="glow-gold" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur stdDeviation="6" result="blur" />
+              <feComposite in="SourceGraphic" in2="blur" operator="over" />
+            </filter>
+            <filter id="drop-shadow">
+              <feDropShadow dx="2" dy="4" stdDeviation="4" flood-color="#000" flood-opacity="0.8"/>
+            </filter>
+            <linearGradient id="seaGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#0a192f"/>
+              <stop offset="100%" stop-color="#172a45"/>
+            </linearGradient>
+            <linearGradient id="landGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#1f3d2b"/>
+              <stop offset="100%" stop-color="#2d5a3f"/>
+            </linearGradient>
+            <linearGradient id="isleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#2c3e50"/>
+              <stop offset="100%" stop-color="#34495e"/>
+            </linearGradient>
+          </defs>
+
+          <!-- Background Layer -->
+          <rect width="1920" height="1080" fill="#080e18" />
+
+          <!-- Edges / Sea Routes Layer -->
+          <g id="edges-layer"></g>
+
+          <!-- Nodes Layer -->
+          <g id="nodes-layer"></g>
+
+          <!-- Ships / Fleets Layer -->
+          <g id="ships-layer"></g>
+
+          <!-- Highlights & Overlays Layer -->
+          <g id="overlays-layer"></g>
+        </svg>
+      </div>
+
+      <!-- Bottom Dice Rolling Tray -->
+      <div class="dice-tray-panel" id="dice-tray">
+        <div class="dice-tray-header">
+          <span class="dice-tray-title">🎲 Raid Dice Tray</span>
+          <span class="dice-tray-subtitle" id="dice-tray-subtitle">Ready for action</span>
+        </div>
+        <div class="dice-tray-body">
+          <div class="dice-group" id="attacker-dice-group">
+            <div class="dice-group-label">Attacker Roll:</div>
+            <div class="dice-container" id="attacker-dice-container">
+              <span class="dice-placeholder">No rolls yet</span>
+            </div>
+          </div>
+          <div class="dice-vs-badge">VS</div>
+          <div class="dice-group" id="defender-dice-group">
+            <div class="dice-group-label">Keep Defense Roll:</div>
+            <div class="dice-container" id="defender-dice-container">
+              <span class="dice-placeholder">No rolls yet</span>
+            </div>
+          </div>
+        </div>
+        <div class="dice-tray-summary" id="dice-summary-banner" style="display: none;">
+          <!-- Live result summary -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Right Sidebar: Dashboards, Controls & Combat Log -->
+    <aside class="sidebar-section">
+      
+      <!-- Faction Cards Panel -->
+      <div class="sidebar-card factions-panel">
+        <h2 class="section-title">👑 The Three Claimants</h2>
+        <div class="claimants-list" id="claimants-list">
+          <!-- Populated dynamically by UI -->
+        </div>
+      </div>
+
+      <!-- Action Controls Panel -->
+      <div class="sidebar-card action-panel">
+        <div class="panel-header">
+          <h2 class="section-title">⚔️ Actions (2/turn)</h2>
+          <span class="active-badge" id="panel-active-indicator">Your Turn</span>
+        </div>
+
+        <div class="selection-info-box" id="selection-info">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <span class="info-label">Selected Unit / Node:</span>
+            <span style="font-size: 0.7rem; color: #f5c518; font-weight: bold;">🖱️ Klik Kanan = Sail / Reave</span>
+          </div>
+          <span class="info-value" id="selected-entity-name">None (Klik kiri kapal atau pulau)</span>
+        </div>
+
+        <div class="action-buttons-grid">
+          <!-- Sail Action -->
+          <div class="action-btn-wrapper">
+            <button class="action-btn" id="btn-action-sail" disabled>
+              <span class="btn-icon">⛵</span>
+              <span class="btn-text"><strong>Sail Fleet</strong><small>Move up to 2 nodes</small></span>
+            </button>
+          </div>
+
+          <!-- Reave Action -->
+          <div class="action-btn-wrapper">
+            <button class="action-btn btn-danger" id="btn-action-reave" disabled>
+              <span class="btn-icon">🪓</span>
+              <span class="btn-text"><strong>Reave Land</strong><small>Attack adjacent Green Land</small></span>
+            </button>
+          </div>
+
+          <!-- Muster Action -->
+          <div class="action-btn-wrapper">
+            <button class="action-btn" id="btn-action-muster" disabled>
+              <span class="btn-icon">🛡️</span>
+              <span class="btn-text"><strong>Muster Crew</strong><small>Pay Hoard -> +3 Crew at Port</small></span>
+            </button>
+          </div>
+
+          <!-- Pray Action -->
+          <div class="action-btn-wrapper">
+            <button class="action-btn" id="btn-action-pray">
+              <span class="btn-icon">🌊</span>
+              <span class="btn-text"><strong>Pray to Drowned God</strong><small>+1 Favor (Track 0-7)</small></span>
+            </button>
+          </div>
+        </div>
+
+        <div class="action-footer">
+          <button class="btn btn-warning btn-block" id="btn-action-endturn">Pass / End Turn</button>
+          <button class="btn btn-ai btn-block" id="btn-ai-step" style="display: none;">🤖 Step AI Turn</button>
+        </div>
+      </div>
+
+      <!-- Live Event & Combat Log -->
+      <div class="sidebar-card log-panel">
+        <h2 class="section-title">📜 Iron Chronicle</h2>
+        <div class="log-entries-container" id="log-container">
+          <div class="log-entry system">Welcome to IRON PRICE: Kingsmoot. Sacking Green Lands awards Hoard & Legend.</div>
+        </div>
+      </div>
+
+    </aside>
+
+  </main>
+
+  <!-- New Game Modal -->
+  <div class="modal-backdrop" id="modal-new-game" style="display: none;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2>⚔️ Start New Kingsmoot Match</h2>
+        <button class="modal-close" id="btn-close-new-game-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Game Length (Seasons):</label>
+          <div class="radio-group">
+            <label class="radio-label">
+              <input type="radio" name="season-length" value="5" checked>
+              <span><strong>5 Seasons (Standard Campaign)</strong> — 75-90 min equivalent</span>
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="season-length" value="3">
+              <span><strong>3 Seasons (Quick / Intro Game)</strong> — Fast skirmish</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Choose Mode & Control:</label>
+          <div class="radio-group">
+            <label class="radio-label">
+              <input type="radio" name="player-mode" value="solo" checked>
+              <span><strong>Solo Play</strong> (You control Asha; Euron & Victarion are AI)</span>
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="player-mode" value="pass_play">
+              <span><strong>Pass & Play (Hotseat)</strong> (Control all 3 Claimants locally)</span>
+            </label>
+            <label class="radio-label">
+              <input type="radio" name="player-mode" value="ai_spectate">
+              <span><strong>Spectator Mode</strong> (3 AI Claimants battle)</span>
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="btn-cancel-new-game">Cancel</button>
+        <button class="btn btn-primary" id="btn-start-game-confirm">Begin Reaving!</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rules Modal -->
+  <div class="modal-backdrop" id="modal-rules" style="display: none;">
+    <div class="modal-card modal-large">
+      <div class="modal-header">
+        <h2>📜 Rules Quick Guide — IRON PRICE: Kingsmoot</h2>
+        <button class="modal-close" id="btn-close-rules-modal">&times;</button>
+      </div>
+      <div class="modal-body rules-content">
+        <h3>1. Objective</h3>
+        <p>Amass the most <strong>Legend</strong> after 5 Seasons to be crowned King of Salt and Rock on Old Wyk.</p>
+        
+        <h3>2. Turn Structure</h3>
+        <p>Each season has 3 turns per player. On your turn, take <strong>2 Actions</strong>:</p>
+        <ul>
+          <li><strong>Sail</strong>: Move a fleet up to 2 nodes along sea routes.</li>
+          <li><strong>Muster</strong>: At a controlled port, pay 3 Hoard (2 at Great Wyk) for +3 crew.</li>
+          <li><strong>Reave</strong>: Attack an adjacent Green Land keep with your fleet.</li>
+          <li><strong>Pray</strong>: Discard an action for +1 Drowned Favor.</li>
+        </ul>
+
+        <h3>3. Reaving Green Lands</h3>
+        <p>Roll 1 die per 2 crew (max 6). Keep rolls Defense dice. <strong>Kraken</strong> = 2 hits, <strong>Axe</strong> = 1 hit, <strong>Shield</strong> = 1 block. Beat Defense to claim Hoard & Legend! Sacked keeps become <strong>Burned</strong>.</p>
+        
+        <h3>4. Season End Scoring</h3>
+        <p>Gain +1 Legend per Iron Isle occupied. Refreshes 2 burned keeps each season.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" id="btn-close-rules-confirm">Understood</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Kingsmoot Victory Ceremony Modal -->
+  <div class="modal-backdrop" id="modal-victory" style="display: none;">
+    <div class="modal-card modal-victory-card">
+      <div class="victory-crown">👑</div>
+      <h2 class="victory-title">THE KINGSMOOT IS DECIDED!</h2>
+      <p class="victory-subtitle">"What is dead may never die, but rises again harder and stronger."</p>
+      
+      <div class="winner-box" id="winner-announcement">
+        <h3 class="winner-name" id="winner-name-text">Asha Greyjoy</h3>
+        <span class="winner-title" id="winner-title-text">Queen of Salt and Rock</span>
+      </div>
+
+      <div class="final-scores-table" id="final-scores-container">
+        <!-- Table populated dynamically -->
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-primary btn-block" id="btn-play-again">Play Again</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JS Application Scripts with Cache Buster -->
+  <script src="js/api.js?v=1.6"></script>
+  <script src="js/map_renderer.js?v=1.6"></script>
+  <script src="js/ui.js?v=1.6"></script>
+  <script src="js/app.js?v=1.6"></script>
+</body>
+</html>
