@@ -167,6 +167,7 @@ class ReaveOutcome:
     favor_gained: int = 0
     origin_node: str = ""
     ship_id: str = ""
+    dead_ship_ids: List[str] = field(default_factory=list)
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -183,7 +184,8 @@ class ReaveOutcome:
             "crew_lost": self.crew_lost,
             "favor_gained": self.favor_gained,
             "origin_node": self.origin_node,
-            "ship_id": self.ship_id
+            "ship_id": self.ship_id,
+            "dead_ship_ids": list(self.dead_ship_ids)
         }
 
 
@@ -237,6 +239,7 @@ class BattleState:
     blood_price_available: bool = True  # Once per battle for Euron
     total_attacker_crew_lost: int = 0
     total_defender_crew_lost: int = 0
+    sunk_ship_ids: List[str] = field(default_factory=list)
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -257,7 +260,8 @@ class BattleState:
             "legend_awarded": self.legend_awarded,
             "blood_price_available": self.blood_price_available,
             "total_attacker_crew_lost": self.total_attacker_crew_lost,
-            "total_defender_crew_lost": self.total_defender_crew_lost
+            "total_defender_crew_lost": self.total_defender_crew_lost,
+            "sunk_ship_ids": list(self.sunk_ship_ids)
         }
 
 

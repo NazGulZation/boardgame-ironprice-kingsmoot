@@ -476,7 +476,11 @@ class GameStateManager:
         ship_loss = min(ship.crew, rem_lost)
         ship.crew -= ship_loss
         rem_lost -= ship_loss
+        # Record wiped hulls BEFORE respawn moves them home, so the UI can
+        # play the dying animation at the raid origin first.
+        dead_ship_ids = []
         if ship.crew == 0:
+            dead_ship_ids.append(ship.id)
             self.respawn_ship_if_dead(ship)
 
         if rem_lost > 0 and aux_friendly:
@@ -485,9 +489,11 @@ class GameStateManager:
                 aux.crew -= take
                 rem_lost -= take
                 if aux.crew == 0:
+                    dead_ship_ids.append(aux.id)
                     self.respawn_ship_if_dead(aux)
                 if rem_lost <= 0:
                     break
+        outcome.dead_ship_ids = dead_ship_ids
 
         if outcome.success:
             active.hoard += outcome.hoard_gained

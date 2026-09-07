@@ -196,28 +196,38 @@ class KingsmootApp {
         target_land_id: targetLandId
       });
 
-      if (res.success) {
-        const reaveOutcome = res.state.last_reave_outcome;
-        this.gameState = res.state;
-        this.currentSelection = { type: 'none' };
-        this.refresh(false);
-
-        if (reaveOutcome) {
-          this.ui.showReaveModal(reaveOutcome, async () => {
-            if (shipLoc) {
-              await this.mapRenderer.animateReaveTargeting(shipLoc, targetLandId, reaveOutcome, shipId);
-            }
-            this.checkAiTurn();
-          });
-        } else {
-          this.checkAiTurn();
-        }
-      } else {
-        this.ui.showToast(res.error || "Reave failed!", "error");
-      }
+      this.completeHumanReave(res, shipId, targetLandId, shipLoc);
     } catch (err) {
       console.error("Reave error:", err);
       this.ui.showToast("Failed to execute Reave action", "error");
+    }
+  }
+
+  // Shared human reave completion: full UI refresh, but the MAP keeps
+  // wiped hulls at the raid origin behind the dice popup (no vanish);
+  // after close it plays axe + dying, and only then reveals respawns.
+  completeHumanReave(res, shipId, targetLandId, shipLoc) {
+    if (!res.success) {
+      this.ui.showToast(res.error || "Reave failed!", "error");
+      return;
+    }
+    const reaveOutcome = res.state.last_reave_outcome;
+    this.gameState = res.state;
+    this.currentSelection = { type: 'none' };
+    this.refresh(false);
+    this.mapRenderer.update(this.mapRenderer.raidTableau(reaveOutcome, shipLoc, res.state), this.currentSelection);
+
+    if (reaveOutcome) {
+      this.ui.showReaveModal(reaveOutcome, async () => {
+        if (shipLoc) {
+          await this.mapRenderer.animateReaveTargeting(shipLoc, targetLandId, reaveOutcome, shipId);
+          await this.mapRenderer.playRaidDefeat(reaveOutcome, shipLoc);
+          this.mapRenderer.update(this.gameState, this.currentSelection);
+        }
+        this.checkAiTurn();
+      });
+    } else {
+      this.checkAiTurn();
     }
   }
 
@@ -246,11 +256,10 @@ class KingsmootApp {
           if (currentLoc && currentLoc !== targetNodeId) {
             await this.mapRenderer.animateShipSail(shipId, currentLoc, targetNodeId, activeFaction);
           }
+          await this.mapRenderer.stageNavalClash(battle, this.gameState, res.state);
+          this.isClashAnimating = false;
           this.gameState = res.state;
           this.currentSelection = { type: 'none' };
-          this.mapRenderer.update(this.gameState, this.currentSelection);
-          await this.mapRenderer.animateNavalClash(targetNodeId, battle.attacker_ship_id, battle.defender_ship_id);
-          this.isClashAnimating = false;
           this.currentBattle = battle;
           this.refresh(false);
           this.showBattle(this.currentBattle);
@@ -309,25 +318,7 @@ class KingsmootApp {
         target_land_id: targetLandId
       });
 
-      if (res.success) {
-        const reaveOutcome = res.state.last_reave_outcome;
-        this.gameState = res.state;
-        this.currentSelection = { type: 'none' };
-        this.refresh(false);
-
-        if (reaveOutcome) {
-          this.ui.showReaveModal(reaveOutcome, async () => {
-            if (shipLoc) {
-              await this.mapRenderer.animateReaveTargeting(shipLoc, targetLandId, reaveOutcome, shipId);
-            }
-            this.checkAiTurn();
-          });
-        } else {
-          this.checkAiTurn();
-        }
-      } else {
-        this.ui.showToast(res.error || "Reave failed!", "error");
-      }
+      this.completeHumanReave(res, shipId, targetLandId, shipLoc);
     } catch (err) {
       console.error("Reave error:", err);
       this.ui.showToast("Reave action failed", "error");
@@ -432,6 +423,7 @@ class KingsmootApp {
           if (originNode && targetLand) {
             try {
               await this.mapRenderer.animateReaveTargeting(originNode, targetLand, newReave, raidShipId);
+              await this.mapRenderer.playRaidDefeat(newReave, originNode);
             } catch (animErr) {
               console.warn("AI raid animation failed:", animErr);
             }
@@ -440,19 +432,15 @@ class KingsmootApp {
           }
         }
 
-        // 3. Check if NAVAL CLASH occurred
+        // 3. Naval clash: swords play BEFORE the dice popup via staged
+        //    tableau; sinking plays AFTER popup dismiss (or at once here
+        //    when no popup follows, e.g. AI-vs-AI finished battles).
         const battle = res.battle || (nextState && nextState.active_battle);
         if (res.battle_triggered && battle) {
           this.isClashAnimating = true;
-          this.mapRenderer.update(nextState, { type: 'none' });
-          await this.mapRenderer.animateNavalClash(battle.node_id || res.to, battle.attacker_ship_id, battle.defender_ship_id);
+          await this.mapRenderer.stageNavalClash(battle, prevState, nextState);
+          await this.mapRenderer.playShipSinking(battle);
           this.isClashAnimating = false;
-        }
-
-        // 4. Check if ship sinking/defeat occurred
-        if (battle && battle.state === 'finished' && battle.winner) {
-          const loserShipId = (battle.winner === battle.attacker_faction) ? battle.defender_ship_id : battle.attacker_ship_id;
-          await this.mapRenderer.animateShipDefeat(loserShipId, battle.node_id, 'sunk');
         }
 
         this.gameState = nextState;
@@ -518,10 +506,14 @@ class KingsmootApp {
       onMiracleAutowin: () => this.handleBattleAction({ miracle_cost: 6 }),
       onRetreat: () => this.handleBattleAction({ retreat: true }),
       onContinue: () => this.handleBattleAction({ continue_round: true }),
-      onDismiss: () => {
+      onDismiss: async () => {
         this.currentBattle = null;
         if (this.ui.elements.modalBattle) {
           this.ui.elements.modalBattle.style.display = 'none';
+        }
+        // Dying animation runs AFTER the dice popup closes.
+        if (battle.state === 'finished' && (battle.sunk_ship_ids || []).length) {
+          await this.mapRenderer.playShipSinking(battle);
         }
         this.refresh();
       }

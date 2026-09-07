@@ -272,7 +272,14 @@ class BattleManager:
                 self.gs._log(f"⚖️ Battle ended in STALEMATE ({tot_att_hits} = {tot_def_hits}). [{attacker.faction}] falls back to sea.")
                 self.gs._move_ship_to(attacker_ship, battle.node_id, battle.origin_node_id)
 
-        # What Is Dead May Never Die: respawn any wiped combatant
+        # What Is Dead May Never Die: record wiped hulls BEFORE respawn moves
+        # them home, so the UI can sink them at the battle site first.
+        sunk = []
+        if defender_ship.crew == 0:
+            sunk.append(defender_ship.id)
+        if attacker_ship.crew == 0:
+            sunk.append(attacker_ship.id)
+        battle.sunk_ship_ids = sunk
         if defender_ship.crew == 0:
             self.gs.respawn_ship_if_dead(defender_ship)
         if attacker_ship.crew == 0:

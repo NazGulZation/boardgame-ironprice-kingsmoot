@@ -12,6 +12,7 @@ class MapRenderer {
     this.gameState = null;
     this.selectedNodeId = null;
     this.selectedShipId = null;
+    this.animLock = 0;
 
     this.edgesGroup = document.getElementById('edges-layer');
     this.nodesGroup = document.getElementById('nodes-layer');
@@ -300,6 +301,7 @@ class MapRenderer {
   }
 
   handleNodeClick(nodeId) {
+    if (this.isAnimating) return;
     if (this.miracleTargetMode) {
       if (this.validMiracleNodes && this.validMiracleNodes.includes(nodeId)) {
         if (this.onMiracleTargetChosen) {
@@ -321,6 +323,7 @@ class MapRenderer {
   }
 
   handleShipClick(shipId, nodeId) {
+    if (this.isAnimating) return;
     this.selectedShipId = shipId;
     this.selectedNodeId = nodeId;
     this.highlightSelection();
@@ -330,6 +333,7 @@ class MapRenderer {
   }
 
   clearSelection() {
+    if (this.isAnimating) return;
     this.selectedNodeId = null;
     this.selectedShipId = null;
     this.highlightSelection();
@@ -452,19 +456,163 @@ class MapRenderer {
     return this.animator.getShipCoordinates(nodeId, shipId);
   }
 
+  // Animation lock: board left-clicks are ignored while a map tween
+  // runs, otherwise renderShips() rebuilds badge elements mid-flight and
+  // the running animation breaks (detached nodes tween unseen).
+  get isAnimating() { return this.animLock > 0; }
+  lockAnims() { this.animLock++; }
+  unlockAnims() { this.animLock = Math.max(0, this.animLock - 1); }
+  guarded(fn) {
+    this.lockAnims();
+    let p;
+    try { p = fn(); } catch (e) { this.unlockAnims(); throw e; }
+    return Promise.resolve(p).then(
+      (v) => { this.unlockAnims(); return v; },
+      (e) => { this.unlockAnims(); throw e; }
+    );
+  }
+
   animateShipSail(shipId, fromNodeId, toNodeId, faction = 'Asha') {
-    return this.animator.animateShipSail(shipId, fromNodeId, toNodeId, faction);
+    return this.guarded(() => this.animator.animateShipSail(shipId, fromNodeId, toNodeId, faction));
   }
 
   animateReaveTargeting(fromSeaNodeId, targetLandId, outcome, shipId = null) {
-    return this.animator.animateReaveTargeting(fromSeaNodeId, targetLandId, outcome, shipId);
+    return this.guarded(() => this.animator.animateReaveTargeting(fromSeaNodeId, targetLandId, outcome, shipId));
   }
 
   animateNavalClash(seaNodeId, attackerShipId = null, defenderShipId = null) {
-    return this.animator.animateNavalClash(seaNodeId, attackerShipId, defenderShipId);
+    return this.guarded(() => this.animator.animateNavalClash(seaNodeId, attackerShipId, defenderShipId));
   }
 
   animateShipDefeat(shipId, nodeId, outcomeType = 'sunk') {
-    return this.animator.animateShipDefeat(shipId, nodeId, outcomeType);
+    return this.guarded(() => this.animator.animateShipDefeat(shipId, nodeId, outcomeType));
+  }
+
+  // Battle-time tableau from prevState with both hulls at the clash site,
+  // so swords play where the fight happened even though nextState already
+  // pushed losers home (WHAT IS DEAD respawns).
+  _battleTableau(prevState, battle) {
+    const nodeId = battle.node_id;
+    let tableau = prevState;
+    try {
+      tableau = JSON.parse(JSON.stringify(prevState));
+      const moveToClash = (sid) => {
+        for (const [nid, n] of Object.entries(tableau.nodes)) {
+          if (nid !== nodeId && n.occupants) {
+            const i = n.occupants.findIndex(s => s.id === sid);
+            if (i >= 0 && tableau.nodes[nodeId]) {
+              tableau.nodes[nodeId].occupants.push(...tableau.nodes[nid].occupants.splice(i, 1));
+              return;
+            }
+          }
+        }
+      };
+      moveToClash(battle.attacker_ship_id);
+      moveToClash(battle.defender_ship_id);
+    } catch (e) { tableau = prevState; }
+    return tableau;
+  }
+
+  // Swords play BEFORE the dice popup: tableau renders, clash resolves,
+  // then the post-battle state (respawns) renders underneath the modal.
+  async stageNavalClash(battle, prevState, nextState) {
+    if (!battle) {
+      if (nextState) this.update(nextState, { type: 'none' });
+      return;
+    }
+    this.update((prevState && prevState.nodes) ? this._battleTableau(prevState, battle) : nextState, { type: 'none' });
+    try {
+      await this.animateNavalClash(battle.node_id, battle.attacker_ship_id, battle.defender_ship_id);
+    } catch (e) { console.warn('Naval clash animation failed:', e); }
+    if (nextState) this.update(nextState, { type: 'none' });
+  }
+
+  // Sinking plays AFTER the dice popup is dismissed: each sunk hull is
+  // re-staged at the battle site from live state, sunk, then restored.
+  async playShipSinking(battle) {
+    let sunk = Array.isArray(battle.sunk_ship_ids) ? battle.sunk_ship_ids.slice() : null;
+    if (!sunk && battle.state === 'finished' && battle.winner && !battle.is_stalemate) {
+      sunk = [(battle.winner === battle.attacker_faction) ? battle.defender_ship_id : battle.attacker_ship_id];
+    }
+    if (!battle || !sunk || !sunk.length || !this.gameState) return;
+    const nodeId = battle.node_id;
+    const live = this.gameState;
+    let tableau = null;
+    try {
+      tableau = JSON.parse(JSON.stringify(live));
+      for (const sid of sunk) {
+        for (const [nid, n] of Object.entries(tableau.nodes)) {
+          if (nid !== nodeId && n.occupants) {
+            const i = n.occupants.findIndex(s => s.id === sid);
+            if (i >= 0 && tableau.nodes[nodeId]) {
+              tableau.nodes[nodeId].occupants.push(...tableau.nodes[nid].occupants.splice(i, 1));
+              break;
+            }
+          }
+        }
+      }
+    } catch (e) { return; }
+    this.update(tableau, { type: 'none' });
+    for (const sid of sunk) {
+      try { await this.animateShipDefeat(sid, nodeId, 'sunk'); }
+      catch (e) { console.warn('Ship defeat animation failed:', e); }
+    }
+    this.update(live, { type: 'none' });
+  }
+
+  // Resolves once the reave dice popup is closed (instantly when none
+  // is open), so ship-dying visuals never play underneath the modal.
+  awaitReavePopupClosed() {
+    const modal = document.getElementById('modal-reave');
+    if (!modal || modal.style.display === 'none' || modal.style.display === '') return Promise.resolve();
+    return new Promise((resolve) => {
+      const failsafe = setTimeout(() => { clearInterval(iv); resolve(); }, 15000);
+      const iv = setInterval(() => {
+        if (!modal.isConnected || modal.style.display === 'none' || modal.style.display === '') {
+          clearInterval(iv);
+          clearTimeout(failsafe);
+          resolve();
+        }
+      }, 120);
+    });
+  }
+
+  // Pre-respawn raid view: dead hulls moved back to the raid origin so
+  // the ship stays visible behind the dice popup instead of vanishing.
+  // Returns postState unchanged when nobody died. Pure (never mutates).
+  raidTableau(reaveOutcome, originNode, postState) {
+    const dead = (reaveOutcome && Array.isArray(reaveOutcome.dead_ship_ids)) ? reaveOutcome.dead_ship_ids : [];
+    if (!dead.length || !originNode || !postState || !postState.nodes) return postState;
+    try {
+      const tableau = JSON.parse(JSON.stringify(postState));
+      if (!tableau.nodes[originNode]) return postState;
+      for (const sid of dead) {
+        for (const [nid, n] of Object.entries(tableau.nodes)) {
+          if (nid !== originNode && n.occupants) {
+            const i = n.occupants.findIndex(s => s.id === sid);
+            if (i >= 0) {
+              tableau.nodes[originNode].occupants.push(...tableau.nodes[nid].occupants.splice(i, 1));
+              break;
+            }
+          }
+        }
+      }
+      return tableau;
+    } catch (e) { return postState; }
+  }
+
+  // Raid wipe: re-stages each dead hull at the raid origin from live
+  // state, plays the whirlpool sinking, then restores. No-op otherwise.
+  async playRaidDefeat(reaveOutcome, originNode) {
+    const dead = (reaveOutcome && Array.isArray(reaveOutcome.dead_ship_ids)) ? reaveOutcome.dead_ship_ids : [];
+    if (!dead.length || !originNode || !this.gameState) return;
+    await this.awaitReavePopupClosed();
+    const live = this.gameState;
+    this.update(this.raidTableau(reaveOutcome, originNode, live), { type: 'none' });
+    for (const sid of dead) {
+      try { await this.animateShipDefeat(sid, originNode, 'sunk'); }
+      catch (e) { console.warn('Raid defeat animation failed:', e); }
+    }
+    this.update(live, { type: 'none' });
   }
 }

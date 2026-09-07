@@ -68,8 +68,15 @@ class MapAnimator {
     const gs = this.renderer.gameState || this.renderer.lastGameState;
     let dock = { offsetX: 0, offsetY: -52, x: 0, y: -52 };
     if (gs && gs.nodes[nodeId]) {
-      const occupants = gs.nodes[nodeId].occupants.filter(s => s.is_flagship || s.crew > 0);
-      const idx = shipId ? occupants.findIndex(s => s.id === shipId) : 0;
+      // Use the FULL occupant list so indices match renderShips() exactly.
+      // (Filtering out 0-crew hulls here shifted every dock slot and moved
+      // clash/raid markers away from the rendered badges.)
+      const occupants = gs.nodes[nodeId].occupants;
+      let idx = 0;
+      if (shipId) {
+        const found = occupants.findIndex(s => s.id === shipId);
+        idx = found >= 0 ? found : 0;
+      }
       dock = this.getDockOffset(nodeId, Math.max(1, occupants.length), Math.max(0, idx));
     } else {
       dock = this.getDockOffset(nodeId, 1, 0);
@@ -77,6 +84,38 @@ class MapAnimator {
     const offX = dock.offsetX ?? dock.x ?? 0;
     const offY = dock.offsetY ?? dock.y ?? 0;
     return { x: nodePos.x + offX, y: nodePos.y + offY };
+  }
+
+  getRenderedShipPosition(shipId) {
+    const el = document.getElementById(`ship-g-${shipId}`);
+    if (!el) return null;
+    const t = el.getAttribute('transform') || '';
+    const m = t.match(/translate\(\s*(-?[\d.]+)[,\s]+(-?[\d.]+)\s*\)/);
+    if (!m) return null;
+    return { x: parseFloat(m[1]), y: parseFloat(m[2]) };
+  }
+
+  getDockSlotPosition(nodeId, idx, count) {
+    const nodePos = this.getNodeCenter(nodeId);
+    const dock = this.getDockOffset(nodeId, count, idx);
+    const offX = dock.offsetX ?? dock.x ?? 0;
+    const offY = dock.offsetY ?? dock.y ?? 0;
+    return { x: nodePos.x + offX, y: nodePos.y + offY };
+  }
+
+  findShipNode(shipId) {
+    const gs = this.renderer.gameState || this.renderer.lastGameState;
+    if (!gs || !gs.nodes) return null;
+    for (const [nid, node] of Object.entries(gs.nodes)) {
+      if (node.occupants && node.occupants.some(s => s.id === shipId)) return nid;
+    }
+    return null;
+  }
+
+  isShipAtNode(nodeId, shipId) {
+    const gs = this.renderer.gameState || this.renderer.lastGameState;
+    const node = gs && gs.nodes ? gs.nodes[nodeId] : null;
+    return Boolean(node && node.occupants && node.occupants.some(s => s.id === shipId));
   }
 
   animateShipSail(shipId, fromNodeId, toNodeId, faction = 'Asha') {
@@ -367,14 +406,43 @@ class MapAnimator {
     return new Promise((resolve) => {
       let clashX, clashY;
       if (attackerShipId && defenderShipId) {
-        const posA = this.getShipCoordinates(seaNodeId, attackerShipId);
-        const posD = this.getShipCoordinates(seaNodeId, defenderShipId);
-        clashX = (posA.x + posD.x) / 2;
-        clashY = (posA.y + posD.y) / 2;
+        // Ground truth first: live badge positions already on screen.
+        const renderedA = this.getRenderedShipPosition(attackerShipId);
+        const renderedD = this.getRenderedShipPosition(defenderShipId);
+        const attAtNode = this.isShipAtNode(seaNodeId, attackerShipId);
+        const defAtNode = this.isShipAtNode(seaNodeId, defenderShipId);
+
+        if (renderedA && renderedD && attAtNode && defAtNode) {
+          // Both combatants co-located: midpoint between visible badges.
+          clashX = (renderedA.x + renderedD.x) / 2;
+          clashY = (renderedA.y + renderedD.y) / 2;
+        } else if (attAtNode && defAtNode) {
+          // Co-located in state but DOM not ready: dock-slot midpoint.
+          const posA = this.getShipCoordinates(seaNodeId, attackerShipId);
+          const posD = this.getShipCoordinates(seaNodeId, defenderShipId);
+          clashX = (posA.x + posD.x) / 2;
+          clashY = (posA.y + posD.y) / 2;
+        } else {
+          // Post-battle state (AI auto-resolve pushed the loser home):
+          // reconstruct battle-time slots so the swords sit over the
+          // sea zone's dock area, not on the winner's badge or at
+          // a collapsed single-slot fallback.
+          const slotA = this.getDockSlotPosition(seaNodeId, 0, 2);
+          const slotD = this.getDockSlotPosition(seaNodeId, 1, 2);
+          clashX = (slotA.x + slotD.x) / 2;
+          clashY = (slotA.y + slotD.y) / 2;
+        }
       } else {
-        const shipPos = this.getShipCoordinates(seaNodeId, attackerShipId || defenderShipId);
-        clashX = shipPos.x;
-        clashY = shipPos.y;
+        const onlyId = attackerShipId || defenderShipId;
+        const rendered = onlyId ? this.getRenderedShipPosition(onlyId) : null;
+        if (rendered) {
+          clashX = rendered.x;
+          clashY = rendered.y;
+        } else {
+          const shipPos = this.getShipCoordinates(seaNodeId, onlyId);
+          clashX = shipPos.x;
+          clashY = shipPos.y;
+        }
       }
 
       const clashRing = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
@@ -383,9 +451,13 @@ class MapAnimator {
       clashRing.setAttribute('cy', clashY);
       this.overlaysGroup.appendChild(clashRing);
 
+      // Outer g holds the clash position; inner g runs the CSS pop.
+      // (CSS transforms override the SVG transform attribute, so the
+      // animated class must NOT sit on the positioned element.)
+      const badgePos = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      badgePos.setAttribute('transform', `translate(${clashX}, ${clashY})`);
       const badgeG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
       badgeG.setAttribute('class', 'naval-clash-badge');
-      badgeG.setAttribute('transform', `translate(${clashX}, ${clashY})`);
 
       const swordText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
       swordText.setAttribute('text-anchor', 'middle');
@@ -394,11 +466,12 @@ class MapAnimator {
       swordText.textContent = '⚔️';
       badgeG.appendChild(swordText);
 
-      this.overlaysGroup.appendChild(badgeG);
+      badgePos.appendChild(badgeG);
+      this.overlaysGroup.appendChild(badgePos);
 
       setTimeout(() => {
         if (clashRing.parentNode) clashRing.parentNode.removeChild(clashRing);
-        if (badgeG.parentNode) badgeG.parentNode.removeChild(badgeG);
+        if (badgePos.parentNode) badgePos.parentNode.removeChild(badgePos);
         resolve();
       }, 850);
     });
@@ -406,7 +479,13 @@ class MapAnimator {
 
   animateShipDefeat(shipId, nodeId, outcomeType = 'sunk') {
     return new Promise((resolve) => {
-      const shipPos = this.getShipCoordinates(nodeId, shipId);
+      // Prefer the ship's live badge position (post-battle respawn may have
+      // moved it home); fall back to its actual node, then the battle node.
+      const rendered = this.getRenderedShipPosition(shipId);
+      const actualNode = this.findShipNode(shipId);
+      const shipPos = rendered
+        || (actualNode ? this.getShipCoordinates(actualNode, shipId) : null)
+        || this.getShipCoordinates(nodeId, shipId);
       const shipEl = document.getElementById(`ship-g-${shipId}`);
 
       if (outcomeType === 'sunk') {

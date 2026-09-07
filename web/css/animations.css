@@ -369,6 +369,8 @@
 .naval-clash-badge {
   animation: navalClashIconPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
   pointer-events: none;
+  transform-box: fill-box;
+  transform-origin: center;
 }
 
 /* 6. Naval Battle: Ship Defeat / Sinking Whirlpool */
@@ -395,6 +397,8 @@
 .whirlpool-splash {
   animation: whirlpoolSpin 0.9s cubic-bezier(0.2, 0.8, 0.4, 1) forwards;
   pointer-events: none;
+  transform-box: fill-box;
+  transform-origin: center;
 }
 
 
