@@ -40,8 +40,13 @@ class MapRenderer {
 
     // Drag to pan
     this.svg.addEventListener('mousedown', (e) => {
-      // Only drag if not clicking on a node or ship directly
-      if (e.target === this.svg || e.target.tagName === 'line' || e.target.tagName === 'rect' && e.target.width.baseVal.value > 1000) {
+      // Left-click only for dragging/panning
+      if (e.button !== 0) return;
+
+      // Only drag if not clicking on an interactive node or ship directly
+      const isInteractive = e.target.closest && (e.target.closest('.map-node-group') || e.target.closest('.map-ship-group'));
+      if (!isInteractive) {
+        e.preventDefault();
         this.isPanning = true;
         this.startPoint = { x: e.clientX, y: e.clientY };
         this.svg.classList.add('panning');
