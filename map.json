@@ -1,0 +1,332 @@
+{
+  "game": "IRON PRICE: Kingsmoot",
+  "nodes": [
+    {
+      "id": "pyke",
+      "name": "Pyke",
+      "kind": "isle",
+      "x": 300,
+      "y": 400,
+      "special": "Euron starts. Port: +1 card",
+      "control": "Euron"
+    },
+    {
+      "id": "harlaw",
+      "name": "Harlaw",
+      "kind": "isle",
+      "x": 350,
+      "y": 250,
+      "special": "Asha starts. Port: +1 card",
+      "control": "Asha"
+    },
+    {
+      "id": "greatwyk",
+      "name": "Great Wyk",
+      "kind": "isle",
+      "x": 280,
+      "y": 550,
+      "special": "Victarion starts. Muster 2 Hoard",
+      "control": "Victarion"
+    },
+    {
+      "id": "oldwyk",
+      "name": "Old Wyk",
+      "kind": "isle",
+      "x": 450,
+      "y": 400,
+      "special": "Kingsmoot: +1 Favor +1 Legend",
+      "defense": 2
+    },
+    {
+      "id": "orkmont",
+      "name": "Orkmont",
+      "kind": "isle",
+      "x": 420,
+      "y": 560,
+      "special": "+2 Hoard at season end",
+      "defense": 2
+    },
+    {
+      "id": "bay",
+      "name": "Ironman's Bay",
+      "kind": "sea",
+      "x": 620,
+      "y": 410,
+      "special": "Home waters (safe)"
+    },
+    {
+      "id": "seaN",
+      "name": "Sunset Sea N",
+      "kind": "sea",
+      "x": 920,
+      "y": 250,
+      "special": ""
+    },
+    {
+      "id": "seaC",
+      "name": "Sunset Sea C",
+      "kind": "sea",
+      "x": 920,
+      "y": 460,
+      "special": ""
+    },
+    {
+      "id": "seaS",
+      "name": "Sunset Sea S",
+      "kind": "sea",
+      "x": 920,
+      "y": 670,
+      "special": ""
+    },
+    {
+      "id": "storm",
+      "name": "Storm Belt",
+      "kind": "sea",
+      "x": 720,
+      "y": 620,
+      "special": "Roll Storm on entry"
+    },
+    {
+      "id": "deepwood",
+      "name": "Deepwood Motte",
+      "kind": "land",
+      "x": 1250,
+      "y": 170,
+      "defense": 3,
+      "hoard": 3,
+      "legend": 1
+    },
+    {
+      "id": "bear",
+      "name": "Bear Island",
+      "kind": "land",
+      "x": 1460,
+      "y": 170,
+      "defense": 4,
+      "hoard": 4,
+      "legend": 1
+    },
+    {
+      "id": "winterfell",
+      "name": "Winterfell Est.",
+      "kind": "land",
+      "x": 1670,
+      "y": 220,
+      "defense": 5,
+      "hoard": 5,
+      "legend": 2
+    },
+    {
+      "id": "seagard",
+      "name": "Seagard",
+      "kind": "land",
+      "x": 1250,
+      "y": 410,
+      "defense": 3,
+      "hoard": 3,
+      "legend": 1
+    },
+    {
+      "id": "lannisport",
+      "name": "Lannisport",
+      "kind": "land",
+      "x": 1460,
+      "y": 420,
+      "defense": 4,
+      "hoard": 4,
+      "legend": 1
+    },
+    {
+      "id": "casterly",
+      "name": "Casterly Rock",
+      "kind": "land",
+      "x": 1670,
+      "y": 460,
+      "defense": 6,
+      "hoard": 6,
+      "legend": 2
+    },
+    {
+      "id": "shield",
+      "name": "Shield Isles",
+      "kind": "land",
+      "x": 1250,
+      "y": 660,
+      "defense": 2,
+      "hoard": 2,
+      "legend": 1
+    },
+    {
+      "id": "fair",
+      "name": "Fair Isle",
+      "kind": "land",
+      "x": 1460,
+      "y": 680,
+      "defense": 2,
+      "hoard": 2,
+      "legend": 1
+    },
+    {
+      "id": "oldtown",
+      "name": "Oldtown",
+      "kind": "land",
+      "x": 1670,
+      "y": 700,
+      "defense": 5,
+      "hoard": 4,
+      "legend": 2
+    },
+    {
+      "id": "banefort",
+      "name": "Banefort",
+      "kind": "land",
+      "x": 1250,
+      "y": 860,
+      "defense": 3,
+      "hoard": 3,
+      "legend": 1
+    },
+    {
+      "id": "arbor",
+      "name": "The Arbor",
+      "kind": "land",
+      "x": 1460,
+      "y": 860,
+      "defense": 2,
+      "hoard": 2,
+      "legend": 1
+    },
+    {
+      "id": "flint",
+      "name": "Flint's Finger",
+      "kind": "land",
+      "x": 1670,
+      "y": 880,
+      "defense": 3,
+      "hoard": 3,
+      "legend": 1
+    }
+  ],
+  "edges": [
+    [
+      "pyke",
+      "bay"
+    ],
+    [
+      "harlaw",
+      "bay"
+    ],
+    [
+      "greatwyk",
+      "bay"
+    ],
+    [
+      "oldwyk",
+      "bay"
+    ],
+    [
+      "orkmont",
+      "bay"
+    ],
+    [
+      "bay",
+      "seaN"
+    ],
+    [
+      "bay",
+      "seaC"
+    ],
+    [
+      "bay",
+      "seaS"
+    ],
+    [
+      "bay",
+      "storm"
+    ],
+    [
+      "seaN",
+      "seaC"
+    ],
+    [
+      "seaC",
+      "seaS"
+    ],
+    [
+      "seaN",
+      "deepwood"
+    ],
+    [
+      "seaN",
+      "bear"
+    ],
+    [
+      "seaN",
+      "winterfell"
+    ],
+    [
+      "seaC",
+      "seagard"
+    ],
+    [
+      "seaC",
+      "lannisport"
+    ],
+    [
+      "seaC",
+      "casterly"
+    ],
+    [
+      "seaS",
+      "shield"
+    ],
+    [
+      "seaS",
+      "fair"
+    ],
+    [
+      "seaS",
+      "oldtown"
+    ],
+    [
+      "seaS",
+      "arbor"
+    ],
+    [
+      "storm",
+      "seaS"
+    ],
+    [
+      "storm",
+      "banefort"
+    ],
+    [
+      "storm",
+      "flint"
+    ],
+    [
+      "storm",
+      "fair"
+    ],
+    [
+      "seaS",
+      "banefort"
+    ],
+    [
+      "seaS",
+      "flint"
+    ]
+  ],
+  "dice": {
+    "faces": [
+      "Kraken x2 (2 hits)",
+      "Kraken x2 (2 hits)",
+      "Axe x2 (1 hit)",
+      "Axe x2 (1 hit)",
+      "Shield x1 (block)",
+      "Eye x1 (drowned)"
+    ],
+    "substitute": "d6: 6=Kraken, 4-5=Axe, 3=Shield, 1=Eye, 2=miss"
+  },
+  "rules_summary": "5 seasons x 3 turns x 2 actions. Most Legend wins."
+}

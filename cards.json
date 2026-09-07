@@ -1,0 +1,903 @@
+{
+  "game": "IRON PRICE: Kingsmoot",
+  "counts": {
+    "tide_unique": 15,
+    "tide_total": 60,
+    "faction_per_player": 10,
+    "faction_total": 30,
+    "grand_total": 90
+  },
+  "tide_types": [
+    {
+      "name": "Boarding Party",
+      "sail": 1,
+      "effect": "+2 Raid Dice when attacking. Discard after battle.",
+      "copies": 4
+    },
+    {
+      "name": "Shield Wall",
+      "sail": 1,
+      "effect": "Block 2 hits this round. Play in battle.",
+      "copies": 4
+    },
+    {
+      "name": "Full Sail",
+      "sail": 3,
+      "effect": "+2 movement to one fleet this turn. Draw 1 card if you end at sea.",
+      "copies": 4
+    },
+    {
+      "name": "Drowned Blessing",
+      "sail": 1,
+      "effect": "Cancel all EYE results you rolled. Gain +1 Favor per EYE cancelled.",
+      "copies": 4
+    },
+    {
+      "name": "Pay the Iron Price",
+      "sail": 1,
+      "effect": "Discard 2 Hoard -> place +3 crew on your attacking ship immediately.",
+      "copies": 4
+    },
+    {
+      "name": "We Do Not Sow",
+      "sail": 2,
+      "effect": "If you win this raid: double Hoard taken, gain no Legend this raid.",
+      "copies": 4
+    },
+    {
+      "name": "Thralls Take",
+      "sail": 2,
+      "effect": "After winning a raid: steal 1 enemy crew as thrall (+1 crew to your ship, max carry).",
+      "copies": 4
+    },
+    {
+      "name": "Salt Wife",
+      "sail": 1,
+      "effect": "+1 hand size until end of Season. Draw 1 card now.",
+      "copies": 4
+    },
+    {
+      "name": "Storm Warning",
+      "sail": 2,
+      "effect": "Your fleets ignore Storm Belt rolls this turn. Sail +1.",
+      "copies": 4
+    },
+    {
+      "name": "Night Raid",
+      "sail": 2,
+      "effect": "+3 dice if this is your first Reave this Season. Defender rolls -1 die.",
+      "copies": 4
+    },
+    {
+      "name": "Pillage",
+      "sail": 2,
+      "effect": "Loot a Burned land you occupy immediately at reduced value. No battle.",
+      "copies": 4
+    },
+    {
+      "name": "Ironborn Resolve",
+      "sail": 1,
+      "effect": "Ignore 2 hits dealt to you this round.",
+      "copies": 4
+    },
+    {
+      "name": "Storm God's Wrath",
+      "sail": 1,
+      "effect": "All fleets in one sea zone roll a Storm die now (even yours).",
+      "copies": 4
+    },
+    {
+      "name": "Drowned Priest",
+      "sail": 1,
+      "effect": "+2 Drowned Favor. If at Old Wyk: +3 instead.",
+      "copies": 4
+    },
+    {
+      "name": "War Horn",
+      "sail": 2,
+      "effect": "+1 die to every battle you fight this turn.",
+      "copies": 4
+    }
+  ],
+  "faction_cards": {
+    "Euron": [
+      {
+        "name": "Silence Ambush",
+        "sail": 2,
+        "effect": "Defender rolls -2 dice this round. If you win, +1 Legend."
+      },
+      {
+        "name": "Crow's Eye",
+        "sail": 1,
+        "effect": "Re-roll any dice. Each EYE: +1 Favor (no crew loss this card)."
+      },
+      {
+        "name": "Dragon Horn",
+        "sail": 1,
+        "effect": "Force one enemy fleet to lose 2 crew OR retreat. Costs 2 Favor."
+      },
+      {
+        "name": "Warlock Shade",
+        "sail": 2,
+        "effect": "Look at defender's hand. Discard 1 card from it."
+      },
+      {
+        "name": "Mute Crew",
+        "sail": 1,
+        "effect": "Immune to steals/events this Season. +1 block."
+      },
+      {
+        "name": "Blood Sacrifice",
+        "sail": 1,
+        "effect": "Lose 2 crew -> +4 dice this round."
+      },
+      {
+        "name": "Stormcaller",
+        "sail": 2,
+        "effect": "Force opponent to re-roll all SHIELD results."
+      },
+      {
+        "name": "Euron's Madness",
+        "sail": 1,
+        "effect": "Roll +3 dice. Lose 1 crew for each miss (2)."
+      },
+      {
+        "name": "Qarth Treasure",
+        "sail": 3,
+        "effect": "Gain 4 Hoard if you win this raid. Sail 3."
+      },
+      {
+        "name": "Nightmare Fleet",
+        "sail": 2,
+        "effect": "Move 2 fleets this turn instead of 1."
+      }
+    ],
+    "Victarion": [
+      {
+        "name": "Iron Victory Charge",
+        "sail": 2,
+        "effect": "+2 dice. Axes count double this round."
+      },
+      {
+        "name": "Shield Breaker",
+        "sail": 1,
+        "effect": "Enemy SHIELDS block nothing this round."
+      },
+      {
+        "name": "Drowned Baptism",
+        "sail": 1,
+        "effect": "After losing crew: +2 Favor, +1 die next round."
+      },
+      {
+        "name": "Iron Fleet Ram",
+        "sail": 2,
+        "effect": "Enemy fleet cannot retreat this battle. +1 die."
+      },
+      {
+        "name": "Victarion's Fury",
+        "sail": 1,
+        "effect": "+1 hit per AXE you rolled (axes = 2 hits)."
+      },
+      {
+        "name": "Muster the Fleet",
+        "sail": 1,
+        "effect": "Place +2 crew on any port you control, free."
+      },
+      {
+        "name": "Boarding Axe",
+        "sail": 1,
+        "effect": "+3 dice when you have more crew than defender."
+      },
+      {
+        "name": "Sea Bitch Tribute",
+        "sail": 2,
+        "effect": "Gain 2 Hoard. +1 die if attacking Lannisport/Casterly."
+      },
+      {
+        "name": "Drowned God's Fist",
+        "sail": 1,
+        "effect": "Spend up to 3 Favor: +1 die per Favor spent."
+      },
+      {
+        "name": "Unbowed",
+        "sail": 1,
+        "effect": "Ignore up to 3 hits this round."
+      }
+    ],
+    "Asha": [
+      {
+        "name": "Parley",
+        "sail": 2,
+        "effect": "Steal 2 Hoard from a rival in the same sea zone. No battle."
+      },
+      {
+        "name": "Black Wind Dash",
+        "sail": 3,
+        "effect": "Sail +3, then Reave in the same turn. Retreat free."
+      },
+      {
+        "name": "Smuggler's Cove",
+        "sail": 2,
+        "effect": "Swap 2 Hoard -> draw 3 cards."
+      },
+      {
+        "name": "Kraken's Daughter",
+        "sail": 1,
+        "effect": "Win a raid with no losses: draw 2 cards, +1 Legend."
+      },
+      {
+        "name": "Reading the Tide",
+        "sail": 3,
+        "effect": "Draw 3 cards. Discard 1."
+      },
+      {
+        "name": "Hit and Run",
+        "sail": 2,
+        "effect": "+1 die. After round 1, retreat free with full loot if winning."
+      },
+      {
+        "name": "Harlaw Alliance",
+        "sail": 1,
+        "effect": "Use a Harlaw port as if you control it this turn."
+      },
+      {
+        "name": "Sneak Ashore",
+        "sail": 2,
+        "effect": "Ignore 2 Defense on a Green Land this raid."
+      },
+      {
+        "name": "Ransom",
+        "sail": 1,
+        "effect": "After winning vs rival: they pay you 3 Hoard or lose 2 crew."
+      },
+      {
+        "name": "Queen's Gambit",
+        "sail": 1,
+        "effect": "Discard your hand: +1 die per card discarded this battle."
+      }
+    ]
+  },
+  "all_cards": [
+    {
+      "id": 1,
+      "deck": "Tide",
+      "name": "Boarding Party",
+      "sail": 1,
+      "effect": "+2 Raid Dice when attacking. Discard after battle."
+    },
+    {
+      "id": 2,
+      "deck": "Tide",
+      "name": "Boarding Party",
+      "sail": 1,
+      "effect": "+2 Raid Dice when attacking. Discard after battle."
+    },
+    {
+      "id": 3,
+      "deck": "Tide",
+      "name": "Boarding Party",
+      "sail": 1,
+      "effect": "+2 Raid Dice when attacking. Discard after battle."
+    },
+    {
+      "id": 4,
+      "deck": "Tide",
+      "name": "Boarding Party",
+      "sail": 1,
+      "effect": "+2 Raid Dice when attacking. Discard after battle."
+    },
+    {
+      "id": 5,
+      "deck": "Tide",
+      "name": "Shield Wall",
+      "sail": 1,
+      "effect": "Block 2 hits this round. Play in battle."
+    },
+    {
+      "id": 6,
+      "deck": "Tide",
+      "name": "Shield Wall",
+      "sail": 1,
+      "effect": "Block 2 hits this round. Play in battle."
+    },
+    {
+      "id": 7,
+      "deck": "Tide",
+      "name": "Shield Wall",
+      "sail": 1,
+      "effect": "Block 2 hits this round. Play in battle."
+    },
+    {
+      "id": 8,
+      "deck": "Tide",
+      "name": "Shield Wall",
+      "sail": 1,
+      "effect": "Block 2 hits this round. Play in battle."
+    },
+    {
+      "id": 9,
+      "deck": "Tide",
+      "name": "Full Sail",
+      "sail": 3,
+      "effect": "+2 movement to one fleet this turn. Draw 1 card if you end at sea."
+    },
+    {
+      "id": 10,
+      "deck": "Tide",
+      "name": "Full Sail",
+      "sail": 3,
+      "effect": "+2 movement to one fleet this turn. Draw 1 card if you end at sea."
+    },
+    {
+      "id": 11,
+      "deck": "Tide",
+      "name": "Full Sail",
+      "sail": 3,
+      "effect": "+2 movement to one fleet this turn. Draw 1 card if you end at sea."
+    },
+    {
+      "id": 12,
+      "deck": "Tide",
+      "name": "Full Sail",
+      "sail": 3,
+      "effect": "+2 movement to one fleet this turn. Draw 1 card if you end at sea."
+    },
+    {
+      "id": 13,
+      "deck": "Tide",
+      "name": "Drowned Blessing",
+      "sail": 1,
+      "effect": "Cancel all EYE results you rolled. Gain +1 Favor per EYE cancelled."
+    },
+    {
+      "id": 14,
+      "deck": "Tide",
+      "name": "Drowned Blessing",
+      "sail": 1,
+      "effect": "Cancel all EYE results you rolled. Gain +1 Favor per EYE cancelled."
+    },
+    {
+      "id": 15,
+      "deck": "Tide",
+      "name": "Drowned Blessing",
+      "sail": 1,
+      "effect": "Cancel all EYE results you rolled. Gain +1 Favor per EYE cancelled."
+    },
+    {
+      "id": 16,
+      "deck": "Tide",
+      "name": "Drowned Blessing",
+      "sail": 1,
+      "effect": "Cancel all EYE results you rolled. Gain +1 Favor per EYE cancelled."
+    },
+    {
+      "id": 17,
+      "deck": "Tide",
+      "name": "Pay the Iron Price",
+      "sail": 1,
+      "effect": "Discard 2 Hoard -> place +3 crew on your attacking ship immediately."
+    },
+    {
+      "id": 18,
+      "deck": "Tide",
+      "name": "Pay the Iron Price",
+      "sail": 1,
+      "effect": "Discard 2 Hoard -> place +3 crew on your attacking ship immediately."
+    },
+    {
+      "id": 19,
+      "deck": "Tide",
+      "name": "Pay the Iron Price",
+      "sail": 1,
+      "effect": "Discard 2 Hoard -> place +3 crew on your attacking ship immediately."
+    },
+    {
+      "id": 20,
+      "deck": "Tide",
+      "name": "Pay the Iron Price",
+      "sail": 1,
+      "effect": "Discard 2 Hoard -> place +3 crew on your attacking ship immediately."
+    },
+    {
+      "id": 21,
+      "deck": "Tide",
+      "name": "We Do Not Sow",
+      "sail": 2,
+      "effect": "If you win this raid: double Hoard taken, gain no Legend this raid."
+    },
+    {
+      "id": 22,
+      "deck": "Tide",
+      "name": "We Do Not Sow",
+      "sail": 2,
+      "effect": "If you win this raid: double Hoard taken, gain no Legend this raid."
+    },
+    {
+      "id": 23,
+      "deck": "Tide",
+      "name": "We Do Not Sow",
+      "sail": 2,
+      "effect": "If you win this raid: double Hoard taken, gain no Legend this raid."
+    },
+    {
+      "id": 24,
+      "deck": "Tide",
+      "name": "We Do Not Sow",
+      "sail": 2,
+      "effect": "If you win this raid: double Hoard taken, gain no Legend this raid."
+    },
+    {
+      "id": 25,
+      "deck": "Tide",
+      "name": "Thralls Take",
+      "sail": 2,
+      "effect": "After winning a raid: steal 1 enemy crew as thrall (+1 crew to your ship, max carry)."
+    },
+    {
+      "id": 26,
+      "deck": "Tide",
+      "name": "Thralls Take",
+      "sail": 2,
+      "effect": "After winning a raid: steal 1 enemy crew as thrall (+1 crew to your ship, max carry)."
+    },
+    {
+      "id": 27,
+      "deck": "Tide",
+      "name": "Thralls Take",
+      "sail": 2,
+      "effect": "After winning a raid: steal 1 enemy crew as thrall (+1 crew to your ship, max carry)."
+    },
+    {
+      "id": 28,
+      "deck": "Tide",
+      "name": "Thralls Take",
+      "sail": 2,
+      "effect": "After winning a raid: steal 1 enemy crew as thrall (+1 crew to your ship, max carry)."
+    },
+    {
+      "id": 29,
+      "deck": "Tide",
+      "name": "Salt Wife",
+      "sail": 1,
+      "effect": "+1 hand size until end of Season. Draw 1 card now."
+    },
+    {
+      "id": 30,
+      "deck": "Tide",
+      "name": "Salt Wife",
+      "sail": 1,
+      "effect": "+1 hand size until end of Season. Draw 1 card now."
+    },
+    {
+      "id": 31,
+      "deck": "Tide",
+      "name": "Salt Wife",
+      "sail": 1,
+      "effect": "+1 hand size until end of Season. Draw 1 card now."
+    },
+    {
+      "id": 32,
+      "deck": "Tide",
+      "name": "Salt Wife",
+      "sail": 1,
+      "effect": "+1 hand size until end of Season. Draw 1 card now."
+    },
+    {
+      "id": 33,
+      "deck": "Tide",
+      "name": "Storm Warning",
+      "sail": 2,
+      "effect": "Your fleets ignore Storm Belt rolls this turn. Sail +1."
+    },
+    {
+      "id": 34,
+      "deck": "Tide",
+      "name": "Storm Warning",
+      "sail": 2,
+      "effect": "Your fleets ignore Storm Belt rolls this turn. Sail +1."
+    },
+    {
+      "id": 35,
+      "deck": "Tide",
+      "name": "Storm Warning",
+      "sail": 2,
+      "effect": "Your fleets ignore Storm Belt rolls this turn. Sail +1."
+    },
+    {
+      "id": 36,
+      "deck": "Tide",
+      "name": "Storm Warning",
+      "sail": 2,
+      "effect": "Your fleets ignore Storm Belt rolls this turn. Sail +1."
+    },
+    {
+      "id": 37,
+      "deck": "Tide",
+      "name": "Night Raid",
+      "sail": 2,
+      "effect": "+3 dice if this is your first Reave this Season. Defender rolls -1 die."
+    },
+    {
+      "id": 38,
+      "deck": "Tide",
+      "name": "Night Raid",
+      "sail": 2,
+      "effect": "+3 dice if this is your first Reave this Season. Defender rolls -1 die."
+    },
+    {
+      "id": 39,
+      "deck": "Tide",
+      "name": "Night Raid",
+      "sail": 2,
+      "effect": "+3 dice if this is your first Reave this Season. Defender rolls -1 die."
+    },
+    {
+      "id": 40,
+      "deck": "Tide",
+      "name": "Night Raid",
+      "sail": 2,
+      "effect": "+3 dice if this is your first Reave this Season. Defender rolls -1 die."
+    },
+    {
+      "id": 41,
+      "deck": "Tide",
+      "name": "Pillage",
+      "sail": 2,
+      "effect": "Loot a Burned land you occupy immediately at reduced value. No battle."
+    },
+    {
+      "id": 42,
+      "deck": "Tide",
+      "name": "Pillage",
+      "sail": 2,
+      "effect": "Loot a Burned land you occupy immediately at reduced value. No battle."
+    },
+    {
+      "id": 43,
+      "deck": "Tide",
+      "name": "Pillage",
+      "sail": 2,
+      "effect": "Loot a Burned land you occupy immediately at reduced value. No battle."
+    },
+    {
+      "id": 44,
+      "deck": "Tide",
+      "name": "Pillage",
+      "sail": 2,
+      "effect": "Loot a Burned land you occupy immediately at reduced value. No battle."
+    },
+    {
+      "id": 45,
+      "deck": "Tide",
+      "name": "Ironborn Resolve",
+      "sail": 1,
+      "effect": "Ignore 2 hits dealt to you this round."
+    },
+    {
+      "id": 46,
+      "deck": "Tide",
+      "name": "Ironborn Resolve",
+      "sail": 1,
+      "effect": "Ignore 2 hits dealt to you this round."
+    },
+    {
+      "id": 47,
+      "deck": "Tide",
+      "name": "Ironborn Resolve",
+      "sail": 1,
+      "effect": "Ignore 2 hits dealt to you this round."
+    },
+    {
+      "id": 48,
+      "deck": "Tide",
+      "name": "Ironborn Resolve",
+      "sail": 1,
+      "effect": "Ignore 2 hits dealt to you this round."
+    },
+    {
+      "id": 49,
+      "deck": "Tide",
+      "name": "Storm God's Wrath",
+      "sail": 1,
+      "effect": "All fleets in one sea zone roll a Storm die now (even yours)."
+    },
+    {
+      "id": 50,
+      "deck": "Tide",
+      "name": "Storm God's Wrath",
+      "sail": 1,
+      "effect": "All fleets in one sea zone roll a Storm die now (even yours)."
+    },
+    {
+      "id": 51,
+      "deck": "Tide",
+      "name": "Storm God's Wrath",
+      "sail": 1,
+      "effect": "All fleets in one sea zone roll a Storm die now (even yours)."
+    },
+    {
+      "id": 52,
+      "deck": "Tide",
+      "name": "Storm God's Wrath",
+      "sail": 1,
+      "effect": "All fleets in one sea zone roll a Storm die now (even yours)."
+    },
+    {
+      "id": 53,
+      "deck": "Tide",
+      "name": "Drowned Priest",
+      "sail": 1,
+      "effect": "+2 Drowned Favor. If at Old Wyk: +3 instead."
+    },
+    {
+      "id": 54,
+      "deck": "Tide",
+      "name": "Drowned Priest",
+      "sail": 1,
+      "effect": "+2 Drowned Favor. If at Old Wyk: +3 instead."
+    },
+    {
+      "id": 55,
+      "deck": "Tide",
+      "name": "Drowned Priest",
+      "sail": 1,
+      "effect": "+2 Drowned Favor. If at Old Wyk: +3 instead."
+    },
+    {
+      "id": 56,
+      "deck": "Tide",
+      "name": "Drowned Priest",
+      "sail": 1,
+      "effect": "+2 Drowned Favor. If at Old Wyk: +3 instead."
+    },
+    {
+      "id": 57,
+      "deck": "Tide",
+      "name": "War Horn",
+      "sail": 2,
+      "effect": "+1 die to every battle you fight this turn."
+    },
+    {
+      "id": 58,
+      "deck": "Tide",
+      "name": "War Horn",
+      "sail": 2,
+      "effect": "+1 die to every battle you fight this turn."
+    },
+    {
+      "id": 59,
+      "deck": "Tide",
+      "name": "War Horn",
+      "sail": 2,
+      "effect": "+1 die to every battle you fight this turn."
+    },
+    {
+      "id": 60,
+      "deck": "Tide",
+      "name": "War Horn",
+      "sail": 2,
+      "effect": "+1 die to every battle you fight this turn."
+    },
+    {
+      "id": 61,
+      "deck": "Euron",
+      "name": "Silence Ambush",
+      "sail": 2,
+      "effect": "Defender rolls -2 dice this round. If you win, +1 Legend."
+    },
+    {
+      "id": 62,
+      "deck": "Euron",
+      "name": "Crow's Eye",
+      "sail": 1,
+      "effect": "Re-roll any dice. Each EYE: +1 Favor (no crew loss this card)."
+    },
+    {
+      "id": 63,
+      "deck": "Euron",
+      "name": "Dragon Horn",
+      "sail": 1,
+      "effect": "Force one enemy fleet to lose 2 crew OR retreat. Costs 2 Favor."
+    },
+    {
+      "id": 64,
+      "deck": "Euron",
+      "name": "Warlock Shade",
+      "sail": 2,
+      "effect": "Look at defender's hand. Discard 1 card from it."
+    },
+    {
+      "id": 65,
+      "deck": "Euron",
+      "name": "Mute Crew",
+      "sail": 1,
+      "effect": "Immune to steals/events this Season. +1 block."
+    },
+    {
+      "id": 66,
+      "deck": "Euron",
+      "name": "Blood Sacrifice",
+      "sail": 1,
+      "effect": "Lose 2 crew -> +4 dice this round."
+    },
+    {
+      "id": 67,
+      "deck": "Euron",
+      "name": "Stormcaller",
+      "sail": 2,
+      "effect": "Force opponent to re-roll all SHIELD results."
+    },
+    {
+      "id": 68,
+      "deck": "Euron",
+      "name": "Euron's Madness",
+      "sail": 1,
+      "effect": "Roll +3 dice. Lose 1 crew for each miss (2)."
+    },
+    {
+      "id": 69,
+      "deck": "Euron",
+      "name": "Qarth Treasure",
+      "sail": 3,
+      "effect": "Gain 4 Hoard if you win this raid. Sail 3."
+    },
+    {
+      "id": 70,
+      "deck": "Euron",
+      "name": "Nightmare Fleet",
+      "sail": 2,
+      "effect": "Move 2 fleets this turn instead of 1."
+    },
+    {
+      "id": 71,
+      "deck": "Victarion",
+      "name": "Iron Victory Charge",
+      "sail": 2,
+      "effect": "+2 dice. Axes count double this round."
+    },
+    {
+      "id": 72,
+      "deck": "Victarion",
+      "name": "Shield Breaker",
+      "sail": 1,
+      "effect": "Enemy SHIELDS block nothing this round."
+    },
+    {
+      "id": 73,
+      "deck": "Victarion",
+      "name": "Drowned Baptism",
+      "sail": 1,
+      "effect": "After losing crew: +2 Favor, +1 die next round."
+    },
+    {
+      "id": 74,
+      "deck": "Victarion",
+      "name": "Iron Fleet Ram",
+      "sail": 2,
+      "effect": "Enemy fleet cannot retreat this battle. +1 die."
+    },
+    {
+      "id": 75,
+      "deck": "Victarion",
+      "name": "Victarion's Fury",
+      "sail": 1,
+      "effect": "+1 hit per AXE you rolled (axes = 2 hits)."
+    },
+    {
+      "id": 76,
+      "deck": "Victarion",
+      "name": "Muster the Fleet",
+      "sail": 1,
+      "effect": "Place +2 crew on any port you control, free."
+    },
+    {
+      "id": 77,
+      "deck": "Victarion",
+      "name": "Boarding Axe",
+      "sail": 1,
+      "effect": "+3 dice when you have more crew than defender."
+    },
+    {
+      "id": 78,
+      "deck": "Victarion",
+      "name": "Sea Bitch Tribute",
+      "sail": 2,
+      "effect": "Gain 2 Hoard. +1 die if attacking Lannisport/Casterly."
+    },
+    {
+      "id": 79,
+      "deck": "Victarion",
+      "name": "Drowned God's Fist",
+      "sail": 1,
+      "effect": "Spend up to 3 Favor: +1 die per Favor spent."
+    },
+    {
+      "id": 80,
+      "deck": "Victarion",
+      "name": "Unbowed",
+      "sail": 1,
+      "effect": "Ignore up to 3 hits this round."
+    },
+    {
+      "id": 81,
+      "deck": "Asha",
+      "name": "Parley",
+      "sail": 2,
+      "effect": "Steal 2 Hoard from a rival in the same sea zone. No battle."
+    },
+    {
+      "id": 82,
+      "deck": "Asha",
+      "name": "Black Wind Dash",
+      "sail": 3,
+      "effect": "Sail +3, then Reave in the same turn. Retreat free."
+    },
+    {
+      "id": 83,
+      "deck": "Asha",
+      "name": "Smuggler's Cove",
+      "sail": 2,
+      "effect": "Swap 2 Hoard -> draw 3 cards."
+    },
+    {
+      "id": 84,
+      "deck": "Asha",
+      "name": "Kraken's Daughter",
+      "sail": 1,
+      "effect": "Win a raid with no losses: draw 2 cards, +1 Legend."
+    },
+    {
+      "id": 85,
+      "deck": "Asha",
+      "name": "Reading the Tide",
+      "sail": 3,
+      "effect": "Draw 3 cards. Discard 1."
+    },
+    {
+      "id": 86,
+      "deck": "Asha",
+      "name": "Hit and Run",
+      "sail": 2,
+      "effect": "+1 die. After round 1, retreat free with full loot if winning."
+    },
+    {
+      "id": 87,
+      "deck": "Asha",
+      "name": "Harlaw Alliance",
+      "sail": 1,
+      "effect": "Use a Harlaw port as if you control it this turn."
+    },
+    {
+      "id": 88,
+      "deck": "Asha",
+      "name": "Sneak Ashore",
+      "sail": 2,
+      "effect": "Ignore 2 Defense on a Green Land this raid."
+    },
+    {
+      "id": 89,
+      "deck": "Asha",
+      "name": "Ransom",
+      "sail": 1,
+      "effect": "After winning vs rival: they pay you 3 Hoard or lose 2 crew."
+    },
+    {
+      "id": 90,
+      "deck": "Asha",
+      "name": "Queen's Gambit",
+      "sail": 1,
+      "effect": "Discard your hand: +1 die per card discarded this battle."
+    }
+  ],
+  "dice": {
+    "faces": [
+      "Kraken x2 (2 hits)",
+      "Kraken x2 (2 hits)",
+      "Axe x2 (1 hit)",
+      "Axe x2 (1 hit)",
+      "Shield x1 (block)",
+      "Eye x1 (drowned)"
+    ],
+    "substitute": "d6: 6=Kraken, 4-5=Axe, 3=Shield, 1=Eye, 2=miss"
+  }
+}
