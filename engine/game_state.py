@@ -212,6 +212,8 @@ class GameStateManager:
             elif outcome == "casualty":
                 crew_lost = min(ship.crew, 1)
                 ship.crew -= crew_lost
+                if ship.crew == 0:
+                    self.respawn_ship_if_dead(ship)
                 favor_gained = min(7 - active.favor, 1)
                 active.favor = min(7, active.favor + 1)
                 hazard = StormHazardResult(
@@ -362,6 +364,8 @@ class GameStateManager:
             enemy_ship.crew = max(0, enemy_ship.crew - 1)
             CombatEngine.apply_casualties_and_favor(enemy_player, 1)
             self._push_ship_back(enemy_ship, target_node)
+            if enemy_ship.crew == 0:
+                self.respawn_ship_if_dead(enemy_ship)
 
             self.actions_remaining -= 1
             self._log(f"🌊 [{active.faction}] invokes CALL STORM (4 Favor)! {enemy_ship.id} at {node.name} loses 1 crew and is battered back!")
@@ -459,10 +463,31 @@ class GameStateManager:
         if not self.map_engine.is_adjacent(curr_node_id, target_land_id):
             return {"success": False, "error": f"{ship.id} at {curr_node_id} is not adjacent to {target_node.name}."}
 
-        outcome = CombatEngine.resolve_greenland_reave(active, ship, target_node, rng=self.rng)
+        curr_node = self.nodes[curr_node_id]
+        aux_friendly = [s for s in curr_node.occupants if s.faction == active.faction and s.id != ship.id and s.crew > 0]
+        outcome = CombatEngine.resolve_greenland_reave(
+            active, ship, target_node, aux_friendly_ships=aux_friendly, rng=self.rng
+        )
+        outcome.origin_node = curr_node_id
+        outcome.ship_id = ship.id
         self.last_reave_outcome = outcome
 
-        ship.crew -= outcome.crew_lost
+        rem_lost = outcome.crew_lost
+        ship_loss = min(ship.crew, rem_lost)
+        ship.crew -= ship_loss
+        rem_lost -= ship_loss
+        if ship.crew == 0:
+            self.respawn_ship_if_dead(ship)
+
+        if rem_lost > 0 and aux_friendly:
+            for aux in aux_friendly:
+                take = min(aux.crew, rem_lost)
+                aux.crew -= take
+                rem_lost -= take
+                if aux.crew == 0:
+                    self.respawn_ship_if_dead(aux)
+                if rem_lost <= 0:
+                    break
 
         if outcome.success:
             active.hoard += outcome.hoard_gained
@@ -475,7 +500,14 @@ class GameStateManager:
 
         self.actions_remaining -= 1
         self._check_auto_turn_advance()
-        return {"success": True, "outcome": outcome.to_dict()}
+        return {
+            "success": True,
+            "action": "reave",
+            "ship_id": ship.id,
+            "origin_node": curr_node_id,
+            "target_land_id": target_land_id,
+            "outcome": outcome.to_dict()
+        }
 
     def action_pray(self) -> Dict[str, Any]:
         """Pray to the Drowned God to gain +1 Favor."""
@@ -510,6 +542,24 @@ class GameStateManager:
         if self.active_battle is None and self.actions_remaining <= 0:
             self._advance_turn()
 
+    def respawn_ship_if_dead(self, ship: Ship):
+        """
+        WHAT IS DEAD MAY NEVER DIE:
+        If a ship reaches 0 crew, it immediately respawns at its home port:
+        - 1 crew if it is a Flagship
+        - 0 crew if it is a non-flagship war longship
+        """
+        if ship.crew <= 0:
+            player = self._get_player_by_faction(ship.faction)
+            home_node = player.home_node if player else "pyke"
+            curr_node_id, _ = self.find_ship_location(ship.id)
+            if curr_node_id != home_node:
+                self._move_ship_to(ship, curr_node_id or home_node, home_node)
+            ship.crew = 1 if ship.is_flagship else 0
+            crew_str = "1 warrior" if ship.is_flagship else "empty hull (0 crew)"
+            s_name = ship.get_name() if hasattr(ship, "get_name") else ship.id
+            self._log(f"⚓ [WHAT IS DEAD MAY NEVER DIE] {s_name} washed ashore at {self.nodes[home_node].name} ({crew_str})!")
+
     def _advance_turn(self):
         """Advance player turn, round, and season. Also checks No-Elimination respawn."""
         self.actions_remaining = 2
@@ -522,10 +572,7 @@ class GameStateManager:
             ships = self.get_player_ships(active.faction)
             flagship = next((s for _, s in ships if s.is_flagship), None)
             if flagship:
-                curr_node_id, _ = self.find_ship_location(flagship.id)
-                self._move_ship_to(flagship, curr_node_id or active.home_node, active.home_node)
-                flagship.crew = 3
-                self._log(f"⚓ [WHAT IS DEAD MAY NEVER DIE] {active.name} respawned at {self.nodes[active.home_node].name} with 1 Flagship and 3 fresh warriors!")
+                self.respawn_ship_if_dead(flagship)
 
         # If wrapped back to first player (Asha), advance turn in season
         if self.active_player_idx == 0:

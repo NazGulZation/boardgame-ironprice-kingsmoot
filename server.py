@@ -62,6 +62,11 @@ class KingsmootHandler(SimpleHTTPRequestHandler):
             })
             return
 
+        if parsed.path == "/favicon.ico":
+            self.send_response(204)
+            self.end_headers()
+            return
+
         # Static assets
         super().do_GET()
 

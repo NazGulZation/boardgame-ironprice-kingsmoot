@@ -120,6 +120,16 @@ Web UI will be live at: `http://localhost:8000`
    * **Ancestral Heraldry**: Kraken sigil (`🦑`), House motto *"WE DO NOT SOW" • WHAT IS DEAD MAY NEVER DIE*.
    * **Tactical Actions**: Heavy tactile button states with metallic `krakenSheen` glints and `bloodAura` combat pulsation for Reave actions.
 
+8. **Naval Clash Animation & Popup Synchronization**:
+   * When moving into an enemy sea zone, `animateNavalClash` renders pulsing crossed swords (`⚔️`) positioned precisely at the midpoint between the colliding ship dock coordinates (`clashX`, `clashY`) rather than the target node center.
+   * The battle dice modal popup is guarded by `isClashAnimating` and must **never** open until the naval clash animation resolves.
+   * Combat dice tray animations only re-roll on newly generated rolls (`isNewRoll`), preventing unwanted tumbling animations on passive UI selection refreshes.
+   * AI claimant raid targeting animations are suppressed during AI turns to maintain crisp, distraction-free pacing.
+9. **Tactical Fleet Stacking & Respawn Mechanics**:
+   * **Dice Stacking**: Co-located friendly longships with $\ge 1$ crew in the same zone contribute $+1$ bonus tactical die to both Keep Reaves (`calculate_reave_dice_count`) and Naval Clashes (`calculate_naval_dice_count`).
+   * **What Is Dead May Never Die**: When any ship's crew is reduced to 0 (in naval combat or from Keep counter-attack retaliation during Reave), the ship immediately respawns at its home port with **1 crew** (if Flagship) or **0 crew** (if standard Longship). No faction is ever eliminated.
+   * **Thematic Ship Heraldry**: Ships feature authentic Lore names via `Ship.get_name()`: Asha's *Black Wind*, Euron's *Silence*, Victarion's *Iron Victory*, and *{Faction} Longship I / II*.
+
 ---
 
 ## 5. MVP Implementation Roadmap
@@ -133,7 +143,8 @@ When implementing subsequent game phases, follow the phase specifications:
   * Implemented: Direct naval battle when entering enemy ship sea zone, tactical dice rolling with net damage, retreat mechanics.
   * Implemented: Drowned Favor track (0–7), tactical reroll (2 Favor), Call Storm (4 Favor) and Auto-Win (6 Favor) miracles.
   * Implemented: Asymmetric flagships (Silence speed 3 & Blood Price, Iron Victory 6 capacity & Iron Captain bonus, Black Wind storm immunity & free retreat).
-  * Implemented: Storm Belt hazards, no-elimination respawn ("What is dead may never die"), southern map re-routing, and persistent logging subsystem (`logs/game.log`, `logs/error.log`).
+  * Implemented: Co-located friendly fleet dice stacking for Reaves and Naval battles.
+  * Implemented: Storm Belt hazards, no-elimination respawn ("What is dead may never die" with 1 crew flagship / 0 crew reaver, triggered in battle and reave wipeout), southern map re-routing, and persistent logging subsystem (`logs/game.log`, `logs/error.log`).
   * Spec: [MVP-Phase-2-Combat-Favor.md](../../../MVP-Phase-2-Combat-Favor.md).
 * **Phase 3: Tide & Faction Cards** (Next)
   * Add: 30 Tide event deck (Winter storms, Merchant convoys, Kraken sightings).
@@ -143,3 +154,4 @@ When implementing subsequent game phases, follow the phase specifications:
   * Add: Final Moot voting phase with Lord speeches and support tokens.
   * Add: Strategic AI profiles (Asha: coastal raider, Euron: mystical blood sacrifices, Victarion: brutal fleet clash).
   * Spec: [MVP-Phase-4-Kingsmoot-AI.md](../../../MVP-Phase-4-Kingsmoot-AI.md).
+

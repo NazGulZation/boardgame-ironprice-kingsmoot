@@ -21,9 +21,16 @@ class BattleManager:
             self.gs.active_battle = None
             return
 
+        node = self.gs.nodes.get(battle.node_id)
+        att_friendly = [s for s in node.occupants if s.faction == attacker.faction and s.id != attacker_ship.id and s.crew > 0] if node else []
+        def_friendly = [s for s in node.occupants if s.faction == defender.faction and s.id != defender_ship.id and s.crew > 0] if node else []
+
         round_res = CombatEngine.resolve_naval_round(
             attacker, defender, attacker_ship, defender_ship,
-            battle.node_id, round_num=1, rng=self.gs.rng
+            battle.node_id, round_num=1,
+            attacker_aux_ships=att_friendly,
+            defender_aux_ships=def_friendly,
+            rng=self.gs.rng
         )
         battle.history.append(round_res)
         battle.total_attacker_crew_lost += round_res.attacker_crew_lost
@@ -201,9 +208,15 @@ class BattleManager:
         # 5. Advance to Round 2
         if continue_round:
             battle.round_num = 2
+            node = self.gs.nodes.get(battle.node_id)
+            att_friendly = [s for s in node.occupants if s.faction == attacker.faction and s.id != attacker_ship.id and s.crew > 0] if node else []
+            def_friendly = [s for s in node.occupants if s.faction == defender.faction and s.id != defender_ship.id and s.crew > 0] if node else []
             round2_res = CombatEngine.resolve_naval_round(
                 attacker, defender, attacker_ship, defender_ship,
-                battle.node_id, round_num=2, rng=self.gs.rng
+                battle.node_id, round_num=2,
+                attacker_aux_ships=att_friendly,
+                defender_aux_ships=def_friendly,
+                rng=self.gs.rng
             )
             battle.history.append(round2_res)
             battle.total_attacker_crew_lost += round2_res.attacker_crew_lost
@@ -258,6 +271,12 @@ class BattleManager:
                 battle.is_stalemate = True
                 self.gs._log(f"⚖️ Battle ended in STALEMATE ({tot_att_hits} = {tot_def_hits}). [{attacker.faction}] falls back to sea.")
                 self.gs._move_ship_to(attacker_ship, battle.node_id, battle.origin_node_id)
+
+        # What Is Dead May Never Die: respawn any wiped combatant
+        if defender_ship.crew == 0:
+            self.gs.respawn_ship_if_dead(defender_ship)
+        if attacker_ship.crew == 0:
+            self.gs.respawn_ship_if_dead(attacker_ship)
 
         battle.state = "finished"
         self.gs.last_battle_outcome = battle

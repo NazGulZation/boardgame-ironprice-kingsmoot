@@ -35,10 +35,10 @@ A 1v1v1 strategic Ironborn board game where three claimants vie to become King o
 * Attack an adjacent Green Land keep from a sea zone.
 * **Requirements**: Friendly ship must have at least 1 crew member.
 * **Combat Dice**:
-  * Attacker rolls $D6 = \text{Ship Crew}$ (e.g. 4 dice for full flagship).
+  * Attacker rolls $D6 = \text{Ship Crew} + \text{Bonus Dice}$ (each co-located friendly ship in the sea zone with $\ge 1$ crew adds $+1$ bonus die).
   * Hits occur on 5 or 6 (Iron Price).
   * Total hits $\ge \text{Keep Defense}$: **Victory!** Keep is plundered. Attacker gains Keep's Hoard and Legend. Keep becomes **Burned** (reduced hoard on subsequent raids).
-  * Total hits $< \text{Keep Defense}$: **Repelled!** Raid fails, ship takes counter-damage (loses 1 crew).
+  * Total hits $< \text{Keep Defense}$: **Repelled!** Raid fails, ship takes counter-damage (loses 1 crew). If crew reaches 0, the ship immediately respawns at home port (1 crew for flagship, 0 for standard longship).
 * **Controls**: Left-click ship -> **Right-click adjacent Green Land keep** to reave instantly.
 
 ### C. Muster Crew (1 Action)
@@ -85,11 +85,11 @@ A 1v1v1 strategic Ironborn board game where three claimants vie to become King o
 
 ### A. Naval Battles
 * Moving a ship into a Sea or Isle node containing enemy ships triggers a **Naval Clash**.
-* Both sides roll tactical dice based on crew count.
+* Both sides roll tactical dice based on crew count, plus $+1$ bonus die for each co-located friendly ship in the node with $\ge 1$ crew.
 * Hits reduce enemy crew. Defender blocks reduce incoming attacker hits.
 * Net damage determines winner; retreating claimant falls back to previous node.
 * Completely wiping an enemy fleet plunders 50% of their Hoard and awards **+1 Legend**.
-* **What Is Dead May Never Die**: Wiped claimants respawn at their home port with 1 Flagship and 3 fresh warriors on their next turn (no elimination).
+* **What Is Dead May Never Die**: When any ship's crew drops to 0, it respawns at its home port with **1 crew** (if Flagship) or **0 crew** (if standard longship). No faction is ever eliminated.
 
 ### B. Drowned Favor Track (0–7) & Miracles
 * Gained via: Pray action (+1), tactical Eye dice, or blood sacrifices (1 Favor per 2 crew lost).

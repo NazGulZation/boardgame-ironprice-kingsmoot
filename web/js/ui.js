@@ -210,7 +210,7 @@ class UIController {
         shipObj = nodeObj.occupants.find(s => s.id === selection.shipId);
       }
       
-      const shipDesc = shipObj ? `${shipObj.faction} ${shipObj.is_flagship ? 'Flagship ★' : 'War Longship ⛵'} (${shipObj.crew} warriors)` : selection.shipId;
+      const shipDesc = shipObj ? `${shipObj.faction} ${this.getShipDisplayName(shipObj.id)} (${shipObj.crew} warriors)` : selection.shipId;
       this.elements.selectedEntityName.textContent = `${shipDesc} @ ${nodeObj ? nodeObj.name : selection.nodeId}`;
 
       const isOwned = shipObj && (shipObj.faction === activePlayer.faction);
@@ -250,20 +250,30 @@ class UIController {
     if (strongEl) strongEl.textContent = hasEnemy ? 'Attack Fleet' : 'Sail Fleet';
   }
 
-  renderDiceRoll(reaveOutcome) {
+  getShipDisplayName(shipId) {
+    const names = {
+      'asha_flagship': 'Black Wind', 'euron_flagship': 'Silence', 'victarion_flagship': 'Iron Victory',
+      'asha_reaver1': 'Iron Longship I', 'asha_reaver2': 'Iron Longship II',
+      'euron_reaver1': 'Iron Longship I', 'euron_reaver2': 'Iron Longship II',
+      'victarion_reaver1': 'Iron Longship I', 'victarion_reaver2': 'Iron Longship II'
+    };
+    return names[shipId] || (shipId ? shipId.replace(/_/g, ' ') : 'Warship');
+  }
+
+  renderDiceRoll(reaveOutcome, isNewRoll = false) {
     if (!reaveOutcome) return;
+    if (this._lastRenderedReaveOutcome === reaveOutcome && !isNewRoll) return;
+    this._lastRenderedReaveOutcome = reaveOutcome;
 
     this.elements.diceTraySubtitle.textContent = `Battle at ${reaveOutcome.target_name}`;
+    const rollClass = isNewRoll ? 'dice-rolling' : 'dice-settled';
     
     // Attacker dice
     this.elements.attackerDiceContainer.innerHTML = '';
     reaveOutcome.attacker_roll.dice.forEach(face => {
       const die = document.createElement('div');
-      die.className = `dice-face ${face.toLowerCase()} dice-rolling`;
-      die.innerHTML = `
-        <span class="dice-icon">${this._getDiceIcon(face)}</span>
-        <span class="dice-val">${this._getDiceValueTag(face, true)}</span>
-      `;
+      die.className = `dice-face ${face.toLowerCase()} ${rollClass}`;
+      die.innerHTML = `<span class="dice-icon">${this._getDiceIcon(face)}</span><span class="dice-val">${this._getDiceValueTag(face, true)}</span>`;
       this.elements.attackerDiceContainer.appendChild(die);
     });
 
@@ -271,13 +281,19 @@ class UIController {
     this.elements.defenderDiceContainer.innerHTML = '';
     reaveOutcome.defender_roll.dice.forEach(face => {
       const die = document.createElement('div');
-      die.className = `dice-face ${face.toLowerCase()} dice-rolling`;
-      die.innerHTML = `
-        <span class="dice-icon">${this._getDiceIcon(face)}</span>
-        <span class="dice-val">${this._getDiceValueTag(face, false)}</span>
-      `;
+      die.className = `dice-face ${face.toLowerCase()} ${rollClass}`;
+      die.innerHTML = `<span class="dice-icon">${this._getDiceIcon(face)}</span><span class="dice-val">${this._getDiceValueTag(face, false)}</span>`;
       this.elements.defenderDiceContainer.appendChild(die);
     });
+
+    if (isNewRoll) {
+      setTimeout(() => {
+        document.querySelectorAll('.dice-face.dice-rolling').forEach(d => {
+          d.classList.remove('dice-rolling');
+          d.classList.add('dice-settled');
+        });
+      }, 750);
+    }
 
     // Summary banner
     this.elements.diceSummaryBanner.style.display = 'block';
@@ -297,20 +313,23 @@ class UIController {
     }
   }
 
+  updateDiceTray(attackerRoll, defenderRoll, outcome, isNewRoll = false) {
+    const reaveOutcome = outcome || (attackerRoll && attackerRoll.attacker_roll ? attackerRoll : null);
+    if (reaveOutcome) {
+      this.renderDiceRoll(reaveOutcome, isNewRoll);
+    }
+  }
+
   _getDiceIcon(face) {
-    if (face === 'Kraken') return '🦑';
-    if (face === 'Axe') return '🪓';
-    if (face === 'Shield') return '🛡️';
-    if (face === 'Eye') return '👁️';
-    return '🎲';
+    const icons = { Kraken: '🦑', Axe: '🪓', Shield: '🛡️', Eye: '👁️' };
+    return icons[face] || '🎲';
   }
 
   _getDiceValueTag(face, isAttacker) {
     if (face === 'Kraken') return isAttacker ? '+2 Hits' : '⚔️ 2 Hits';
     if (face === 'Axe') return isAttacker ? '+1 Hit' : '⚔️ 1 Hit';
-    if (face === 'Shield') return isAttacker ? '🛡️ 1 Block' : '🛡️ 1 Block';
-    if (face === 'Eye') return '👁️ Eye';
-    return face;
+    if (face === 'Shield') return '🛡️ 1 Block';
+    return face === 'Eye' ? '👁️ Eye' : face;
   }
 
   showReaveModal(reaveOutcome, onComplete = null, autoDismissMs = 0) {
@@ -320,16 +339,8 @@ class UIController {
     }
 
     const {
-      target_name,
-      attacker_faction,
-      attacker_roll,
-      defender_roll,
-      net_attacker_hits,
-      defense_required,
-      success,
-      hoard_gained,
-      legend_gained,
-      crew_lost
+      target_name, attacker_faction, attacker_roll, defender_roll, net_attacker_hits,
+      defense_required, success, hoard_gained, legend_gained, crew_lost
     } = reaveOutcome;
 
     // Header & Info
@@ -536,21 +547,9 @@ class UIController {
     }
 
     const {
-      battle_id,
-      node_id,
-      attacker_faction,
-      defender_faction,
-      attacker_ship_id,
-      defender_ship_id,
-      round_num,
-      state,
-      history,
-      winner,
-      is_stalemate,
-      retreated_faction,
-      hoard_plundered,
-      legend_awarded,
-      blood_price_available
+      battle_id, node_id, attacker_faction, defender_faction, attacker_ship_id, defender_ship_id,
+      round_num, state, history, winner, is_stalemate, retreated_faction,
+      hoard_plundered, legend_awarded, blood_price_available
     } = battleState;
 
     this.elements.modalBattle.style.display = 'flex';
@@ -558,9 +557,9 @@ class UIController {
     this.elements.battleRoundBadge.textContent = `Round ${round_num} of 2`;
 
     this.elements.battleAttackerName.textContent = attacker_faction;
-    this.elements.battleAttackerShip.textContent = attacker_ship_id;
+    this.elements.battleAttackerShip.textContent = this.getShipDisplayName(attacker_ship_id);
     this.elements.battleDefenderName.textContent = defender_faction;
-    this.elements.battleDefenderShip.textContent = defender_ship_id;
+    this.elements.battleDefenderShip.textContent = this.getShipDisplayName(defender_ship_id);
 
     this.elements.battleAttackerTraits.innerHTML = (attacker_faction === 'Victarion' && node_id === 'bay')
       ? '⚔️ <strong>Iron Captain</strong>: Axes deal 2 Hits in Ironman\'s Bay!'

@@ -33,11 +33,13 @@ class CombatEngine:
         ship: Ship,
         target_node: MapNode,
         bonus_dice: int = 0,
+        aux_friendly_ships: Optional[List[Ship]] = None,
         rng: random.Random = None
     ) -> ReaveOutcome:
         """
         Resolve a Reave against a Green Land keep.
         - Victarion: +1 Raid Die (Iron Captain).
+        - Stack friendly ships: auxiliary friendly warships add their crew dice pool.
         - Attacker rolls: (crew + 1) // 2 + bonus_dice (capped at 6).
         - Defender (Keep Militia) rolls: target_node.defense dice.
         - Asha (Kraken's Daughter): Win a raid with 0 crew lost -> +1 bonus Hoard.
@@ -45,6 +47,9 @@ class CombatEngine:
         # Victarion passive: +1 Raid Die in every battle and raid
         if attacker.faction == "Victarion":
             bonus_dice += 1
+
+        if aux_friendly_ships:
+            bonus_dice += sum(calculate_crew_dice(s.crew) for s in aux_friendly_ships if s.crew > 0 and s.id != ship.id)
 
         # Attacker roll
         att_dice_count = min(calculate_crew_dice(ship.crew) + bonus_dice, 6)
@@ -59,7 +64,8 @@ class CombatEngine:
         net_def_hits = max(0, defender_roll.hits - attacker_roll.blocks)
 
         success = (net_att_hits >= target_node.defense)
-        crew_lost = min(ship.crew, net_def_hits)
+        total_crew = ship.crew + (sum(s.crew for s in aux_friendly_ships if s.id != ship.id) if aux_friendly_ships else 0)
+        crew_lost = min(total_crew, net_def_hits)
 
         hoard_loot = 0
         legend_loot = 0
@@ -100,18 +106,23 @@ class CombatEngine:
         faction: str,
         is_defender: bool,
         opposing_faction: str,
-        opposing_first_raid_defense: bool
+        opposing_first_raid_defense: bool,
+        aux_friendly_ships: Optional[List[Ship]] = None
     ) -> int:
-        """Calculate the dice pool for a fleet in naval combat."""
+        """Calculate the dice pool for a fleet in naval combat, including stacked friendly ships."""
         is_victarion = (faction == "Victarion")
         # Defender against Euron's Silence on first raid of the season gets -1 die
         defender_against_euron = (is_defender and opposing_faction == "Euron" and opposing_first_raid_defense)
-        return calculate_naval_dice(
+        dice = calculate_naval_dice(
             ship.crew,
             is_victarion=is_victarion,
             defender_against_euron_first_raid=defender_against_euron,
             max_dice=6
         )
+        if aux_friendly_ships:
+            extra = sum(calculate_crew_dice(s.crew) for s in aux_friendly_ships if s.crew > 0 and s.id != ship.id)
+            dice += extra
+        return min(dice, 6)
 
     @staticmethod
     def roll_naval_dice(
@@ -185,6 +196,8 @@ class CombatEngine:
         attacker_roll: Optional[RollResult] = None,
         defender_roll: Optional[RollResult] = None,
         miracle_autowin: Optional[str] = None,  # 'attacker' or 'defender'
+        attacker_aux_ships: Optional[List[Ship]] = None,
+        defender_aux_ships: Optional[List[Ship]] = None,
         rng: random.Random = None
     ) -> BattleRoundResult:
         """
@@ -196,7 +209,8 @@ class CombatEngine:
             att_dice_count = CombatEngine.calculate_naval_dice_count(
                 attacker_ship, attacker.faction, is_defender=False,
                 opposing_faction=defender.faction,
-                opposing_first_raid_defense=False
+                opposing_first_raid_defense=False,
+                aux_friendly_ships=attacker_aux_ships
             )
             attacker_roll = CombatEngine.roll_naval_dice(
                 attacker_ship, attacker.faction, node_id, att_dice_count, rng=rng
@@ -207,7 +221,8 @@ class CombatEngine:
             def_dice_count = CombatEngine.calculate_naval_dice_count(
                 defender_ship, defender.faction, is_defender=True,
                 opposing_faction=attacker.faction,
-                opposing_first_raid_defense=is_euron_first_raid
+                opposing_first_raid_defense=is_euron_first_raid,
+                aux_friendly_ships=defender_aux_ships
             )
             defender_roll = CombatEngine.roll_naval_dice(
                 defender_ship, defender.faction, node_id, def_dice_count, rng=rng

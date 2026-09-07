@@ -260,20 +260,18 @@
 
 .raid-targeting-line {
   stroke: #e74c3c;
-  stroke-width: 4px;
+  stroke-width: 3.5px;
   stroke-linecap: round;
-  stroke-dasharray: 8, 8;
-  animation: raidLineDash 0.4s linear infinite;
+  stroke-dasharray: 8, 6;
+  animation: raidLineDash 0.35s linear infinite;
   filter: drop-shadow(0 0 8px rgba(231, 76, 60, 0.9));
   pointer-events: none;
 }
 
-.raid-projectile {
-  font-size: 28px;
-  text-anchor: middle;
-  dominant-baseline: central;
-  filter: drop-shadow(0 0 8px #f39c12);
+.raid-axe-icon {
+  filter: drop-shadow(0 0 8px #f39c12) drop-shadow(0 0 16px rgba(231, 76, 60, 0.85));
   pointer-events: none;
+  user-select: none;
 }
 
 /* 3. Reave Outcome: Victory Coin Burst & Keep Sacked Glow */
@@ -285,6 +283,26 @@
 
 .keep-sacked-flash {
   animation: keepSackedPulse 0.8s ease-in-out;
+}
+
+@keyframes keepDefendedPulse {
+  0% { filter: drop-shadow(0 0 6px #3498db) brightness(1.1); }
+  50% { filter: drop-shadow(0 0 24px #2980b9) brightness(1.5); }
+  100% { filter: drop-shadow(0 0 6px #3498db) brightness(1.1); }
+}
+
+.keep-defended-flash {
+  animation: keepDefendedPulse 0.7s ease-in-out;
+}
+
+@keyframes shipLootPulse {
+  0% { filter: drop-shadow(0 0 4px #f1c40f) brightness(1.1); }
+  50% { filter: drop-shadow(0 0 22px #f1c40f) brightness(1.6); }
+  100% { filter: drop-shadow(0 0 4px #f1c40f) brightness(1.1); }
+}
+
+.ship-loot-flash {
+  animation: shipLootPulse 0.45s ease-out;
 }
 
 @keyframes floatCoinBurst {

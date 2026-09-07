@@ -39,9 +39,24 @@ class Ship:
             return 1 if self.crew >= 5 else 2
         return 2
 
+    def get_name(self) -> str:
+        names = {
+            "asha_flagship": "Black Wind",
+            "euron_flagship": "Silence",
+            "victarion_flagship": "Iron Victory",
+            "asha_reaver1": "Iron Longship I",
+            "asha_reaver2": "Iron Longship II",
+            "euron_reaver1": "Iron Longship I",
+            "euron_reaver2": "Iron Longship II",
+            "victarion_reaver1": "Iron Longship I",
+            "victarion_reaver2": "Iron Longship II",
+        }
+        return names.get(self.id, self.id.replace("_", " ").title())
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "id": self.id,
+            "name": self.get_name(),
             "faction": self.faction,
             "is_flagship": self.is_flagship,
             "crew": self.crew,
@@ -150,6 +165,8 @@ class ReaveOutcome:
     legend_gained: int
     crew_lost: int
     favor_gained: int = 0
+    origin_node: str = ""
+    ship_id: str = ""
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -164,7 +181,9 @@ class ReaveOutcome:
             "hoard_gained": self.hoard_gained,
             "legend_gained": self.legend_gained,
             "crew_lost": self.crew_lost,
-            "favor_gained": self.favor_gained
+            "favor_gained": self.favor_gained,
+            "origin_node": self.origin_node,
+            "ship_id": self.ship_id
         }
 
 

@@ -88,8 +88,8 @@ class MapAnimator {
       wakeLine.setAttribute('class', 'sailing-wake-line');
       wakeLine.setAttribute('x1', fromPos.x);
       wakeLine.setAttribute('y1', fromPos.y);
-      wakeLine.setAttribute('x2', toPos.x);
-      wakeLine.setAttribute('y2', toPos.y);
+      wakeLine.setAttribute('x2', fromPos.x);
+      wakeLine.setAttribute('y2', fromPos.y);
       this.overlaysGroup.appendChild(wakeLine);
 
       let shipEl = document.getElementById(`ship-g-${shipId}`);
@@ -120,22 +120,33 @@ class MapAnimator {
         shipEl.appendChild(sym);
 
         this.overlaysGroup.appendChild(shipEl);
-      } else {
-        shipEl.setAttribute('transform', `translate(${fromPos.x}, ${fromPos.y})`);
       }
 
-      shipEl.classList.add('ship-gliding');
+      const sailDuration = 560;
+      const startTime = performance.now();
 
-      requestAnimationFrame(() => {
-        shipEl.setAttribute('transform', `translate(${toPos.x}, ${toPos.y})`);
-      });
+      const animateSail = (now) => {
+        const elapsed = now - startTime;
+        const progress = Math.min(1, elapsed / sailDuration);
+        const t = Math.sin((progress * Math.PI) / 2);
 
-      setTimeout(() => {
-        shipEl.classList.remove('ship-gliding');
-        if (wakeLine.parentNode) wakeLine.parentNode.removeChild(wakeLine);
-        if (ephemeralShip && shipEl.parentNode) shipEl.parentNode.removeChild(shipEl);
-        resolve();
-      }, 680);
+        const curX = fromPos.x + (toPos.x - fromPos.x) * t;
+        const curY = fromPos.y + (toPos.y - fromPos.y) * t;
+
+        shipEl.setAttribute('transform', `translate(${curX.toFixed(1)}, ${curY.toFixed(1)})`);
+        wakeLine.setAttribute('x2', curX.toFixed(1));
+        wakeLine.setAttribute('y2', curY.toFixed(1));
+
+        if (progress < 1) {
+          requestAnimationFrame(animateSail);
+        } else {
+          if (wakeLine.parentNode) wakeLine.parentNode.removeChild(wakeLine);
+          if (ephemeralShip && shipEl.parentNode) shipEl.parentNode.removeChild(shipEl);
+          resolve();
+        }
+      };
+
+      requestAnimationFrame(animateSail);
     });
   }
 
@@ -144,100 +155,237 @@ class MapAnimator {
       const shipPos = this.getShipCoordinates(fromSeaNodeId, shipId);
       const keepPos = this.getNodeCenter(targetLandId);
 
+      // 1. Sleek targeting trajectory line from ship to keep
       const targetLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
       targetLine.setAttribute('class', 'raid-targeting-line');
       targetLine.setAttribute('x1', shipPos.x);
       targetLine.setAttribute('y1', shipPos.y);
-      targetLine.setAttribute('x2', keepPos.x);
-      targetLine.setAttribute('y2', keepPos.y);
+      targetLine.setAttribute('x2', shipPos.x);
+      targetLine.setAttribute('y2', shipPos.y);
       this.overlaysGroup.appendChild(targetLine);
 
-      const projectile = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-      projectile.setAttribute('class', 'raid-projectile');
-      projectile.setAttribute('x', shipPos.x);
-      projectile.setAttribute('y', shipPos.y);
-      projectile.textContent = '🪓';
-      projectile.style.transition = 'transform 0.4s cubic-bezier(0.2, 0.8, 0.4, 1)';
-      this.overlaysGroup.appendChild(projectile);
+      // 2. Thrown Iron War Axe group centered at local (0, 0)
+      const projGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      projGroup.setAttribute('transform', `translate(${shipPos.x}, ${shipPos.y})`);
 
-      requestAnimationFrame(() => {
-        const dx = keepPos.x - shipPos.x;
-        const dy = keepPos.y - shipPos.y;
-        projectile.style.transform = `translate(${dx}px, ${dy}px) rotate(360deg)`;
-      });
+      const axeText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      axeText.setAttribute('class', 'raid-axe-icon');
+      axeText.setAttribute('text-anchor', 'middle');
+      axeText.setAttribute('dominant-baseline', 'central');
+      axeText.setAttribute('font-size', '30');
+      axeText.textContent = '🪓';
+      projGroup.appendChild(axeText);
+      this.overlaysGroup.appendChild(projGroup);
 
-      setTimeout(() => {
-        if (projectile.parentNode) projectile.parentNode.removeChild(projectile);
-        if (targetLine.parentNode) targetLine.parentNode.removeChild(targetLine);
+      const flightDuration = 450;
+      const startTime = performance.now();
 
-        const keepEl = document.getElementById(`node-g-${targetLandId}`);
+      const animateFlight = (now) => {
+        const elapsed = now - startTime;
+        const progress = Math.min(1, elapsed / flightDuration);
+        const t = Math.sin((progress * Math.PI) / 2);
 
-        if (outcome && outcome.success) {
-          if (keepEl) keepEl.classList.add('keep-sacked-flash');
+        const curX = shipPos.x + (keepPos.x - shipPos.x) * t;
+        const arcY = -40 * Math.sin(progress * Math.PI);
+        const curY = shipPos.y + (keepPos.y - shipPos.y) * t + arcY;
+        const rotation = progress * 720;
 
-          const coinsGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-          const icons = ['💰', '🪙', '✨', '🔥'];
-          icons.forEach((c, i) => {
-            const pText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-            pText.setAttribute('class', 'floating-loot-particle');
-            pText.setAttribute('x', keepPos.x);
-            pText.setAttribute('y', keepPos.y);
-            pText.textContent = c;
-            const spreadX = (Math.random() - 0.5) * 60;
-            const spreadY = -30 - Math.random() * 30;
-            const toShipX = shipPos.x - keepPos.x + (Math.random() - 0.5) * 20;
-            const toShipY = shipPos.y - keepPos.y + (Math.random() - 0.5) * 20;
-            pText.style.setProperty('--dx20', `${spreadX}px`);
-            pText.style.setProperty('--dy20', `${spreadY}px`);
-            pText.style.setProperty('--dx100', `${toShipX}px`);
-            pText.style.setProperty('--dy100', `${toShipY}px`);
-            pText.style.animationDelay = `${i * 80}ms`;
-            coinsGroup.appendChild(pText);
-          });
-          this.overlaysGroup.appendChild(coinsGroup);
+        projGroup.setAttribute('transform', `translate(${curX.toFixed(1)}, ${curY.toFixed(1)}) rotate(${rotation.toFixed(1)})`);
+        targetLine.setAttribute('x2', curX.toFixed(1));
+        targetLine.setAttribute('y2', curY.toFixed(1));
 
-          setTimeout(() => {
-            if (keepEl) keepEl.classList.remove('keep-sacked-flash');
-            if (coinsGroup.parentNode) coinsGroup.parentNode.removeChild(coinsGroup);
-            resolve();
-          }, 950);
+        if (progress < 1) {
+          requestAnimationFrame(animateFlight);
         } else {
-          const shieldRing = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-          shieldRing.setAttribute('class', 'shield-repel-ring');
-          shieldRing.setAttribute('cx', keepPos.x);
-          shieldRing.setAttribute('cy', keepPos.y);
-          this.overlaysGroup.appendChild(shieldRing);
-
-          const shieldIcon = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-          shieldIcon.setAttribute('class', 'shield-deflect-icon');
-          shieldIcon.setAttribute('x', keepPos.x);
-          shieldIcon.setAttribute('y', keepPos.y);
-          shieldIcon.textContent = '🛡️';
-          this.overlaysGroup.appendChild(shieldIcon);
-
-          setTimeout(() => {
-            if (shieldRing.parentNode) shieldRing.parentNode.removeChild(shieldRing);
-            if (shieldIcon.parentNode) shieldIcon.parentNode.removeChild(shieldIcon);
-            resolve();
-          }, 850);
+          if (projGroup.parentNode) projGroup.parentNode.removeChild(projGroup);
+          if (targetLine.parentNode) targetLine.parentNode.removeChild(targetLine);
+          this._handleRaidImpact(keepPos, shipPos, targetLandId, outcome, shipId, resolve);
         }
-      }, 420);
+      };
+
+      requestAnimationFrame(animateFlight);
     });
   }
 
-  animateNavalClash(seaNodeId) {
+  _handleRaidImpact(keepPos, shipPos, targetLandId, outcome, shipId, onComplete) {
+    const keepEl = document.getElementById(`node-g-${targetLandId}`);
+    const isSuccess = Boolean(outcome && outcome.success);
+
+    // Impact shockwave circle expanding from keep center
+    const shockwave = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    shockwave.setAttribute('cx', keepPos.x);
+    shockwave.setAttribute('cy', keepPos.y);
+    shockwave.setAttribute('r', '16');
+    shockwave.setAttribute('fill', 'none');
+    shockwave.setAttribute('stroke', isSuccess ? '#f39c12' : '#3498db');
+    shockwave.setAttribute('stroke-width', '4');
+    shockwave.style.transition = 'r 0.35s ease-out, opacity 0.35s ease-out, stroke-width 0.35s ease-out';
+    this.overlaysGroup.appendChild(shockwave);
+
+    requestAnimationFrame(() => {
+      shockwave.setAttribute('r', '65');
+      shockwave.setAttribute('stroke-width', '1');
+      shockwave.style.opacity = '0';
+    });
+
+    if (keepEl) {
+      keepEl.classList.add(isSuccess ? 'keep-sacked-flash' : 'keep-defended-flash');
+    }
+
+    if (isSuccess) {
+      // 1. Impact burst icon
+      const burstText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      burstText.setAttribute('x', keepPos.x);
+      burstText.setAttribute('y', keepPos.y);
+      burstText.setAttribute('text-anchor', 'middle');
+      burstText.setAttribute('dominant-baseline', 'central');
+      burstText.setAttribute('font-size', '32');
+      burstText.textContent = '💥';
+      burstText.style.transition = 'opacity 0.25s ease-out';
+      this.overlaysGroup.appendChild(burstText);
+
+      // 2. Plundered loot coins flying back to ship
+      const lootContainer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      this.overlaysGroup.appendChild(lootContainer);
+
+      const lootIcons = ['💰', '🪙', '💰', '✨'];
+      const coinElements = lootIcons.map((icon, i) => {
+        const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        const spreadX = (Math.random() - 0.5) * 40;
+        const spreadY = (Math.random() - 0.5) * 40;
+        const startX = keepPos.x + spreadX;
+        const startY = keepPos.y + spreadY;
+        g.setAttribute('transform', `translate(${startX}, ${startY})`);
+        
+        const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        txt.setAttribute('text-anchor', 'middle');
+        txt.setAttribute('dominant-baseline', 'central');
+        txt.setAttribute('font-size', '24');
+        txt.textContent = icon;
+        g.appendChild(txt);
+        lootContainer.appendChild(g);
+
+        return { g, startX, startY, delay: i * 85 };
+      });
+
+      const lootStart = performance.now() + 150;
+      const lootDuration = 520;
+
+      const animateLoot = (now) => {
+        let allDone = true;
+        coinElements.forEach(item => {
+          const coinElapsed = now - (lootStart + item.delay);
+          if (coinElapsed < 0) {
+            allDone = false;
+            return;
+          }
+          const p = Math.min(1, coinElapsed / lootDuration);
+          if (p < 1) allDone = false;
+
+          const easeP = Math.sin((p * Math.PI) / 2);
+          const curX = item.startX + (shipPos.x - item.startX) * easeP;
+          const arcY = -35 * Math.sin(p * Math.PI);
+          const curY = item.startY + (shipPos.y - item.startY) * easeP + arcY;
+          const scale = Math.max(0.3, 1.2 - p * 0.4);
+          const opacity = p > 0.85 ? (1 - p) / 0.15 : 1;
+
+          item.g.setAttribute('transform', `translate(${curX.toFixed(1)}, ${curY.toFixed(1)}) scale(${scale.toFixed(2)})`);
+          item.g.style.opacity = opacity.toFixed(2);
+        });
+
+        if (!allDone) {
+          requestAnimationFrame(animateLoot);
+        } else {
+          if (shockwave.parentNode) shockwave.parentNode.removeChild(shockwave);
+          if (burstText.parentNode) burstText.parentNode.removeChild(burstText);
+          if (lootContainer.parentNode) lootContainer.parentNode.removeChild(lootContainer);
+          if (keepEl) keepEl.classList.remove('keep-sacked-flash');
+          
+          const shipEl = shipId ? document.getElementById(`ship-g-${shipId}`) : null;
+          if (shipEl) {
+            shipEl.classList.add('ship-loot-flash');
+            setTimeout(() => shipEl.classList.remove('ship-loot-flash'), 400);
+          }
+          onComplete();
+        }
+      };
+
+      setTimeout(() => {
+        if (burstText.parentNode) burstText.style.opacity = '0';
+        requestAnimationFrame(animateLoot);
+      }, 180);
+
+    } else {
+      // Repelled / Defended
+      const defGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      defGroup.setAttribute('transform', `translate(${keepPos.x}, ${keepPos.y})`);
+
+      const shieldCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      shieldCircle.setAttribute('r', '32');
+      shieldCircle.setAttribute('fill', 'rgba(52, 152, 219, 0.25)');
+      shieldCircle.setAttribute('stroke', '#3498db');
+      shieldCircle.setAttribute('stroke-width', '3');
+      shieldCircle.style.filter = 'drop-shadow(0 0 10px #2980b9)';
+      defGroup.appendChild(shieldCircle);
+
+      const shieldText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      shieldText.setAttribute('text-anchor', 'middle');
+      shieldText.setAttribute('dominant-baseline', 'central');
+      shieldText.setAttribute('font-size', '32');
+      shieldText.textContent = '🛡️';
+      defGroup.appendChild(shieldText);
+
+      // Deflected axe bouncing backward
+      const bounceAxe = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      bounceAxe.setAttribute('class', 'raid-axe-icon');
+      bounceAxe.setAttribute('text-anchor', 'middle');
+      bounceAxe.setAttribute('dominant-baseline', 'central');
+      bounceAxe.setAttribute('font-size', '24');
+      bounceAxe.textContent = '🪓';
+      bounceAxe.style.transition = 'transform 0.45s ease-out, opacity 0.45s ease-out';
+      defGroup.appendChild(bounceAxe);
+
+      this.overlaysGroup.appendChild(defGroup);
+
+      requestAnimationFrame(() => {
+        const bounceDx = (shipPos.x - keepPos.x) * 0.18;
+        const bounceDy = (shipPos.y - keepPos.y) * 0.18 - 25;
+        bounceAxe.style.transform = `translate(${bounceDx.toFixed(1)}px, ${bounceDy.toFixed(1)}px) rotate(-180deg)`;
+        bounceAxe.style.opacity = '0';
+      });
+
+      setTimeout(() => {
+        if (shockwave.parentNode) shockwave.parentNode.removeChild(shockwave);
+        if (defGroup.parentNode) defGroup.parentNode.removeChild(defGroup);
+        if (keepEl) keepEl.classList.remove('keep-defended-flash');
+        onComplete();
+      }, 750);
+    }
+  }
+
+  animateNavalClash(seaNodeId, attackerShipId = null, defenderShipId = null) {
     return new Promise((resolve) => {
-      const center = this.getNodeCenter(seaNodeId);
+      let clashX, clashY;
+      if (attackerShipId && defenderShipId) {
+        const posA = this.getShipCoordinates(seaNodeId, attackerShipId);
+        const posD = this.getShipCoordinates(seaNodeId, defenderShipId);
+        clashX = (posA.x + posD.x) / 2;
+        clashY = (posA.y + posD.y) / 2;
+      } else {
+        const shipPos = this.getShipCoordinates(seaNodeId, attackerShipId || defenderShipId);
+        clashX = shipPos.x;
+        clashY = shipPos.y;
+      }
 
       const clashRing = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
       clashRing.setAttribute('class', 'naval-clash-ring');
-      clashRing.setAttribute('cx', center.x);
-      clashRing.setAttribute('cy', center.y);
+      clashRing.setAttribute('cx', clashX);
+      clashRing.setAttribute('cy', clashY);
       this.overlaysGroup.appendChild(clashRing);
 
       const badgeG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
       badgeG.setAttribute('class', 'naval-clash-badge');
-      badgeG.setAttribute('transform', `translate(${center.x}, ${center.y})`);
+      badgeG.setAttribute('transform', `translate(${clashX}, ${clashY})`);
 
       const swordText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
       swordText.setAttribute('text-anchor', 'middle');
@@ -252,7 +400,7 @@ class MapAnimator {
         if (clashRing.parentNode) clashRing.parentNode.removeChild(clashRing);
         if (badgeG.parentNode) badgeG.parentNode.removeChild(badgeG);
         resolve();
-      }, 750);
+      }, 850);
     });
   }
 
@@ -267,20 +415,38 @@ class MapAnimator {
         splash.setAttribute('x', shipPos.x);
         splash.setAttribute('y', shipPos.y + 6);
         splash.setAttribute('text-anchor', 'middle');
-        splash.setAttribute('font-size', '48');
+        splash.setAttribute('dominant-baseline', 'central');
+        splash.setAttribute('font-size', '44');
         splash.textContent = '🌀';
         this.overlaysGroup.appendChild(splash);
 
-        if (shipEl) {
-          shipEl.classList.add('ship-sinking');
-          shipEl.style.transform = `translate(${shipPos.x}px, ${shipPos.y}px) scale(0.2) rotate(35deg)`;
-          shipEl.style.opacity = '0';
-        }
+        const duration = 700;
+        const startTime = performance.now();
 
-        setTimeout(() => {
-          if (splash.parentNode) splash.parentNode.removeChild(splash);
-          resolve();
-        }, 900);
+        const animateSinking = (now) => {
+          const elapsed = now - startTime;
+          const progress = Math.min(1, elapsed / duration);
+          const scale = Math.max(0.05, 1 - progress * 0.95);
+          const rot = progress * 180;
+          const opacity = Math.max(0, 1 - progress);
+
+          if (shipEl) {
+            shipEl.setAttribute('transform', `translate(${shipPos.x}, ${shipPos.y}) scale(${scale.toFixed(2)}) rotate(${rot.toFixed(0)})`);
+            shipEl.style.opacity = opacity.toFixed(2);
+          }
+
+          if (progress < 1) {
+            requestAnimationFrame(animateSinking);
+          } else {
+            if (splash.parentNode) splash.parentNode.removeChild(splash);
+            if (shipEl) {
+              shipEl.style.opacity = '1';
+            }
+            resolve();
+          }
+        };
+
+        requestAnimationFrame(animateSinking);
       } else {
         resolve();
       }

@@ -138,7 +138,7 @@ class TestPhase2Features(unittest.TestCase):
         self.assertIsNone(self.game.active_battle)
 
     def test_no_elimination_respawn(self):
-        """Test that wiped claimants respawn with flagship + 3 crew at home port on their turn."""
+        """Test that wiped claimants respawn with flagship + 1 crew at home port on their turn."""
         euron = self.game.players[1]
         # Strip all Euron's ships of crew
         for _, s in self.game.get_player_ships("Euron"):
@@ -151,9 +151,70 @@ class TestPhase2Features(unittest.TestCase):
 
         self.assertEqual(self.game.get_active_player().faction, "Euron")
         _, euron_flag = self.game.find_ship_location("euron_flagship")
-        self.assertEqual(euron_flag.crew, 3)
+        self.assertEqual(euron_flag.crew, 1)
         loc, _ = self.game.find_ship_location("euron_flagship")
         self.assertEqual(loc, "pyke")
+
+    def test_reave_casualty_respawn(self):
+        """Test that a ship wiped out during reave triggers WHAT IS DEAD MAY NEVER DIE."""
+        # Setup Asha at seaS adjacent to shield with only 1 crew
+        loc, flag = self.game.find_ship_location("asha_flagship")
+        self.game._move_ship_to(flag, loc, "seaS")
+        flag.crew = 1
+
+        # Mock RNG to force defense to deal hits and wipe attacker crew
+        class DefenseWinsRNG:
+            def choice(self, seq):
+                return DiceFace.AXE.value
+
+        self.game.rng = DefenseWinsRNG()
+        res = self.game.action_reave("asha_flagship", "shield")
+        self.assertTrue(res.get("success"), msg=res.get("error"))
+        # Flagship died during reave -> washed ashore at Harlaw with 1 crew
+        new_loc, updated_flag = self.game.find_ship_location("asha_flagship")
+        self.assertEqual(new_loc, "harlaw")
+        self.assertEqual(updated_flag.crew, 1)
+
+    def test_friendly_ships_stack_dice(self):
+        """Test that co-located friendly ships stack dice in raids and naval battles."""
+        from engine.combat import CombatEngine
+        from engine.dice import calculate_crew_dice
+        from engine.models import Ship, PlayerState, MapNode
+
+        attacker = PlayerState(faction="Asha", name="Asha", title="Kraken's Daughter", color="#27ae60", home_node="harlaw")
+        flagship = Ship(id="asha_flagship", faction="Asha", is_flagship=True, crew=2)
+        aux_ship = Ship(id="asha_reaver1", faction="Asha", is_flagship=False, crew=2)
+        target = MapNode(id="shield", name="Shield Isles", kind="land", x=0, y=0, defense=2)
+
+        # Single ship: 2 crew -> 1 die
+        single_dice = calculate_crew_dice(flagship.crew)
+        self.assertEqual(single_dice, 1)
+
+        # Stacked with aux_ship: 1 die + 1 die = 2 dice
+        outcome = CombatEngine.resolve_greenland_reave(
+            attacker, flagship, target, aux_friendly_ships=[flagship, aux_ship]
+        )
+        self.assertEqual(len(outcome.attacker_roll.dice), 2)
+
+        # Naval combat dice stacking
+        naval_dice = CombatEngine.calculate_naval_dice_count(
+            flagship, faction="Asha", is_defender=False, opposing_faction="Euron",
+            opposing_first_raid_defense=False, aux_friendly_ships=[flagship, aux_ship]
+        )
+        self.assertEqual(naval_dice, 2)
+
+    def test_ship_thematic_names(self):
+        """Test Ship get_name() returns thematic names."""
+        from engine.models import Ship
+        s1 = Ship(id="asha_flagship", faction="Asha", is_flagship=True)
+        s2 = Ship(id="victarion_flagship", faction="Victarion", is_flagship=True)
+        s3 = Ship(id="euron_flagship", faction="Euron", is_flagship=True)
+        s4 = Ship(id="asha_reaver1", faction="Asha", is_flagship=False)
+        self.assertEqual(s1.get_name(), "Black Wind")
+        self.assertEqual(s2.get_name(), "Iron Victory")
+        self.assertEqual(s3.get_name(), "Silence")
+        self.assertEqual(s4.get_name(), "Iron Longship I")
+        self.assertEqual(s1.to_dict()["name"], "Black Wind")
 
 
 if __name__ == "__main__":

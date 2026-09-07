@@ -42,7 +42,7 @@ class KingsmootApp {
     this.ui.update(this.gameState, this.currentSelection);
 
     if (this.gameState.last_reave_outcome) {
-      this.ui.renderDiceRoll(this.gameState.last_reave_outcome);
+      this.ui.renderDiceRoll(this.gameState.last_reave_outcome, false);
     }
 
     // Hazard notifications (e.g. Storm Belt hazard)
@@ -55,7 +55,7 @@ class KingsmootApp {
     }
 
     // Check active battle
-    if (this.currentBattle) {
+    if (this.currentBattle || this.isClashAnimating) {
       return;
     }
     if (this.gameState.active_battle) {
@@ -196,15 +196,16 @@ class KingsmootApp {
       });
 
       if (res.success) {
-        if (shipLoc && res.state.last_reave_outcome) {
-          await this.mapRenderer.animateReaveTargeting(shipLoc, targetLandId, res.state.last_reave_outcome, shipId);
-        }
-
+        const reaveOutcome = res.state.last_reave_outcome;
         this.gameState = res.state;
         this.currentSelection = { type: 'none' };
         this.refresh(false);
-        if (res.state.last_reave_outcome) {
-          this.ui.showReaveModal(res.state.last_reave_outcome, () => {
+
+        if (reaveOutcome) {
+          this.ui.showReaveModal(reaveOutcome, async () => {
+            if (shipLoc) {
+              await this.mapRenderer.animateReaveTargeting(shipLoc, targetLandId, reaveOutcome, shipId);
+            }
             this.checkAiTurn();
           });
         } else {
@@ -238,22 +239,29 @@ class KingsmootApp {
       });
 
       if (res.success) {
-        if (currentLoc && currentLoc !== targetNodeId) {
-          await this.mapRenderer.animateShipSail(shipId, currentLoc, targetNodeId, activeFaction);
-        }
-
-        this.gameState = res.state;
-        this.currentSelection = { type: 'none' };
-
         const battle = res.battle || (res.state && res.state.active_battle);
         if (battle) {
-          await this.mapRenderer.animateNavalClash(targetNodeId);
+          this.isClashAnimating = true;
+          if (currentLoc && currentLoc !== targetNodeId) {
+            await this.mapRenderer.animateShipSail(shipId, currentLoc, targetNodeId, activeFaction);
+          }
+          this.gameState = res.state;
+          this.currentSelection = { type: 'none' };
+          this.mapRenderer.update(this.gameState, this.currentSelection);
+          await this.mapRenderer.animateNavalClash(targetNodeId, battle.attacker_ship_id, battle.defender_ship_id);
+          this.isClashAnimating = false;
           this.currentBattle = battle;
           this.refresh(false);
           this.showBattle(this.currentBattle);
           return;
         }
 
+        if (currentLoc && currentLoc !== targetNodeId) {
+          await this.mapRenderer.animateShipSail(shipId, currentLoc, targetNodeId, activeFaction);
+        }
+
+        this.gameState = res.state;
+        this.currentSelection = { type: 'none' };
         this.refresh();
       } else {
         this.ui.showToast(res.error || "Illegal move!", "error");
@@ -282,18 +290,35 @@ class KingsmootApp {
       return;
     }
 
+    const shipId = this.currentSelection.shipId;
+    const targetLandId = this.currentSelection.targetLandId;
+    let shipLoc = null;
+    if (this.gameState) {
+      for (const [nid, node] of Object.entries(this.gameState.nodes)) {
+        if (node.occupants && node.occupants.some(s => s.id === shipId)) {
+          shipLoc = nid;
+          break;
+        }
+      }
+    }
+
     try {
       const res = await API.sendAction('reave', {
-        ship_id: this.currentSelection.shipId,
-        target_land_id: this.currentSelection.targetLandId
+        ship_id: shipId,
+        target_land_id: targetLandId
       });
 
       if (res.success) {
+        const reaveOutcome = res.state.last_reave_outcome;
         this.gameState = res.state;
         this.currentSelection = { type: 'none' };
         this.refresh(false);
-        if (res.state.last_reave_outcome) {
-          this.ui.showReaveModal(res.state.last_reave_outcome, () => {
+
+        if (reaveOutcome) {
+          this.ui.showReaveModal(reaveOutcome, async () => {
+            if (shipLoc) {
+              await this.mapRenderer.animateReaveTargeting(shipLoc, targetLandId, reaveOutcome, shipId);
+            }
             this.checkAiTurn();
           });
         } else {
@@ -388,30 +413,17 @@ class KingsmootApp {
         const newReave = res.outcome || (nextState.last_reave_outcome && 
           (!prevReaveOutcome || JSON.stringify(prevReaveOutcome) !== JSON.stringify(nextState.last_reave_outcome)) ? nextState.last_reave_outcome : null);
 
-        if (newReave) {
-          // Non-blocking update to bottom dice tray so user sees the roll
-          if (newReave.attacker_roll && newReave.defender_roll) {
-            this.ui.updateDiceTray(newReave.attacker_roll, newReave.defender_roll, newReave);
-          }
-          // Animate on map (targeting line, axe throw, keep reaction)
-          let originNode = newReave.origin_node;
-          if (!originNode && res.ship_id && prevState) {
-            for (const [nid, node] of Object.entries(prevState.nodes)) {
-              if (node.occupants && node.occupants.some(s => s.id === res.ship_id)) {
-                originNode = nid;
-                break;
-              }
-            }
-          }
-          if (!originNode) originNode = 'bay';
-          await this.mapRenderer.animateReaveTargeting(originNode, newReave.target_land_id, newReave, newReave.ship_id);
-          // Note: As requested, the blocking dice modal is SKIPPED during AI turn!
+        if (newReave && newReave.attacker_roll && newReave.defender_roll) {
+          this.ui.renderDiceRoll(newReave, true);
         }
 
         // 3. Check if NAVAL CLASH occurred
         const battle = res.battle || (nextState && nextState.active_battle);
         if (res.battle_triggered && battle) {
-          await this.mapRenderer.animateNavalClash(battle.node_id || res.to);
+          this.isClashAnimating = true;
+          this.mapRenderer.update(nextState, { type: 'none' });
+          await this.mapRenderer.animateNavalClash(battle.node_id || res.to, battle.attacker_ship_id, battle.defender_ship_id);
+          this.isClashAnimating = false;
         }
 
         // 4. Check if ship sinking/defeat occurred
@@ -421,7 +433,7 @@ class KingsmootApp {
         }
 
         this.gameState = nextState;
-        this.refresh();
+        this.refresh(false);
 
         // If human player is actively engaged in an unresolved battle, show battle modal
         const humanPlayer = this.gameState.players.find(p => !p.is_ai);

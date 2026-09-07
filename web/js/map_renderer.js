@@ -460,8 +460,8 @@ class MapRenderer {
     return this.animator.animateReaveTargeting(fromSeaNodeId, targetLandId, outcome, shipId);
   }
 
-  animateNavalClash(seaNodeId) {
-    return this.animator.animateNavalClash(seaNodeId);
+  animateNavalClash(seaNodeId, attackerShipId = null, defenderShipId = null) {
+    return this.animator.animateNavalClash(seaNodeId, attackerShipId, defenderShipId);
   }
 
   animateShipDefeat(shipId, nodeId, outcomeType = 'sunk') {

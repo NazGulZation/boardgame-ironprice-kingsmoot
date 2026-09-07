@@ -57,6 +57,9 @@ class Ship:
     is_flagship: bool # True for main dreadnought (starts with 4 crew)
     crew: int         # Current crew (0 to max_crew)
     max_crew: int = 4 # Maximum capacity
+
+    def get_name(self) -> str:
+        # Returns lore name: Black Wind, Iron Victory, Silence, or {Faction} Longship I/II
 ```
 
 ### `Node`
@@ -132,3 +135,7 @@ To prevent visual crowding and overlapping unit badges:
     * Sunset Sea S: Anchored to the East (`offsetX = +108`).
     * Sunset Sea N & C: Anchored to the West (`offsetX = -108`).
     * Green Lands: Anchored above the keep (`offsetY = -78`).
+* **Tactical Animation Coordinates**:
+  * Naval Clash: Crossed swords (`⚔️`) are computed dynamically at the midpoint between the attacking and defending ship dock positions:
+    $$\text{clashX} = \frac{\text{dockAttacker.x} + \text{dockDefender.x}}{2}, \quad \text{clashY} = \frac{\text{dockAttacker.y} + \text{dockDefender.y}}{2}$$
+  * Reave Raid: Red pulsing trajectory arc sweeps from the sea dock capsule directly to the target keep center, with animations paused/suppressed during AI auto-step execution.
