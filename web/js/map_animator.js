@@ -13,44 +13,70 @@ class MapAnimator {
   }
 
   getDockOffset(nodeId, count = 1, idx = 0) {
-    const node = this.renderer.mapData ? this.renderer.mapData.nodes.find(n => n.id === nodeId) : null;
-    let baseOffsetX = 0;
-    let baseOffsetY = -52;
+    const node = (this.renderer.gameState && this.renderer.gameState.nodes[nodeId]) ||
+                 (this.renderer.lastGameState && this.renderer.lastGameState.nodes[nodeId]) ||
+                 (this.renderer.mapData ? this.renderer.mapData.nodes.find(n => n.id === nodeId) : null);
+    if (!node) return { offsetX: 0, offsetY: 0, x: 0, y: 0 };
 
-    if (node && node.dock_offset) {
-      baseOffsetX = node.dock_offset.x;
-      baseOffsetY = node.dock_offset.y;
-    } else if (node && node.kind === 'isle') {
-      baseOffsetY = -62;
-    } else if (node && node.kind === 'storm') {
-      baseOffsetX = -108;
-      baseOffsetY = 0;
+    let offsetX = 0;
+    let offsetY = 0;
+
+    if (node.dock_offset) {
+      offsetX = node.dock_offset.x;
+      offsetY = node.dock_offset.y;
+    } else if (node.kind === 'isle') {
+      offsetX = -108;
+      if (count === 1) offsetY = 0;
+      else if (count === 2) offsetY = (idx === 0) ? -24 : 24;
+      else offsetY = (idx - 1) * 44;
+    } else if (node.kind === 'sea') {
+      if (node.id === 'bay') {
+        offsetY = -95;
+        offsetX = (count === 1) ? 0 : (idx - (count - 1) / 2) * 72;
+      } else if (node.id === 'storm') {
+        offsetX = -108;
+        if (count === 1) offsetY = 0;
+        else if (count === 2) offsetY = (idx === 0) ? -24 : 24;
+        else offsetY = (idx - 1) * 44;
+      } else if (node.id === 'seaS') {
+        offsetX = +108;
+        if (count === 1) offsetY = 0;
+        else if (count === 2) offsetY = (idx === 0) ? -24 : 24;
+        else offsetY = (idx - 1) * 44;
+      } else {
+        offsetX = -108;
+        if (count === 1) offsetY = 0;
+        else if (count === 2) offsetY = (idx === 0) ? -24 : 24;
+        else offsetY = (idx - 1) * 44;
+      }
+    } else {
+      offsetX = (idx - (count - 1) / 2) * 72;
+      offsetY = -78;
     }
 
-    const shipSpacing = 36;
-    const startX = baseOffsetX - ((count - 1) * shipSpacing) / 2;
-    const x = startX + idx * shipSpacing;
-    const y = baseOffsetY;
-
-    return { x, y };
+    return { offsetX, offsetY, x: offsetX, y: offsetY };
   }
 
   getNodeCenter(nodeId) {
-    const node = this.renderer.mapData ? this.renderer.mapData.nodes.find(n => n.id === nodeId) : null;
+    const node = (this.renderer.mapData ? this.renderer.mapData.nodes.find(n => n.id === nodeId) : null) ||
+                 (this.renderer.gameState ? this.renderer.gameState.nodes[nodeId] : null);
     return node ? { x: node.x, y: node.y } : { x: 960, y: 540 };
   }
 
   getShipCoordinates(nodeId, shipId = null) {
     const nodePos = this.getNodeCenter(nodeId);
-    let dock = { x: 0, y: -52 };
-    if (this.renderer.lastGameState && this.renderer.lastGameState.nodes[nodeId]) {
-      const occupants = this.renderer.lastGameState.nodes[nodeId].occupants.filter(s => s.is_flagship || s.crew > 0);
+    const gs = this.renderer.gameState || this.renderer.lastGameState;
+    let dock = { offsetX: 0, offsetY: -52, x: 0, y: -52 };
+    if (gs && gs.nodes[nodeId]) {
+      const occupants = gs.nodes[nodeId].occupants.filter(s => s.is_flagship || s.crew > 0);
       const idx = shipId ? occupants.findIndex(s => s.id === shipId) : 0;
       dock = this.getDockOffset(nodeId, Math.max(1, occupants.length), Math.max(0, idx));
     } else {
       dock = this.getDockOffset(nodeId, 1, 0);
     }
-    return { x: nodePos.x + dock.x, y: nodePos.y + dock.y };
+    const offX = dock.offsetX ?? dock.x ?? 0;
+    const offY = dock.offsetY ?? dock.y ?? 0;
+    return { x: nodePos.x + offX, y: nodePos.y + offY };
   }
 
   animateShipSail(shipId, fromNodeId, toNodeId, faction = 'Asha') {

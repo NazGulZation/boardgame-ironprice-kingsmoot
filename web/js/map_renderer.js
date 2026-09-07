@@ -197,23 +197,30 @@ class MapRenderer {
         g.setAttribute('id', `ship-g-${ship.id}`);
 
         // Offset ships cleanly outside node text and other ships
-        const offset = this.getDockOffset(nodeId, count, idx);
-        const offsetX = offset.offsetX;
-        const offsetY = offset.offsetY;
+        const center = this.getNodeCenter(nodeId);
+        const nodeX = (node && typeof node.x === 'number') ? node.x : (center.x || 0);
+        const nodeY = (node && typeof node.y === 'number') ? node.y : (center.y || 0);
+
+        const offset = this.getDockOffset(nodeId, count, idx) || {};
+        const offsetX = offset.offsetX ?? offset.x ?? 0;
+        const offsetY = offset.offsetY ?? offset.y ?? 0;
+
+        const shipX = nodeX + offsetX;
+        const shipY = nodeY + offsetY;
 
         // Draw subtle faction-colored anchor line from node to ship dock
         const anchorLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-        anchorLine.setAttribute('x1', node.x);
-        anchorLine.setAttribute('y1', node.y);
-        anchorLine.setAttribute('x2', node.x + offsetX);
-        anchorLine.setAttribute('y2', node.y + offsetY);
+        anchorLine.setAttribute('x1', nodeX);
+        anchorLine.setAttribute('y1', nodeY);
+        anchorLine.setAttribute('x2', shipX);
+        anchorLine.setAttribute('y2', shipY);
         anchorLine.setAttribute('stroke', factionColors[ship.faction] || '#f5c518');
         anchorLine.setAttribute('stroke-width', '2');
         anchorLine.setAttribute('stroke-dasharray', '4,4');
         anchorLine.setAttribute('opacity', '0.4');
         this.shipsGroup.appendChild(anchorLine);
 
-        g.setAttribute('transform', `translate(${node.x + offsetX}, ${node.y + offsetY})`);
+        g.setAttribute('transform', `translate(${shipX}, ${shipY})`);
 
         // Integrated Capsule Badge (width 66, height 36, rx 18)
         const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
