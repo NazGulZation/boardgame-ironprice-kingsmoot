@@ -12,6 +12,7 @@ class KingsmootApp {
     this.aiAutoStepTimer = null;
     this.currentBattle = null;
     this.lastSeenHazardStr = null;
+    this._steppingAi = false;
   }
 
   async init() {
@@ -396,6 +397,8 @@ class KingsmootApp {
   }
 
   async stepAi() {
+    if (this._steppingAi) return;
+    this._steppingAi = true;
     try {
       const prevState = this.gameState;
       const prevReaveOutcome = this.gameState ? this.gameState.last_reave_outcome : null;
@@ -409,12 +412,32 @@ class KingsmootApp {
           await this.mapRenderer.animateShipSail(res.ship_id, res.from, res.to, activeFaction);
         }
 
-        // 2. Check if a REAVE action occurred -> animate targeting & keep outcome (SKIP popup dice roll!)
-        const newReave = res.outcome || (nextState.last_reave_outcome && 
+        // 2. Check if a REAVE action occurred -> map-only raid presentation:
+        //    axe-flight + keep impact on the map is the SOLE visual for AI turns.
+        //    The dice-roll popup modal is intentionally suppressed during AI turns
+        //    (it would cover the map and hide the ravage animation); the bottom
+        //    dice tray shows the tumbling dice instead.
+        const newReave = res.outcome || (nextState.last_reave_outcome &&
           (!prevReaveOutcome || JSON.stringify(prevReaveOutcome) !== JSON.stringify(nextState.last_reave_outcome)) ? nextState.last_reave_outcome : null);
+        const isRaid = Boolean(newReave && newReave.attacker_roll && newReave.defender_roll);
 
-        if (newReave && newReave.attacker_roll && newReave.defender_roll) {
-          this.ui.renderDiceRoll(newReave, true);
+        if (isRaid) {
+          // Guarantee no stale/visible popup can cover the map animation.
+          if (this.ui.elements.modalReave) {
+            this.ui.elements.modalReave.style.display = 'none';
+          }
+          const originNode = res.origin_node || newReave.origin_node;
+          const targetLand = res.target_land_id || newReave.target_id;
+          const raidShipId = res.ship_id || newReave.ship_id;
+          if (originNode && targetLand) {
+            try {
+              await this.mapRenderer.animateReaveTargeting(originNode, targetLand, newReave, raidShipId);
+            } catch (animErr) {
+              console.warn("AI raid animation failed:", animErr);
+            }
+          } else {
+            console.warn("AI raid animation skipped: missing origin/target", { originNode, targetLand, res, newReave });
+          }
         }
 
         // 3. Check if NAVAL CLASH occurred
@@ -435,6 +458,13 @@ class KingsmootApp {
         this.gameState = nextState;
         this.refresh(false);
 
+        // Re-apply rolling dice AFTER refresh: refresh() re-renders the tray in
+        // settled mode from the fresh state object (different reference), which
+        // would otherwise instantly wipe the raid's tumbling-dice effect.
+        if (isRaid) {
+          this.ui.renderDiceRoll(newReave, true);
+        }
+
         // If human player is actively engaged in an unresolved battle, show battle modal
         const humanPlayer = this.gameState.players.find(p => !p.is_ai);
         const isHumanInBattle = battle && humanPlayer && 
@@ -454,6 +484,8 @@ class KingsmootApp {
       }
     } catch (err) {
       console.error("AI step error:", err);
+    } finally {
+      this._steppingAi = false;
     }
   }
 

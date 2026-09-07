@@ -104,7 +104,7 @@ Most **Legend** after 5 Seasons + Final Kingsmoot bonuses wins. Legend comes fro
 - Holding Isles at Season end (+1 Legend per Isle, Old Wyk +1 extra)
 - Kingsmoot finale: +3 most Favor, +2 most successful raids, +1 per 5 Hoard banked
 
-**No elimination.** If all your ships are sunk/empty, respawn at home with 1 ship + 3 crew free. Losing gives Favor (1 per 2 crew lost) — defeat fuels miracles.
+**No elimination.** What is dead may never die: any ship reduced to 0 crew immediately respawns at its home port — flagship with 1 crew, standard longship as an empty hull (0 crew). Losing gives Favor (1 per 2 crew lost) — defeat fuels miracles.
 
 ---
 

@@ -124,7 +124,7 @@ Web UI will be live at: `http://localhost:8000`
    * When moving into an enemy sea zone, `animateNavalClash` renders pulsing crossed swords (`⚔️`) positioned precisely at the midpoint between the colliding ship dock coordinates (`clashX`, `clashY`) rather than the target node center.
    * The battle dice modal popup is guarded by `isClashAnimating` and must **never** open until the naval clash animation resolves.
    * Combat dice tray animations only re-roll on newly generated rolls (`isNewRoll`), preventing unwanted tumbling animations on passive UI selection refreshes.
-   * AI claimant raid targeting animations are suppressed during AI turns to maintain crisp, distraction-free pacing.
+   * AI claimant raids play the full raid presentation (axe-flight + keep impact via `animateReaveTargeting` plus the tumbling-dice reave modal with 2400 ms auto-dismiss so AI pacing never blocks). The dice tray re-roll (`renderDiceRoll(..., true)`) is re-applied after `refresh()` so the settled-mode redraw never wipes the tumbling effect. `stepAi` is guarded by `_steppingAi` against overlapping invocations.
 9. **Tactical Fleet Stacking & Respawn Mechanics**:
    * **Dice Stacking**: Co-located friendly longships with $\ge 1$ crew in the same zone contribute $+1$ bonus tactical die to both Keep Reaves (`calculate_reave_dice_count`) and Naval Clashes (`calculate_naval_dice_count`).
    * **What Is Dead May Never Die**: When any ship's crew is reduced to 0 (in naval combat or from Keep counter-attack retaliation during Reave), the ship immediately respawns at its home port with **1 crew** (if Flagship) or **0 crew** (if standard Longship). No faction is ever eliminated.
