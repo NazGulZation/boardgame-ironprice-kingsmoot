@@ -46,6 +46,55 @@ class BattleManager:
             battle.state = "round1_decision"
             battle.round_num = 1
 
+    def action_battle_choice(
+        self,
+        battle_id: Optional[str] = None,
+        choice: str = "resolve_now"
+    ) -> Dict[str, Any]:
+        """Resolve the willing-attacker choice: 'resolve_now' or 'defer' ('wait').
+
+        Only valid while battle.state == 'awaiting_choice'. 'resolve_now' rolls
+        Round 1 immediately (usual human flow). 'defer' parks the clash as
+        deferred so remaining actions can sail reinforcements into the node;
+        the clash auto-activates (Round 1 roll) once actions run out / End Turn.
+        """
+        battle = self.gs.active_battle
+        if battle is None:
+            return {"success": False, "error": "No active naval battle in progress."}
+        if battle_id and battle.battle_id != battle_id:
+            return {"success": False, "error": "Battle ID mismatch."}
+        if battle.state != "awaiting_choice":
+            return {"success": False, "error": f"Battle is not awaiting resolution choice (state={battle.state})."}
+
+        norm = (choice or "").strip().lower()
+        if norm in ("resolve_now", "resolve", "now", "fight"):
+            battle.deferred = False
+            self.gs._log(f"⚔️ [{battle.attacker_faction}] sounds the war horns! Naval clash at {self.gs.nodes[battle.node_id].name} resolves NOW!")
+            self.init_battle_round_1(battle)
+            return {"success": True, "battle": battle.to_dict(), "resolved_now": True}
+        elif norm in ("defer", "wait", "delay", "reinforce"):
+            if self.gs.actions_remaining <= 0:
+                return {"success": False, "error": "No actions remaining to muster reinforcements; battle resolves now."}
+            battle.deferred = True
+            battle.state = "deferred"
+            self.gs._log(f"⏳ [{battle.attacker_faction}] holds the clash at {self.gs.nodes[battle.node_id].name}! Awaiting reinforcements (battle deferred until end of actions).")
+            return {"success": True, "battle": battle.to_dict(), "deferred": True}
+        return {"success": False, "error": f"Unknown battle choice: {choice}. Use 'resolve_now' or 'defer'."}
+
+    def activate_deferred_battle(self, battle: BattleState) -> Dict[str, Any]:
+        """Auto-activate a deferred clash once the attacker's actions run out.
+
+        Rolls Round 1 with whatever reinforcements are now co-located (dice
+        stacking counts them), then hands control back to the normal human
+        decision flow (round1_decision) or finalizes if a hull was wiped.
+        """
+        if battle.state != "deferred":
+            return {"success": False, "error": f"Battle is not deferred (state={battle.state})."}
+        battle.deferred = False
+        self.gs._log(f"⚔️ Deferred clash at {self.gs.nodes[battle.node_id].name} erupts! Reinforcements counted — resolving now!")
+        self.init_battle_round_1(battle)
+        return {"success": True, "battle": battle.to_dict()}
+
     def action_battle_round(
         self,
         battle_id: Optional[str] = None,
@@ -60,6 +109,8 @@ class BattleManager:
             return {"success": False, "error": "No active naval battle in progress."}
 
         battle = self.gs.active_battle
+        if battle.state in ("awaiting_choice", "deferred"):
+            return {"success": False, "error": "Battle is deferred awaiting reinforcements. Choose 'resolve now' or sail reinforcements first."}
         attacker = self.gs._get_player_by_faction(battle.attacker_faction)
         defender = self.gs._get_player_by_faction(battle.defender_faction)
         _, attacker_ship = self.gs.find_ship_location(battle.attacker_ship_id)

@@ -331,3 +331,51 @@
   border-top: 1px solid #233446;
   padding-top: 12px;
 }
+
+/* Willing-attacker choice: resolve NOW vs WAIT for reinforcements */
+.battle-choice-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: rgba(243, 195, 72, 0.08);
+  border: 1px solid #f3c348;
+  border-radius: 8px;
+  padding: 12px 16px;
+}
+
+.battle-choice-title {
+  font-family: 'Cinzel', serif;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #f3c348;
+}
+
+.battle-choice-desc {
+  font-size: 0.82rem;
+  color: #cbd5e1;
+}
+
+.battle-choice-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* Deferred-clash banner over the map viewport */
+.deferred-banner {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 30;
+  background: rgba(7, 12, 20, 0.92);
+  border: 1px solid #f3c348;
+  border-radius: 20px;
+  color: #f3c348;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 6px 16px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.7);
+  pointer-events: none;
+  white-space: nowrap;
+}

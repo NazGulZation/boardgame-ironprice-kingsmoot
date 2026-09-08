@@ -7,9 +7,10 @@ from .models import (
 )
 from .map_engine import MapEngine
 from .combat import CombatEngine
-from .dice import calculate_crew_dice, roll_storm_die
+from .dice import calculate_crew_dice
 from .logger import get_logger
 from .battle_manager import BattleManager
+from .sail_manager import SailManager
 
 
 class GameStateManager:
@@ -18,6 +19,7 @@ class GameStateManager:
         self.max_seasons = max_seasons
         self.rng = rng or random.Random()
         self.battle_manager = BattleManager(self)
+        self.sail_manager = SailManager(self)
         
         self.season: int = 1
         self.turn_in_season: int = 1  # 1 to 3
@@ -151,152 +153,19 @@ class GameStateManager:
     # ---------------- ACTIONS ----------------
 
     def action_sail(self, ship_id: str, target_node_id: str) -> Dict[str, Any]:
-        """Sail a ship up to its max speed to an adjacent or reachable node."""
-        if self.game_over:
-            return {"success": False, "error": "Game is already over."}
-        if self.active_battle is not None:
-            return {"success": False, "error": "Cannot sail while fleet battle is active."}
-        if self.actions_remaining <= 0:
-            return {"success": False, "error": "No actions remaining this turn."}
+        """Sail a ship (delegated to SailManager: storm, clash choice, reinforcement)."""
+        return self.sail_manager.action_sail(ship_id, target_node_id)
 
-        active = self.get_active_player()
-        curr_node_id, ship = self.find_ship_location(ship_id)
+    def action_battle_choice(self, battle_id: Optional[str] = None, choice: str = "resolve_now") -> Dict[str, Any]:
+        """Attacker choice after willingly entering a clash: resolve now or defer for reinforcements."""
+        return self.battle_manager.action_battle_choice(battle_id=battle_id, choice=choice)
 
-        if not ship or ship.faction != active.faction:
-            return {"success": False, "error": f"Ship {ship_id} not found or not owned by {active.faction}."}
-
-        if target_node_id not in self.nodes:
-            return {"success": False, "error": f"Target node {target_node_id} does not exist."}
-
-        target_node = self.nodes[target_node_id]
-        if target_node.kind == NodeKind.LAND.value:
-            return {"success": False, "error": "Cannot sail directly onto Green Land targets; you must reave from adjacent sea."}
-
-        if curr_node_id == target_node_id:
-            return {"success": False, "error": f"Ship {ship.id} is already at {target_node.name}."}
-
-        speed = ship.get_speed()
-        reachable = self.map_engine.get_reachable_nodes(curr_node_id, max_speed=speed)
-        if target_node_id not in reachable:
-            return {"success": False, "error": f"Node {target_node.name} is not reachable from {curr_node_id} (speed {speed})."}
-
-        curr_node = self.nodes[curr_node_id]
-
-        # 1. Storm Belt Entry Hazard Check
-        if target_node_id == "storm" and ship.id != "asha_flagship":
-            die_face, outcome = roll_storm_die(self.rng)
-            if outcome == "pushback":
-                hazard = StormHazardResult(
-                    ship_id=ship.id,
-                    faction=active.faction,
-                    origin_node=curr_node_id,
-                    storm_node="storm",
-                    die_face=die_face,
-                    outcome="pushback",
-                    crew_lost=0,
-                    favor_gained=0,
-                    final_node=curr_node_id
-                )
-                self.last_hazard_outcome = hazard
-                self.actions_remaining -= 1
-                self._log(f"🌊 [Storm Belt] Violent gales repelled {ship.id} back to {curr_node.name}! (Rolled Shield)")
-                self._check_auto_turn_advance()
-                return {
-                    "success": True,
-                    "ship_id": ship_id,
-                    "from": curr_node_id,
-                    "to": curr_node_id,
-                    "hazard": hazard.to_dict(),
-                    "pushed_back": True
-                }
-            elif outcome == "casualty":
-                crew_lost = min(ship.crew, 1)
-                ship.crew -= crew_lost
-                if ship.crew == 0:
-                    self.respawn_ship_if_dead(ship)
-                favor_gained = min(7 - active.favor, 1)
-                active.favor = min(7, active.favor + 1)
-                hazard = StormHazardResult(
-                    ship_id=ship.id,
-                    faction=active.faction,
-                    origin_node=curr_node_id,
-                    storm_node="storm",
-                    die_face=die_face,
-                    outcome="casualty",
-                    crew_lost=crew_lost,
-                    favor_gained=favor_gained,
-                    final_node="storm"
-                )
-                self.last_hazard_outcome = hazard
-                self._log(f"🌊 [Storm Belt] Raging waves claim 1 warrior from {ship.id} to the depths! (+1 Favor. Rolled Eye)")
-            else:  # safe
-                hazard = StormHazardResult(
-                    ship_id=ship.id,
-                    faction=active.faction,
-                    origin_node=curr_node_id,
-                    storm_node="storm",
-                    die_face=die_face,
-                    outcome="safe",
-                    crew_lost=0,
-                    favor_gained=0,
-                    final_node="storm"
-                )
-                self.last_hazard_outcome = hazard
-                self._log(f"🌊 [Storm Belt] {ship.id} braves the storm safely! (Rolled {die_face})")
-        elif target_node_id == "storm" and ship.id == "asha_flagship":
-            self._log("🦅 Asha's Black Wind navigates the Storm Belt unharmed (Storm Immunity).")
-
-        # 2. Execute Movement
-        self._move_ship_to(ship, curr_node_id, target_node_id)
-        self.actions_remaining -= 1
-
-        # 3. Detect Enemy Presence -> Trigger PvP Fleet Clash
-        enemy_ships = [s for s in target_node.occupants if s.faction != active.faction and s.crew > 0]
-        if enemy_ships:
-            defender_ship = enemy_ships[0]
-            defender_player = self._get_player_by_faction(defender_ship.faction)
-            battle_id = f"b_{self.season}_{self.turn_in_season}_{len(self.logs)}"
-
-            battle = BattleState(
-                battle_id=battle_id,
-                node_id=target_node_id,
-                origin_node_id=curr_node_id,
-                attacker_faction=active.faction,
-                defender_faction=defender_player.faction,
-                attacker_ship_id=ship.id,
-                defender_ship_id=defender_ship.id,
-                round_num=1,
-                state="round1_ready"
-            )
-            self.active_battle = battle
-            self._log(f"⚔️ FLEET CLASH! [{active.faction}] {ship.id} attacks [{defender_player.faction}] {defender_ship.id} at {target_node.name}!")
-
-            human_involved = (not active.is_ai or not defender_player.is_ai)
-            if human_involved:
-                self._init_battle_round_1(battle)
-                return {
-                    "success": True,
-                    "ship_id": ship_id,
-                    "from": curr_node_id,
-                    "to": target_node_id,
-                    "battle_triggered": True,
-                    "battle": battle.to_dict()
-                }
-            else:
-                self._auto_resolve_battle(battle)
-                self._check_auto_turn_advance()
-                return {
-                    "success": True,
-                    "ship_id": ship_id,
-                    "from": curr_node_id,
-                    "to": target_node_id,
-                    "battle_triggered": True,
-                    "battle": battle.to_dict()
-                }
-
-        self._log(f"[{active.faction}] sailed {ship.id} from {curr_node.name} to {target_node.name}.")
-        self._check_auto_turn_advance()
-        return {"success": True, "ship_id": ship_id, "from": curr_node_id, "to": target_node_id}
+    def _maybe_activate_deferred_battle(self) -> bool:
+        """Auto-activate a deferred clash once actions run out. Returns True if activated."""
+        if self.active_battle is not None and self.active_battle.state == "deferred" and self.actions_remaining <= 0:
+            self.battle_manager.activate_deferred_battle(self.active_battle)
+            return True
+        return False
 
     def _init_battle_round_1(self, battle: BattleState):
         """Initializes Round 1 dice roll and casualties for an active naval battle."""
@@ -338,6 +207,8 @@ class GameStateManager:
         """Casts a Drowned God miracle (Call Storm: 4 Favor)."""
         if self.game_over:
             return {"success": False, "error": "Game is already over."}
+        if self.active_battle is not None and self.active_battle.state in ("awaiting_choice", "deferred"):
+            return {"success": False, "error": "Resolve the naval clash before calling a storm."}
         if self.actions_remaining <= 0:
             return {"success": False, "error": "No actions remaining this turn."}
 
@@ -378,6 +249,8 @@ class GameStateManager:
         """Muster crew at a controlled home port."""
         if self.game_over:
             return {"success": False, "error": "Game is already over."}
+        if self.active_battle is not None and self.active_battle.state == "awaiting_choice":
+            return {"success": False, "error": "Choose to resolve the naval clash now or wait for reinforcements first."}
         if self.actions_remaining <= 0:
             return {"success": False, "error": "No actions remaining this turn."}
 
@@ -441,6 +314,8 @@ class GameStateManager:
         """Reave an adjacent Green Land keep."""
         if self.game_over:
             return {"success": False, "error": "Game is already over."}
+        if self.active_battle is not None and self.active_battle.state == "awaiting_choice":
+            return {"success": False, "error": "Choose to resolve the naval clash now or wait for reinforcements first."}
         if self.actions_remaining <= 0:
             return {"success": False, "error": "No actions remaining this turn."}
 
@@ -519,6 +394,8 @@ class GameStateManager:
         """Pray to the Drowned God to gain +1 Favor."""
         if self.game_over:
             return {"success": False, "error": "Game is already over."}
+        if self.active_battle is not None and self.active_battle.state == "awaiting_choice":
+            return {"success": False, "error": "Choose to resolve the naval clash now or wait for reinforcements first."}
         if self.actions_remaining <= 0:
             return {"success": False, "error": "No actions remaining this turn."}
 
@@ -538,6 +415,25 @@ class GameStateManager:
         if self.game_over:
             return {"success": False, "error": "Game is already over."}
 
+        # Awaiting choice: default to resolving now rather than skipping the clash.
+        if self.active_battle is not None and self.active_battle.state == "awaiting_choice":
+            self.battle_manager.action_battle_choice(choice="resolve_now")
+            return {
+                "success": True,
+                "ended_turn": False,
+                "battle_activated": True,
+                "battle": self.active_battle.to_dict() if self.active_battle else None
+            }
+        # Deferred clash erupts before the turn can pass.
+        if self.active_battle is not None and self.active_battle.state == "deferred":
+            self.battle_manager.activate_deferred_battle(self.active_battle)
+            return {
+                "success": True,
+                "ended_turn": False,
+                "battle_activated": True,
+                "battle": self.active_battle.to_dict() if self.active_battle else None
+            }
+
         active = self.get_active_player()
         self._log(f"[{active.faction}] ended turn.")
         self._advance_turn()
@@ -545,7 +441,14 @@ class GameStateManager:
 
     def _check_auto_turn_advance(self):
         """Auto advance if no actions remaining and no active battle in progress."""
-        if self.active_battle is None and self.actions_remaining <= 0:
+        if self.active_battle is not None:
+            if self.active_battle.state == "awaiting_choice":
+                return
+            if self.active_battle.state == "deferred":
+                self._maybe_activate_deferred_battle()
+                return
+            return
+        if self.actions_remaining <= 0:
             self._advance_turn()
 
     def respawn_ship_if_dead(self, ship: Ship):

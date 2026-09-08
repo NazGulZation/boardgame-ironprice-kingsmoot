@@ -5,11 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>IRON PRICE: Kingsmoot — Board Game</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🦑</text></svg>">
-  <link rel="stylesheet" href="css/style.css?v=2.21">
-  <link rel="stylesheet" href="css/panels.css?v=2.21">
-  <link rel="stylesheet" href="css/modals.css?v=2.21">
-  <link rel="stylesheet" href="css/battle.css?v=2.21">
-  <link rel="stylesheet" href="css/animations.css?v=2.21">
+  <link rel="stylesheet" href="css/style.css?v=2.22">
+  <link rel="stylesheet" href="css/panels.css?v=2.22">
+  <link rel="stylesheet" href="css/modals.css?v=2.22">
+  <link rel="stylesheet" href="css/battle.css?v=2.22">
+  <link rel="stylesheet" href="css/animations.css?v=2.22">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800;900&family=Metamorphous&family=MedievalSharp&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -79,6 +79,7 @@
       </div>
 
       <div class="map-viewport" id="map-viewport">
+        <div class="deferred-banner" id="deferred-banner" style="display: none;"></div>
         <svg id="game-map-svg" viewBox="100 60 1690 890" preserveAspectRatio="xMidYMid meet">
           <!-- Defined Defs & Filters -->
           <defs>
@@ -498,6 +499,16 @@
         <div class="battle-spoils-row" id="battle-spoils-row"></div>
       </div>
 
+      <!-- Willing-attacker choice: resolve NOW or WAIT for reinforcements -->
+      <div class="battle-choice-box" id="battle-choice-box" style="display: none;">
+        <div class="battle-choice-title">⏳ Clash on approach — resolve NOW or WAIT for reinforcements?</div>
+        <div class="battle-choice-desc" id="battle-choice-desc">Sail a second friendly longship into the contested sea before dice are rolled for +1 bonus die.</div>
+        <div class="battle-choice-row">
+          <button class="btn btn-primary" id="btn-battle-resolve-now">⚔️ Resolve Now</button>
+          <button class="btn btn-secondary btn-iron" id="btn-battle-defer">⏳ Wait for Reinforcements</button>
+        </div>
+      </div>
+
       <!-- Battle Controls Footer -->
       <div class="battle-modal-footer" id="battle-modal-footer">
         <button class="btn btn-secondary btn-iron" id="btn-battle-retreat">
@@ -536,11 +547,12 @@
   </div>
 
   <!-- JS Application Scripts with Cache Buster -->
-  <script src="js/api.js?v=2.21"></script>
-  <script src="js/map_builder.js?v=2.21"></script>
-  <script src="js/map_animator.js?v=2.21"></script>
-  <script src="js/map_renderer.js?v=2.21"></script>
-  <script src="js/ui.js?v=2.21"></script>
-  <script src="js/app.js?v=2.21"></script>
+  <script src="js/api.js?v=2.22"></script>
+  <script src="js/map_builder.js?v=2.22"></script>
+  <script src="js/map_animator.js?v=2.22"></script>
+  <script src="js/map_renderer.js?v=2.22"></script>
+  <script src="js/ui.js?v=2.22"></script>
+  <script src="js/app.js?v=2.22"></script>
+  <script src="js/naval_choice.js?v=2.22"></script>
 </body>
 </html>

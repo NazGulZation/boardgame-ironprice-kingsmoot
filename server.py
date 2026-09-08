@@ -133,6 +133,14 @@ class KingsmootHandler(SimpleHTTPRequestHandler):
                         continue_round=continue_round
                     )
 
+                elif action_type == "battle_choice":
+                    battle_id = payload.get("battle_id")
+                    choice = payload.get("choice", "resolve_now")
+                    res = CURRENT_GAME.action_battle_choice(
+                        battle_id=battle_id,
+                        choice=choice
+                    )
+
                 elif action_type == "favor_miracle":
                     miracle_type = payload.get("miracle_type")
                     target_faction = payload.get("target_faction")

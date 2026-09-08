@@ -229,7 +229,7 @@ class BattleState:
     attacker_ship_id: str
     defender_ship_id: str
     round_num: int = 1
-    state: str = "round1_ready"  # "round1_ready", "round1_decision", "round2_ready", "finished"
+    state: str = "round1_ready"  # "awaiting_choice", "deferred", "round1_ready", "round1_decision", "round2_ready", "finished"
     history: List[BattleRoundResult] = field(default_factory=list)
     winner: Optional[str] = None
     is_stalemate: bool = False
@@ -240,6 +240,7 @@ class BattleState:
     total_attacker_crew_lost: int = 0
     total_defender_crew_lost: int = 0
     sunk_ship_ids: List[str] = field(default_factory=list)
+    deferred: bool = False  # True while attacker defers resolution to muster reinforcements
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -261,7 +262,8 @@ class BattleState:
             "blood_price_available": self.blood_price_available,
             "total_attacker_crew_lost": self.total_attacker_crew_lost,
             "total_defender_crew_lost": self.total_defender_crew_lost,
-            "sunk_ship_ids": list(self.sunk_ship_ids)
+            "sunk_ship_ids": list(self.sunk_ship_ids),
+            "deferred": self.deferred
         }
 
 

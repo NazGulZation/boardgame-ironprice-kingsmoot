@@ -130,9 +130,16 @@ class TestPhase2Features(unittest.TestCase):
         self.assertTrue(res.get("battle_triggered"))
 
         battle = self.game.active_battle
+        # Willing attacker with actions left first gets NOW-or-WAIT choice.
+        if battle is not None and battle.state == "awaiting_choice":
+            choice_res = self.game.action_battle_choice(choice="resolve_now")
+            self.assertTrue(choice_res.get("success"))
+            battle = self.game.active_battle if self.game.active_battle else self.game.last_battle_outcome
         if battle is not None and battle.state != "finished":
             # Advance round to finish battle
-            self.game.action_battle_round(battle_id=battle.battle_id, continue_round=True)
+            live = self.game.active_battle
+            if live is not None:
+                self.game.action_battle_round(battle_id=live.battle_id, continue_round=True)
 
         # Verify outcome
         self.assertIsNone(self.game.active_battle)

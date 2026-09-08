@@ -19,6 +19,15 @@ class SimpleAI:
         # 0. If AI is trapped in an active naval battle, resolve it
         if game.active_battle is not None:
             battle = game.active_battle
+            # Safety: AI never defers — a willing human attacker owns choice states.
+            if battle.state == "awaiting_choice":
+                res = game.action_battle_choice(battle_id=battle.battle_id, choice="resolve_now")
+                if res.get("success"):
+                    return game.action_battle_round(battle_id=battle.battle_id, continue_round=True)
+                return res
+            if battle.state == "deferred":
+                game.battle_manager.activate_deferred_battle(battle)
+                return game.action_battle_round(battle_id=battle.battle_id, continue_round=True)
             _, att_ship = game.find_ship_location(battle.attacker_ship_id)
             _, def_ship = game.find_ship_location(battle.defender_ship_id)
             my_ship = att_ship if battle.attacker_faction == active.faction else def_ship
