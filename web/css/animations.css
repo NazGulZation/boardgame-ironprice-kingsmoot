@@ -2,33 +2,34 @@
 
 @keyframes pulseGlow {
   0% {
-    filter: drop-shadow(0 0 4px #f5c518);
+    filter: drop-shadow(0 0 3px #c5972c);
   }
   50% {
-    filter: drop-shadow(0 0 16px #f5c518);
+    filter: drop-shadow(0 0 10px #f5cf68);
   }
   100% {
-    filter: drop-shadow(0 0 4px #f5c518);
+    filter: drop-shadow(0 0 3px #c5972c);
   }
 }
 
 @keyframes pulseRed {
   0% {
-    filter: drop-shadow(0 0 4px #e74c3c);
+    filter: drop-shadow(0 0 3px #82221b);
   }
   50% {
-    filter: drop-shadow(0 0 16px #e74c3c);
+    filter: drop-shadow(0 0 10px #b83327);
   }
   100% {
-    filter: drop-shadow(0 0 4px #e74c3c);
+    filter: drop-shadow(0 0 3px #82221b);
   }
 }
 
 @keyframes diceRoll {
-  0% { transform: translateY(-10px) rotate(0deg); opacity: 0.3; }
-  30% { transform: translateY(-20px) rotate(180deg) scale(1.2); }
-  60% { transform: translateY(-5px) rotate(360deg) scale(0.9); }
-  100% { transform: translateY(0) rotate(720deg) scale(1); opacity: 1; }
+  0% { transform: translateY(-12px) rotate(0deg); opacity: 0.4; }
+  40% { transform: translateY(-16px) rotate(180deg); }
+  70% { transform: translateY(-4px) rotate(360deg); }
+  85% { transform: translateY(2px) rotate(540deg); }
+  100% { transform: translateY(0) rotate(720deg); opacity: 1; }
 }
 
 .dice-rolling {
@@ -36,22 +37,23 @@
 }
 
 @keyframes diceTumble3D {
-  0% { transform: scale(0.85) rotate(0deg) translateY(0); filter: blur(0.5px); }
-  25% { transform: scale(1.15) rotate(180deg) translateY(-14px); filter: blur(1px); }
-  50% { transform: scale(0.9) rotate(360deg) translateY(4px); filter: blur(0.5px); }
-  75% { transform: scale(1.1) rotate(540deg) translateY(-8px); filter: blur(1px); }
-  100% { transform: scale(1) rotate(720deg) translateY(0); filter: blur(0); }
+  0% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-8px) rotate(12deg); }
+  50% { transform: translateY(3px) rotate(-8deg); }
+  75% { transform: translateY(-4px) rotate(6deg); }
+  100% { transform: translateY(0) rotate(0deg); }
 }
 
 .dice-tumbling {
-  animation: diceTumble3D 0.8s cubic-bezier(0.25, 1, 0.5, 1) infinite;
+  animation: diceTumble3D 0.75s ease-in-out infinite;
 }
 
 @keyframes diceSettlePop {
-  0% { transform: scale(1.35) translateY(-10px); filter: brightness(1.5); }
-  60% { transform: scale(0.92) translateY(2px); }
-  85% { transform: scale(1.05) translateY(-2px); }
-  100% { transform: scale(1) translateY(0); filter: brightness(1); }
+  0% { transform: translateY(-8px) rotate(-3deg); filter: brightness(1.2); }
+  45% { transform: translateY(3px) rotate(1.5deg); filter: brightness(1.1); }
+  70% { transform: translateY(-2px) rotate(-0.5deg); }
+  85% { transform: translateY(1px) rotate(0.2deg); }
+  100% { transform: translateY(0) rotate(0deg); filter: brightness(1); }
 }
 
 .dice-settled {
@@ -59,13 +61,12 @@
 }
 
 @keyframes resultBannerPop {
-  0% { opacity: 0; transform: scale(0.92) translateY(12px); }
-  70% { transform: scale(1.02) translateY(-2px); }
-  100% { opacity: 1; transform: scale(1) translateY(0); }
+  0% { opacity: 0; transform: translateY(8px); }
+  100% { opacity: 1; transform: translateY(0); }
 }
 
 .result-banner-pop {
-  animation: resultBannerPop 0.4s ease-out forwards;
+  animation: resultBannerPop 0.35s ease-out forwards;
 }
 
 @keyframes lootGlow {
@@ -80,21 +81,21 @@
 
 
 .target-highlight circle, .target-highlight rect {
-  animation: pulseGlow 1.5s infinite ease-in-out;
+  animation: pulseGlow 1.8s infinite ease-in-out;
   cursor: pointer !important;
-  stroke: #f5c518 !important;
-  stroke-width: 4px !important;
+  stroke: var(--border-gold, #c5972c) !important;
+  stroke-width: 3.5px !important;
 }
 
 .reave-highlight circle, .reave-highlight rect {
-  animation: pulseRed 1.5s infinite ease-in-out;
+  animation: pulseRed 1.8s infinite ease-in-out;
   cursor: pointer !important;
-  stroke: #e74c3c !important;
-  stroke-width: 4px !important;
+  stroke: #9c2820 !important;
+  stroke-width: 3.5px !important;
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(6px); }
+  from { opacity: 0; transform: translateY(5px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
@@ -109,7 +110,7 @@
 }
 
 .map-node-group:hover {
-  filter: brightness(1.25) drop-shadow(0 0 10px rgba(245, 197, 24, 0.5));
+  filter: brightness(1.2) drop-shadow(0 0 8px rgba(245, 207, 104, 0.45));
 }
 
 .map-ship-group {
@@ -118,36 +119,36 @@
 }
 
 .map-ship-group:hover {
-  filter: brightness(1.3) drop-shadow(0 0 8px #ffffff);
+  filter: brightness(1.25) drop-shadow(0 0 6px #dce6f2);
 }
 
 .node-selected circle, .node-selected rect {
   stroke: var(--gold-accent) !important;
   stroke-width: 4px !important;
-  filter: drop-shadow(0 0 12px var(--gold-accent)) !important;
+  filter: drop-shadow(0 0 10px var(--gold-accent)) !important;
 }
 
 @keyframes shipSelectedPulse {
   0% {
-    filter: drop-shadow(0 0 6px #f5c518) drop-shadow(0 0 12px #f5c518);
+    filter: drop-shadow(0 0 4px #c5972c) drop-shadow(0 0 8px #7a5a17);
   }
   50% {
-    filter: drop-shadow(0 0 16px #ffffff) drop-shadow(0 0 24px #f5c518);
+    filter: drop-shadow(0 0 10px #f5cf68) drop-shadow(0 0 16px #c5972c);
   }
   100% {
-    filter: drop-shadow(0 0 6px #f5c518) drop-shadow(0 0 12px #f5c518);
+    filter: drop-shadow(0 0 4px #c5972c) drop-shadow(0 0 8px #7a5a17);
   }
 }
 
 .ship-selected {
-  animation: shipSelectedPulse 1.2s infinite ease-in-out !important;
+  animation: shipSelectedPulse 1.6s infinite ease-in-out !important;
 }
 
 .ship-selected .ship-capsule-badge,
 .ship-selected rect:first-child {
-  stroke: #ffffff !important;
-  stroke-width: 5px !important;
-  filter: drop-shadow(0 0 12px #ffffff) !important;
+  stroke: var(--gold-accent, #f5cf68) !important;
+  stroke-width: 4px !important;
+  filter: drop-shadow(0 0 8px var(--gold-accent)) !important;
 }
 
 @keyframes haloRotate {
@@ -156,19 +157,19 @@
 }
 
 .ship-halo {
-  animation: haloRotate 1.2s linear infinite;
-  filter: drop-shadow(0 0 8px #f5c518) drop-shadow(0 0 16px #f5c518);
+  animation: haloRotate 1.5s linear infinite;
+  filter: drop-shadow(0 0 6px #c5972c) drop-shadow(0 0 12px #7a5a17);
   pointer-events: none;
 }
 
 @keyframes pointerBounce {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
+  50% { transform: translateY(-3px); }
 }
 
 .ship-pointer {
-  animation: pointerBounce 0.8s ease-in-out infinite;
-  filter: drop-shadow(0 2px 8px #f5c518);
+  animation: pointerBounce 1.2s ease-in-out infinite;
+  filter: drop-shadow(0 2px 6px #c5972c);
   pointer-events: none;
   transform-box: fill-box;
   transform-origin: center;
@@ -199,9 +200,9 @@
 }
 
 @keyframes bloodAura {
-  0% { box-shadow: 0 0 6px rgba(231, 76, 60, 0.4); }
-  50% { box-shadow: 0 0 18px rgba(231, 76, 60, 0.8); }
-  100% { box-shadow: 0 0 6px rgba(231, 76, 60, 0.4); }
+  0% { box-shadow: 0 0 5px rgba(169, 50, 38, 0.4); }
+  50% { box-shadow: 0 0 14px rgba(169, 50, 38, 0.75); }
+  100% { box-shadow: 0 0 5px rgba(169, 50, 38, 0.4); }
 }
 
 .action-btn.btn-danger:hover:not(:disabled) {
@@ -216,8 +217,8 @@
 }
 
 @keyframes stormLightning {
-  0%, 94%, 98% { opacity: 0.2; }
-  95%, 97% { opacity: 0.9; filter: drop-shadow(0 0 10px #70d6ff); }
+  0%, 94%, 98% { opacity: 0.15; }
+  95%, 97% { opacity: 0.85; filter: drop-shadow(0 0 8px #8bbdd9); }
 }
 
 .storm-vortex {
@@ -245,8 +246,8 @@
 }
 
 .sailing-wake-line {
-  stroke: #70d6ff;
-  stroke-width: 4px;
+  stroke: #5a97b8;
+  stroke-width: 3.5px;
   stroke-linecap: round;
   stroke-dasharray: 6, 10;
   animation: waterWakeFade 0.7s ease-out forwards;
@@ -259,26 +260,26 @@
 }
 
 .raid-targeting-line {
-  stroke: #e74c3c;
-  stroke-width: 3.5px;
+  stroke: #9c2820;
+  stroke-width: 3px;
   stroke-linecap: round;
   stroke-dasharray: 8, 6;
   animation: raidLineDash 0.35s linear infinite;
-  filter: drop-shadow(0 0 8px rgba(231, 76, 60, 0.9));
+  filter: drop-shadow(0 0 6px rgba(156, 40, 32, 0.8));
   pointer-events: none;
 }
 
 .raid-axe-icon {
-  filter: drop-shadow(0 0 8px #f39c12) drop-shadow(0 0 16px rgba(231, 76, 60, 0.85));
+  filter: drop-shadow(0 0 6px #c5972c) drop-shadow(0 0 12px rgba(156, 40, 32, 0.7));
   pointer-events: none;
   user-select: none;
 }
 
 /* 3. Reave Outcome: Victory Coin Burst & Keep Sacked Glow */
 @keyframes keepSackedPulse {
-  0% { filter: drop-shadow(0 0 6px #f39c12) brightness(1.2); }
-  50% { filter: drop-shadow(0 0 24px #e74c3c) brightness(1.7); }
-  100% { filter: drop-shadow(0 0 6px #f39c12) brightness(1.2); }
+  0% { filter: drop-shadow(0 0 4px #b8681e) brightness(1.1); }
+  50% { filter: drop-shadow(0 0 16px #9c2820) brightness(1.4); }
+  100% { filter: drop-shadow(0 0 4px #b8681e) brightness(1.1); }
 }
 
 .keep-sacked-flash {
@@ -286,9 +287,9 @@
 }
 
 @keyframes keepDefendedPulse {
-  0% { filter: drop-shadow(0 0 6px #3498db) brightness(1.1); }
-  50% { filter: drop-shadow(0 0 24px #2980b9) brightness(1.5); }
-  100% { filter: drop-shadow(0 0 6px #3498db) brightness(1.1); }
+  0% { filter: drop-shadow(0 0 4px #3d7699) brightness(1.05); }
+  50% { filter: drop-shadow(0 0 16px #245e82) brightness(1.3); }
+  100% { filter: drop-shadow(0 0 4px #3d7699) brightness(1.05); }
 }
 
 .keep-defended-flash {
@@ -296,9 +297,9 @@
 }
 
 @keyframes shipLootPulse {
-  0% { filter: drop-shadow(0 0 4px #f1c40f) brightness(1.1); }
-  50% { filter: drop-shadow(0 0 22px #f1c40f) brightness(1.6); }
-  100% { filter: drop-shadow(0 0 4px #f1c40f) brightness(1.1); }
+  0% { filter: drop-shadow(0 0 4px #c5972c) brightness(1.1); }
+  50% { filter: drop-shadow(0 0 16px #f5cf68) brightness(1.35); }
+  100% { filter: drop-shadow(0 0 4px #c5972c) brightness(1.1); }
 }
 
 .ship-loot-flash {
@@ -306,40 +307,45 @@
 }
 
 @keyframes floatCoinBurst {
-  0% { transform: translate(0, 0) scale(0.6); opacity: 0; }
-  20% { transform: translate(var(--dx20), var(--dy20)) scale(1.3); opacity: 1; }
-  100% { transform: translate(var(--dx100), var(--dy100)) scale(0.8); opacity: 0; }
+  0% { transform: translate(0, 0) scale(0.8); opacity: 0; }
+  25% { transform: translate(var(--dx20), var(--dy20)) scale(1.05); opacity: 1; }
+  100% { transform: translate(var(--dx100), var(--dy100)) scale(0.9); opacity: 0; }
 }
 
 .floating-loot-particle {
-  font-size: 22px;
+  font-size: 20px;
   pointer-events: none;
   animation: floatCoinBurst 0.85s cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
 }
 
+.raid-loot-icon {
+  fill: #f5cf68;
+  filter: drop-shadow(0 0 6px rgba(245, 207, 104, 0.85)) drop-shadow(0 2px 4px #000);
+}
+
 /* 4. Reave Outcome: Shield Deflection & Repel Shockwave */
 @keyframes shieldShockwave {
-  0% { r: 20; opacity: 1; stroke-width: 6; }
-  100% { r: 95; opacity: 0; stroke-width: 1; }
+  0% { r: 20; opacity: 1; stroke-width: 5; }
+  100% { r: 90; opacity: 0; stroke-width: 1; }
 }
 
 .shield-repel-ring {
   fill: none;
-  stroke: #3498db;
-  filter: drop-shadow(0 0 10px #2980b9);
+  stroke: #3d7699;
+  filter: drop-shadow(0 0 8px #245e82);
   animation: shieldShockwave 0.65s ease-out forwards;
   pointer-events: none;
 }
 
 @keyframes shieldDeflectPop {
-  0% { transform: scale(0.4) rotate(-15deg); opacity: 0; }
-  40% { transform: scale(1.4) rotate(0deg); opacity: 1; filter: drop-shadow(0 0 16px #3498db); }
-  80% { transform: scale(1.1) rotate(5deg); opacity: 1; }
-  100% { transform: scale(0.9) rotate(0deg); opacity: 0; }
+  0% { transform: scale(0.7) rotate(-10deg); opacity: 0; }
+  40% { transform: scale(1.08) rotate(0deg); opacity: 1; filter: drop-shadow(0 0 12px #3d7699); }
+  80% { transform: scale(1.02) rotate(3deg); opacity: 1; }
+  100% { transform: scale(0.95) rotate(0deg); opacity: 0; }
 }
 
 .shield-deflect-icon {
-  font-size: 40px;
+  font-size: 36px;
   text-anchor: middle;
   dominant-baseline: central;
   animation: shieldDeflectPop 0.75s ease-out forwards;
@@ -348,26 +354,26 @@
 
 /* 5. Naval Battle: Fleet Clash Alert */
 @keyframes navalClashRingPulse {
-  0% { r: 25; opacity: 1; stroke-width: 8; stroke: #e74c3c; }
-  50% { stroke: #f1c40f; }
-  100% { r: 110; opacity: 0; stroke-width: 2; stroke: #e74c3c; }
+  0% { r: 25; opacity: 0.9; stroke-width: 6; stroke: #9c2820; }
+  50% { stroke: #c5972c; }
+  100% { r: 100; opacity: 0; stroke-width: 1.5; stroke: #9c2820; }
 }
 
 .naval-clash-ring {
   fill: none;
-  filter: drop-shadow(0 0 14px #e74c3c);
-  animation: navalClashRingPulse 0.8s ease-out infinite;
+  filter: drop-shadow(0 0 10px #9c2820);
+  animation: navalClashRingPulse 0.85s ease-out infinite;
   pointer-events: none;
 }
 
 @keyframes navalClashIconPop {
-  0% { transform: scale(0.3) rotate(-25deg); opacity: 0; }
-  50% { transform: scale(1.35) rotate(10deg); opacity: 1; filter: drop-shadow(0 0 20px #e74c3c); }
+  0% { transform: scale(0.6) rotate(-15deg); opacity: 0; }
+  50% { transform: scale(1.08) rotate(4deg); opacity: 1; filter: drop-shadow(0 0 14px #9c2820); }
   100% { transform: scale(1) rotate(0deg); opacity: 1; }
 }
 
 .naval-clash-badge {
-  animation: navalClashIconPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  animation: navalClashIconPop 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   pointer-events: none;
   transform-box: fill-box;
   transform-origin: center;
@@ -399,6 +405,51 @@
   pointer-events: none;
   transform-box: fill-box;
   transform-origin: center;
+}
+
+/* 7. Floating Combat Crew Loss Number */
+@keyframes floatCrewLoss {
+  0% {
+    opacity: 0;
+    transform: translateY(0px) scale(0.65);
+  }
+  20% {
+    opacity: 1;
+    transform: translateY(-14px) scale(1.28);
+  }
+  38% {
+    transform: translateY(-24px) scale(1.1);
+  }
+  70% {
+    opacity: 1;
+    transform: translateY(-44px) scale(1.0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-64px) scale(0.85);
+  }
+}
+
+.floating-crew-loss {
+  pointer-events: none;
+  animation: floatCrewLoss 1.25s cubic-bezier(0.18, 0.89, 0.32, 1.15) forwards;
+}
+
+.floating-crew-loss-pill {
+  fill: rgba(22, 6, 6, 0.94);
+  stroke: #e74c3c;
+  stroke-width: 2px;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.95)) drop-shadow(0 0 10px rgba(231, 76, 60, 0.8));
+}
+
+.floating-crew-loss-text {
+  font-family: var(--font-title, 'Cinzel', serif);
+  font-size: 19px;
+  font-weight: 900;
+  fill: #ff6b6b;
+  letter-spacing: 0.5px;
+  text-anchor: middle;
+  dominant-baseline: central;
 }
 
 

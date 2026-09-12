@@ -152,18 +152,18 @@ class MapRenderer {
         const statText = g.querySelector('.node-stat-text');
         if (rect) {
           if (node.is_burned) {
-            rect.setAttribute('fill', '#451616');
-            rect.setAttribute('stroke', '#e74c3c');
+            rect.setAttribute('fill', '#381212');
+            rect.setAttribute('stroke', '#9c2820');
             if (statText) {
-              statText.setAttribute('fill', '#ff7675');
-              statText.textContent = `🔥 BURNED (-1💰)`;
+              statText.setAttribute('fill', '#c4726c');
+              statText.textContent = `BURNED (-1⛃)`;
             }
           } else {
             rect.setAttribute('fill', 'url(#landGrad)');
-            rect.setAttribute('stroke', '#2ecc71');
+            rect.setAttribute('stroke', '#357a5b');
             if (statText) {
-              statText.setAttribute('fill', '#f5c518');
-              statText.textContent = `🛡️${node.defense}  💰${node.hoard}  👑${node.legend}`;
+              statText.setAttribute('fill', '#f5cf68');
+              statText.textContent = `⛨${node.defense}  ⛃${node.hoard}  ♚${node.legend}`;
             }
           }
         }
@@ -246,7 +246,7 @@ class MapRenderer {
         symbol.setAttribute('y', '6');
         symbol.setAttribute('text-anchor', 'middle');
         symbol.setAttribute('fill', '#000');
-        symbol.setAttribute('font-size', ship.is_flagship ? '16' : '15');
+        symbol.setAttribute('font-size', ship.is_flagship ? '17' : '16');
         symbol.setAttribute('font-weight', '900');
         symbol.textContent = ship.is_flagship ? '★' : '⛵';
         g.appendChild(symbol);
@@ -270,7 +270,7 @@ class MapRenderer {
         crewText.setAttribute('text-anchor', 'middle');
         crewText.setAttribute('fill', '#ffffff');
         crewText.setAttribute('font-family', 'Inter, sans-serif');
-        crewText.setAttribute('font-size', '15');
+        crewText.setAttribute('font-size', '16');
         crewText.setAttribute('font-weight', '900');
         crewText.textContent = ship.crew;
         g.appendChild(crewText);
@@ -417,7 +417,7 @@ class MapRenderer {
         }
       }
 
-      if (shipLocation && selectedShip && selectedShip.faction === activeFaction) {
+      if (shipLocation && selectedShip && selectedShip.faction === activeFaction && selectedShip.crew > 0 && this.gameState.actions_remaining > 0) {
         const nodeMap = {};
         this.mapData.nodes.forEach(n => nodeMap[n.id] = n);
 
@@ -523,6 +523,7 @@ class MapRenderer {
     this.update((prevState && prevState.nodes) ? this._battleTableau(prevState, battle) : nextState, { type: 'none' });
     try {
       await this.animateNavalClash(battle.node_id, battle.attacker_ship_id, battle.defender_ship_id);
+      if (battle.state === 'finished') this.animateBattleCasualties(battle);
     } catch (e) { console.warn('Naval clash animation failed:', e); }
     if (nextState) this.update(nextState, { type: 'none' });
   }
@@ -614,5 +615,19 @@ class MapRenderer {
       catch (e) { console.warn('Raid defeat animation failed:', e); }
     }
     this.update(live, { type: 'none' });
+  }
+
+  animateCrewLoss(shipId, crewLost, nodeId = null, customPos = null) {
+    return this.animator.animateCrewLoss(shipId, crewLost, nodeId, customPos);
+  }
+
+  animateBattleCasualties(battle) {
+    if (!battle) return;
+    if (battle.total_attacker_crew_lost > 0) {
+      this.animateCrewLoss(battle.attacker_ship_id, battle.total_attacker_crew_lost, battle.node_id);
+    }
+    if (battle.total_defender_crew_lost > 0) {
+      this.animateCrewLoss(battle.defender_ship_id, battle.total_defender_crew_lost, battle.node_id);
+    }
   }
 }

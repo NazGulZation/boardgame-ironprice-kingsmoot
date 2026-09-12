@@ -32,13 +32,15 @@ class MapEngine:
         """Create fresh MapNode instances for a new game."""
         nodes: Dict[str, MapNode] = {}
         for n in self.nodes_data:
+            def_val = n.get("defense", 0)
             node = MapNode(
                 id=n["id"],
                 name=n["name"],
                 kind=n["kind"],
                 x=n["x"],
                 y=n["y"],
-                defense=n.get("defense", 0),
+                defense=def_val,
+                max_defense=def_val,
                 hoard=n.get("hoard", 0),
                 legend=n.get("legend", 0),
                 special=n.get("special", ""),

@@ -133,8 +133,9 @@ class MapBuilder {
       const icon = document.createElementNS('http://www.w3.org/2000/svg', 'text');
       icon.setAttribute('y', '-16');
       icon.setAttribute('text-anchor', 'middle');
-      icon.setAttribute('font-size', '28');
-      icon.textContent = '🏰';
+      icon.setAttribute('font-size', '26');
+      icon.setAttribute('fill', '#d4af37');
+      icon.textContent = '♜';
       g.appendChild(icon);
     }
 
@@ -154,7 +155,7 @@ class MapBuilder {
     sub.setAttribute('text-anchor', 'middle');
     sub.setAttribute('fill', '#f1c40f');
     sub.setAttribute('font-family', 'Inter, sans-serif');
-    sub.setAttribute('font-size', '14');
+    sub.setAttribute('font-size', '16');
     sub.setAttribute('font-weight', '800');
     sub.setAttribute('style', 'paint-order: stroke fill; stroke: #000; stroke-width: 3px;');
     sub.textContent = node.id === 'pyke' ? 'Euron Port' : node.id === 'harlaw' ? 'Asha Port' : node.id === 'greatwyk' ? 'Victarion Port' : node.id === 'oldwyk' ? 'Kingsmoot' : '+2 Hoard';
@@ -211,8 +212,9 @@ class MapBuilder {
       const icon = document.createElementNS('http://www.w3.org/2000/svg', 'text');
       icon.setAttribute('y', '-16');
       icon.setAttribute('text-anchor', 'middle');
-      icon.setAttribute('font-size', '30');
-      icon.textContent = node.id === 'storm' ? '⚡' : '🌊';
+      icon.setAttribute('font-size', '28');
+      icon.setAttribute('fill', '#70a4c2');
+      icon.textContent = node.id === 'storm' ? '⚡' : '≋';
       g.appendChild(icon);
     }
 
@@ -255,7 +257,7 @@ class MapBuilder {
       sub.setAttribute('text-anchor', 'middle');
       sub.setAttribute('fill', '#e056fd');
       sub.setAttribute('font-family', 'Inter, sans-serif');
-      sub.setAttribute('font-size', '13');
+      sub.setAttribute('font-size', '15');
       sub.setAttribute('font-weight', '800');
       sub.setAttribute('style', 'paint-order: stroke fill; stroke: #000; stroke-width: 3px;');
       sub.textContent = 'HAZARD BELT';
@@ -317,8 +319,9 @@ class MapBuilder {
       const icon = document.createElementNS('http://www.w3.org/2000/svg', 'text');
       icon.setAttribute('y', '-18');
       icon.setAttribute('text-anchor', 'middle');
-      icon.setAttribute('font-size', '24');
-      icon.textContent = '🛡️';
+      icon.setAttribute('font-size', '22');
+      icon.setAttribute('fill', '#9ab0c4');
+      icon.textContent = '⛨';
       g.appendChild(icon);
     }
 
@@ -327,7 +330,7 @@ class MapBuilder {
     text.setAttribute('text-anchor', 'middle');
     text.setAttribute('fill', '#ffffff');
     text.setAttribute('font-family', 'Inter, Cinzel, sans-serif');
-    text.setAttribute('font-size', '17');
+    text.setAttribute('font-size', '18');
     text.setAttribute('font-weight', '900');
     text.setAttribute('style', 'paint-order: stroke fill; stroke: #000; stroke-width: 4px; letter-spacing: 0.5px;');
     text.textContent = node.name.toUpperCase();
@@ -338,11 +341,11 @@ class MapBuilder {
     stats.setAttribute('text-anchor', 'middle');
     stats.setAttribute('fill', '#f5c518');
     stats.setAttribute('font-family', 'Inter, sans-serif');
-    stats.setAttribute('font-size', '16');
+    stats.setAttribute('font-size', '18');
     stats.setAttribute('font-weight', '900');
     stats.setAttribute('class', 'node-stat-text');
     stats.setAttribute('style', 'paint-order: stroke fill; stroke: #000; stroke-width: 3px;');
-    stats.textContent = `🛡️${node.defense}  💰${node.hoard}  👑${node.legend}`;
+    stats.textContent = `⛨${node.defense}  ⛃${node.hoard}  ♚${node.legend}`;
     g.appendChild(stats);
   }
 }

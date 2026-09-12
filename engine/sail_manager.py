@@ -28,6 +28,9 @@ class SailManager:
         if not ship or ship.faction != active.faction:
             return {"success": False, "error": f"Ship {ship_id} not found or not owned by {active.faction}."}
 
+        if ship.crew <= 0:
+            return {"success": False, "error": "Cannot move a ship with 0 crew out of home base; muster warriors first."}
+
         if target_node_id not in gs.nodes:
             return {"success": False, "error": f"Target node {target_node_id} does not exist."}
 

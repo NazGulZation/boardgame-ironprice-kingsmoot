@@ -69,7 +69,7 @@ class NavalChoice {
 // Patch UIController.showBattleModal to render choice mode first.
 if (typeof UIController !== 'undefined') {
   UIController.prototype._origShowBattleModal = UIController.prototype.showBattleModal;
-  UIController.prototype.showBattleModal = function (battleState, callbacks = {}, activeFaction = null, playerFavor = 0) {
+  UIController.prototype.showBattleModal = function (battleState, callbacks = {}, activeFaction = null, playerFavor = 0, gameState = null) {
     const choiceBox = document.getElementById('battle-choice-box');
     const choiceDesc = document.getElementById('battle-choice-desc');
     const btnNow = document.getElementById('btn-battle-resolve-now');
@@ -79,9 +79,8 @@ if (typeof UIController !== 'undefined') {
       if (this.elements.battleModalTitle) this.elements.battleModalTitle.textContent = `⏳ NAVAL CLASH PENDING: ${battleState.node_id.toUpperCase()}`;
       if (this.elements.battleRoundBadge) this.elements.battleRoundBadge.textContent = 'Awaiting orders';
       if (this.elements.battleAttackerName) this.elements.battleAttackerName.textContent = battleState.attacker_faction;
-      if (this.elements.battleAttackerShip) this.elements.battleAttackerShip.textContent = this.getShipDisplayName(battleState.attacker_ship_id);
       if (this.elements.battleDefenderName) this.elements.battleDefenderName.textContent = battleState.defender_faction;
-      if (this.elements.battleDefenderShip) this.elements.battleDefenderShip.textContent = this.getShipDisplayName(battleState.defender_ship_id);
+      if (typeof BattleFleets !== 'undefined') BattleFleets.renderBattleFleets(this, battleState, gameState);
       if (this.elements.battleAttackerDice) this.elements.battleAttackerDice.innerHTML = '<span class="dice-placeholder">Dice held — no roll yet</span>';
       if (this.elements.battleDefenderDice) this.elements.battleDefenderDice.innerHTML = '<span class="dice-placeholder">Dice held — no roll yet</span>';
       if (this.elements.battleAttackerTally) this.elements.battleAttackerTally.textContent = '⏳ Awaiting orders...';
@@ -100,7 +99,7 @@ if (typeof UIController !== 'undefined') {
       return;
     }
     if (choiceBox) choiceBox.style.display = 'none';
-    return this._origShowBattleModal(battleState, callbacks, activeFaction, playerFavor);
+    return this._origShowBattleModal(battleState, callbacks, activeFaction, playerFavor, gameState);
   };
 
   // Patch action gating: End Turn stays available while deferred/awaiting.
@@ -139,6 +138,9 @@ if (typeof KingsmootApp !== 'undefined') {
       onDismiss: async () => {
         this.currentBattle = null;
         if (this.ui.elements.modalBattle) this.ui.elements.modalBattle.style.display = 'none';
+        if (battle && this.mapRenderer) {
+          this.mapRenderer.animateBattleCasualties(battle);
+        }
         if (battle.state === 'finished' && (battle.sunk_ship_ids || []).length && this.mapRenderer) {
           await this.mapRenderer.playShipSinking(battle);
         }
@@ -148,7 +150,7 @@ if (typeof KingsmootApp !== 'undefined') {
     const activePlayer = this.gameState.players[this.gameState.active_player_idx];
     const playerFavor = activePlayer ? activePlayer.favor : 0;
     const activeFaction = this.gameState.active_faction;
-    this.ui.showBattleModal(battle, baseCallbacks, activeFaction, playerFavor);
+    this.ui.showBattleModal(battle, baseCallbacks, activeFaction, playerFavor, this.gameState);
   };
 
   // Patch refresh so deferred clashes never pop the dice modal mid-manoeuvre.
@@ -164,6 +166,9 @@ if (typeof KingsmootApp !== 'undefined') {
       if (this.lastSeenHazardStr !== hazardKey) {
         this.lastSeenHazardStr = hazardKey;
         this.ui.showHazardNotification(this.gameState.last_hazard_outcome);
+        if (this.gameState.last_hazard_outcome.crew_lost > 0 && this.mapRenderer) {
+          this.mapRenderer.animateCrewLoss(this.gameState.last_hazard_outcome.ship_id, this.gameState.last_hazard_outcome.crew_lost, 'storm');
+        }
       }
     }
     if (this.currentBattle || this.isClashAnimating) return;

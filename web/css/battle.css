@@ -1,16 +1,23 @@
 /* ==========================================================================
    IRON PRICE: Kingsmoot — Naval Battle Arena & Favor Stylesheet (Phase 2)
+   "We Do Not Sow" • Deck-to-Deck Fleet Clash & Drowned God Miracles
    ========================================================================== */
 
 /* ---------------- PHASE 2: NAVAL BATTLE ARENA & FAVOR ---------------- */
 
 .modal-battle-card {
-  background: linear-gradient(180deg, #0c1521 0%, #070c14 100%);
-  border: 2px solid #5a738e;
-  border-radius: 12px;
+  background: 
+    radial-gradient(ellipse at 50% -10%, rgba(41, 128, 185, 0.15) 0%, transparent 60%),
+    repeating-linear-gradient(135deg, rgba(0, 0, 0, 0.22) 0px, rgba(0, 0, 0, 0.22) 3px, transparent 3px, transparent 6px),
+    linear-gradient(180deg, #121e2d 0%, #0b131e 60%, #060a10 100%);
+  border: 2px solid var(--border-gold);
+  border-radius: 8px;
   width: 96%;
   max-width: 860px;
-  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.95), inset 0 0 20px rgba(243, 195, 72, 0.1);
+  box-shadow: 
+    0 24px 70px rgba(0, 0, 0, 0.95),
+    0 0 35px rgba(245, 207, 104, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
   padding: 24px;
   display: flex;
   flex-direction: column;
@@ -19,33 +26,51 @@
   animation: modalEnter 0.25s ease-out forwards;
 }
 
+/* Ornamental Forged Iron Rivets on Battle Arena */
+.modal-battle-card::before,
+.modal-battle-card::after {
+  content: '';
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #a8c1db, #34485e 65%, #131d28 100%);
+  border: 0.5px solid #0f1620;
+  box-shadow: 0 1px 3px #000;
+}
+.modal-battle-card::before { top: 8px; left: 8px; }
+.modal-battle-card::after { top: 8px; right: 8px; }
+
 .battle-modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid #233446;
+  border-bottom: 2px solid #293d52;
   padding-bottom: 12px;
 }
 
 .battle-modal-title {
-  font-family: 'Cinzel', serif;
-  font-size: 1.35rem;
+  font-family: var(--font-title);
+  font-size: 1.38rem;
   font-weight: 800;
-  color: #f3c348;
+  color: var(--gold-accent);
   margin: 0;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
+  text-shadow: 0 1px 4px #000;
 }
 
 .battle-round-badge {
-  background: rgba(243, 195, 72, 0.15);
-  border: 1px solid #f3c348;
-  color: #f3c348;
-  font-family: 'Cinzel', serif;
+  background: 
+    linear-gradient(180deg, rgba(245, 207, 104, 0.22) 0%, rgba(13, 20, 30, 0.9) 100%);
+  border: 1px solid var(--border-gold);
+  color: var(--gold-accent);
+  font-family: var(--font-title);
   font-size: 0.78rem;
   font-weight: 800;
-  padding: 4px 12px;
+  padding: 4px 14px;
   border-radius: 16px;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
 }
 
 .battle-combat-arena {
@@ -56,13 +81,16 @@
 }
 
 .battle-side {
-  background: rgba(10, 18, 30, 0.85);
-  border: 1px solid #233446;
-  border-radius: 8px;
+  background: 
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.01) 0px, rgba(255, 255, 255, 0.01) 2px, transparent 2px, transparent 10px),
+    linear-gradient(180deg, rgba(8, 14, 23, 0.92) 0%, rgba(12, 19, 30, 0.88) 100%);
+  border: 1.5px solid #283a4f;
+  border-radius: 6px;
   padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 8px;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.8);
 }
 
 .battle-side.attacker-side {
@@ -82,24 +110,104 @@
 }
 
 .battle-side-role {
+  font-family: var(--font-title);
   font-size: 0.68rem;
-  letter-spacing: 1.2px;
+  letter-spacing: 1.4px;
   font-weight: 800;
-  color: #8ca0b8;
+  color: #92a7bd;
 }
 
 .battle-side-name {
-  font-family: 'Cinzel', serif;
-  font-size: 1.15rem;
+  font-family: var(--font-title);
+  font-size: 1.2rem;
   font-weight: 800;
   color: #ffffff;
   margin: 0;
+  letter-spacing: 0.6px;
+  text-shadow: 0 1px 3px #000;
 }
 
 .battle-side-ship {
+  font-family: var(--font-title);
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--gold-accent);
+}
+
+/* Multi-ship fleet vertical rows: one row per hull, longship strakes */
+.battle-side-ships.fleet-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.fleet-ship-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(4, 7, 12, 0.6);
+  border: 1px solid #2d4157;
+  border-radius: 4px;
+  padding: 6px 10px;
   font-size: 0.82rem;
   font-weight: 700;
-  color: #f5c518;
+  color: var(--gold-accent);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.fleet-ship-row .fleet-ship-icon {
+  flex-shrink: 0;
+}
+
+.fleet-ship-row .fleet-ship-name {
+  flex: 1 1 auto;
+  color: #ffffff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-medieval);
+  letter-spacing: 0.4px;
+}
+
+.fleet-ship-row .fleet-flag {
+  font-family: var(--font-title);
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: var(--gold-accent);
+  border: 1px solid var(--border-gold);
+  border-radius: 10px;
+  padding: 1px 8px;
+  white-space: nowrap;
+  background: rgba(197, 151, 44, 0.15);
+}
+
+.fleet-ship-row .fleet-ship-crew {
+  color: #7df9a6;
+  white-space: nowrap;
+  font-family: var(--font-title);
+  font-weight: 800;
+}
+
+.fleet-ship-row .fleet-ship-sunk {
+  color: #f87171;
+  font-size: 0.72rem;
+  font-weight: 800;
+  white-space: nowrap;
+  font-family: var(--font-title);
+}
+
+.fleet-ship-row.sunk {
+  opacity: 0.65;
+  border-color: #7f1d1d;
+  background: rgba(40, 10, 10, 0.6);
+}
+
+.fleet-ship-row.empty {
+  justify-content: center;
+  color: #64748b;
+  font-style: italic;
+  font-family: var(--font-medieval);
 }
 
 .battle-dice-box {
@@ -113,20 +221,22 @@
 }
 
 .battle-side-tally {
-  font-family: 'Cinzel', serif;
-  font-size: 0.92rem;
+  font-family: var(--font-title);
+  font-size: 0.94rem;
   font-weight: 800;
   color: #e2e8f0;
   text-align: center;
-  border-top: 1px solid #1a2736;
+  border-top: 1px solid #233446;
   padding-top: 6px;
 }
 
 .battle-trait-box {
-  font-size: 0.74rem;
+  font-family: var(--font-medieval);
+  font-size: 0.76rem;
   color: #a0aec0;
   text-align: center;
   min-height: 18px;
+  font-style: italic;
 }
 
 .battle-vs-col {
@@ -138,59 +248,65 @@
 }
 
 .battle-vs-clash {
-  font-family: 'Cinzel', serif;
-  font-size: 1.6rem;
+  font-family: var(--font-title);
+  font-size: 1.65rem;
   font-weight: 900;
   color: #e74c3c;
-  text-shadow: 0 0 12px rgba(231, 76, 60, 0.7);
+  text-shadow: 0 0 14px rgba(231, 76, 60, 0.75);
 }
 
 .battle-vs-sub {
-  font-size: 0.62rem;
-  letter-spacing: 1.5px;
+  font-family: var(--font-title);
+  font-size: 0.64rem;
+  letter-spacing: 1.6px;
   font-weight: 800;
-  color: #64748b;
+  color: #76889d;
 }
 
 .battle-formula-bar {
   display: flex;
   justify-content: space-around;
   align-items: center;
-  background: rgba(0, 0, 0, 0.5);
-  border: 1px solid #1e293b;
-  border-radius: 8px;
+  background: rgba(4, 7, 12, 0.75);
+  border: 1px solid #25374a;
+  border-radius: 6px;
   padding: 8px 16px;
+  font-family: var(--font-medieval);
 }
 
 .battle-formula-col {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.85rem;
-  color: #94a3b8;
+  font-size: 0.86rem;
+  color: #a4b6c8;
 }
 
 .battle-formula-col strong {
-  font-size: 1.05rem;
+  font-size: 1.08rem;
   color: #f87171;
   font-weight: 800;
+  font-family: var(--font-title);
 }
 
 .battle-formula-divider {
-  color: #334155;
+  color: #3b4e63;
   font-weight: 700;
 }
 
+/* Special Powers & Miracles Section */
 .battle-powers-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
   gap: 10px;
-  background: rgba(13, 22, 32, 0.85);
-  border: 1px solid #233446;
-  border-radius: 8px;
+  background: 
+    linear-gradient(180deg, rgba(16, 26, 38, 0.9) 0%, rgba(9, 15, 23, 0.9) 100%);
+  border: 1px solid #2d4157;
+  border-radius: 6px;
   padding: 10px 14px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .battle-power-group, .battle-miracles-group {
@@ -201,62 +317,68 @@
 }
 
 .battle-power-title {
-  font-family: 'Cinzel', serif;
+  font-family: var(--font-title);
   font-size: 0.76rem;
   font-weight: 800;
-  color: #94a3b8;
-  letter-spacing: 0.5px;
+  color: #9ab0c5;
+  letter-spacing: 0.6px;
 }
 
+/* Euron's Blood Price Re-roll */
 .btn-blood {
-  background: linear-gradient(180deg, #8e44ad 0%, #5b2c6f 100%);
+  background: linear-gradient(180deg, #7b299e 0%, #4c1763 100%);
   border: 1px solid #af7ac5;
   color: #ffffff;
+  font-family: var(--font-title);
   font-size: 0.78rem;
   font-weight: 800;
-  padding: 5px 10px;
+  padding: 5px 12px;
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
 }
-
 .btn-blood:hover {
-  background: linear-gradient(180deg, #9b59b6 0%, #6c3483 100%);
-  box-shadow: 0 0 10px rgba(155, 89, 182, 0.6);
+  background: linear-gradient(180deg, #9b42c6 0%, #631e80 100%);
+  box-shadow: 0 0 12px rgba(155, 89, 182, 0.7);
 }
 
+/* Drowned Favor Re-roll */
 .btn-miracle {
-  background: linear-gradient(180deg, #16a085 0%, #0e6655 100%);
+  background: linear-gradient(180deg, #169b81 0%, #0d5f4f 100%);
   border: 1px solid #1abc9c;
   color: #ffffff;
+  font-family: var(--font-title);
   font-size: 0.78rem;
   font-weight: 800;
-  padding: 5px 10px;
+  padding: 5px 12px;
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
 }
-
 .btn-miracle:hover {
-  background: linear-gradient(180deg, #1abc9c 0%, #117a65 100%);
-  box-shadow: 0 0 10px rgba(26, 188, 156, 0.6);
+  background: linear-gradient(180deg, #1fc4a3 0%, #117864 100%);
+  box-shadow: 0 0 12px rgba(26, 188, 156, 0.7);
 }
 
+/* Drowned God Miracle: Divine Tempest (6 Favor) */
 .btn-miracle-gold {
-  background: linear-gradient(180deg, #d4ac0d 0%, #7d6608 100%);
+  background: linear-gradient(180deg, #d4a713 0%, #7d6308 100%);
   border: 1px solid #f1c40f;
   color: #ffffff;
+  font-family: var(--font-title);
   font-size: 0.78rem;
   font-weight: 800;
-  padding: 5px 10px;
+  padding: 5px 12px;
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
 }
-
 .btn-miracle-gold:hover {
-  background: linear-gradient(180deg, #f1c40f 0%, #9a7d0a 100%);
-  box-shadow: 0 0 10px rgba(241, 196, 15, 0.6);
+  background: linear-gradient(180deg, #f5c518 0%, #9c7b0a 100%);
+  box-shadow: 0 0 14px rgba(241, 196, 15, 0.7);
 }
 
 .btn-miracle-action {
@@ -264,55 +386,61 @@
   border: 1px solid #1abc9c;
   color: #ffffff;
 }
-
 .btn-miracle-action:hover:not(:disabled) {
   border-color: #48c9b0;
-  box-shadow: 0 0 12px rgba(26, 188, 156, 0.5);
+  box-shadow: 0 0 14px rgba(26, 188, 156, 0.55);
 }
 
 .battle-passive-notice {
-  font-size: 0.74rem;
-  color: #f5c518;
+  font-family: var(--font-medieval);
+  font-size: 0.76rem;
+  color: var(--gold-accent);
   font-weight: 700;
 }
 
+/* Battle Outcome Banner */
 .battle-outcome-banner {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 6px;
   padding: 12px 16px;
-  border-radius: 8px;
-  border: 1px solid;
+  border-radius: 6px;
+  border: 1.5px solid;
   animation: resultPop 0.35s ease-out forwards;
 }
 
 .battle-outcome-banner.victory {
-  background: rgba(46, 204, 113, 0.15);
+  background: rgba(46, 204, 113, 0.18);
   border-color: #2ecc71;
+  box-shadow: 0 0 20px rgba(46, 204, 113, 0.35);
 }
 
 .battle-outcome-banner.defeat {
-  background: rgba(231, 76, 60, 0.15);
+  background: rgba(231, 76, 60, 0.18);
   border-color: #e74c3c;
+  box-shadow: 0 0 20px rgba(231, 76, 60, 0.35);
 }
 
 .battle-outcome-banner.stalemate {
-  background: rgba(241, 196, 15, 0.15);
+  background: rgba(241, 196, 15, 0.18);
   border-color: #f1c40f;
+  box-shadow: 0 0 20px rgba(241, 196, 15, 0.35);
 }
 
 .battle-outcome-title {
-  font-family: 'Cinzel', serif;
-  font-size: 1.15rem;
+  font-family: var(--font-title);
+  font-size: 1.25rem;
   font-weight: 900;
   color: #ffffff;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.8px;
+  text-shadow: 0 2px 4px #000;
 }
 
 .battle-outcome-desc {
-  font-size: 0.84rem;
-  color: #cbd5e1;
+  font-family: var(--font-medieval);
+  font-size: 0.88rem;
+  color: #d6e2ee;
   text-align: center;
 }
 
@@ -328,7 +456,7 @@
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-  border-top: 1px solid #233446;
+  border-top: 1px solid #293d52;
   padding-top: 12px;
 }
 
@@ -337,22 +465,25 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  background: rgba(243, 195, 72, 0.08);
-  border: 1px solid #f3c348;
-  border-radius: 8px;
+  background: 
+    linear-gradient(180deg, rgba(245, 207, 104, 0.12) 0%, rgba(13, 20, 30, 0.9) 100%);
+  border: 1.5px solid var(--border-gold);
+  border-radius: 6px;
   padding: 12px 16px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
 }
 
 .battle-choice-title {
-  font-family: 'Cinzel', serif;
-  font-size: 0.95rem;
+  font-family: var(--font-title);
+  font-size: 0.98rem;
   font-weight: 800;
-  color: #f3c348;
+  color: var(--gold-accent);
 }
 
 .battle-choice-desc {
-  font-size: 0.82rem;
-  color: #cbd5e1;
+  font-family: var(--font-medieval);
+  font-size: 0.85rem;
+  color: #d2deec;
 }
 
 .battle-choice-row {
@@ -368,14 +499,15 @@
   left: 50%;
   transform: translateX(-50%);
   z-index: 30;
-  background: rgba(7, 12, 20, 0.92);
-  border: 1px solid #f3c348;
+  background: rgba(7, 12, 20, 0.95);
+  border: 1.5px solid var(--border-gold);
   border-radius: 20px;
-  color: #f3c348;
-  font-size: 0.8rem;
+  color: var(--gold-accent);
+  font-family: var(--font-title);
+  font-size: 0.82rem;
   font-weight: 700;
-  padding: 6px 16px;
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.7);
+  padding: 6px 18px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8), 0 0 10px rgba(245, 207, 104, 0.25);
   pointer-events: none;
   white-space: nowrap;
 }

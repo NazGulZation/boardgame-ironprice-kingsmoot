@@ -25,7 +25,14 @@ IGNORED_EXTENSIONS = {
     ".ico",
     ".woff",
     ".woff2",
-    ".ttf"
+    ".ttf",
+    ".wav",
+    ".mp3",
+    ".ogg",
+    ".m4a",
+    ".flac",
+    ".aac",
+    ".aiff"
 }
 
 

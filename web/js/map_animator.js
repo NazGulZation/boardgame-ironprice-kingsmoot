@@ -211,8 +211,9 @@ class MapAnimator {
       axeText.setAttribute('class', 'raid-axe-icon');
       axeText.setAttribute('text-anchor', 'middle');
       axeText.setAttribute('dominant-baseline', 'central');
-      axeText.setAttribute('font-size', '30');
-      axeText.textContent = '🪓';
+      axeText.setAttribute('font-size', '28');
+      axeText.setAttribute('fill', '#dce6f2');
+      axeText.textContent = '⚔';
       projGroup.appendChild(axeText);
       this.overlaysGroup.appendChild(projGroup);
 
@@ -249,6 +250,9 @@ class MapAnimator {
   _handleRaidImpact(keepPos, shipPos, targetLandId, outcome, shipId, onComplete) {
     const keepEl = document.getElementById(`node-g-${targetLandId}`);
     const isSuccess = Boolean(outcome && outcome.success);
+    if (outcome && outcome.crew_lost > 0) {
+      this.animateCrewLoss(shipId || outcome.ship_id, outcome.crew_lost, null, shipPos);
+    }
 
     // Impact shockwave circle expanding from keep center
     const shockwave = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
@@ -278,8 +282,9 @@ class MapAnimator {
       burstText.setAttribute('y', keepPos.y);
       burstText.setAttribute('text-anchor', 'middle');
       burstText.setAttribute('dominant-baseline', 'central');
-      burstText.setAttribute('font-size', '32');
-      burstText.textContent = '💥';
+      burstText.setAttribute('font-size', '28');
+      burstText.setAttribute('fill', '#f5cf68');
+      burstText.textContent = '⚔';
       burstText.style.transition = 'opacity 0.25s ease-out';
       this.overlaysGroup.appendChild(burstText);
 
@@ -287,7 +292,7 @@ class MapAnimator {
       const lootContainer = document.createElementNS('http://www.w3.org/2000/svg', 'g');
       this.overlaysGroup.appendChild(lootContainer);
 
-      const lootIcons = ['💰', '🪙', '💰', '✨'];
+      const lootIcons = ['⛃', '✦', '⛃', '✦'];
       const coinElements = lootIcons.map((icon, i) => {
         const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         const spreadX = (Math.random() - 0.5) * 40;
@@ -297,9 +302,12 @@ class MapAnimator {
         g.setAttribute('transform', `translate(${startX}, ${startY})`);
         
         const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        txt.setAttribute('class', 'raid-loot-icon');
         txt.setAttribute('text-anchor', 'middle');
         txt.setAttribute('dominant-baseline', 'central');
-        txt.setAttribute('font-size', '24');
+        txt.setAttribute('font-size', '26');
+        txt.setAttribute('fill', icon === '✦' ? '#fff4b8' : '#f5cf68');
+        txt.style.filter = 'drop-shadow(0 0 6px rgba(245, 207, 104, 0.85)) drop-shadow(0 2px 4px #000)';
         txt.textContent = icon;
         g.appendChild(txt);
         lootContainer.appendChild(g);
@@ -370,8 +378,9 @@ class MapAnimator {
       const shieldText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
       shieldText.setAttribute('text-anchor', 'middle');
       shieldText.setAttribute('dominant-baseline', 'central');
-      shieldText.setAttribute('font-size', '32');
-      shieldText.textContent = '🛡️';
+      shieldText.setAttribute('font-size', '30');
+      shieldText.setAttribute('fill', '#9ab0c4');
+      shieldText.textContent = '⛨';
       defGroup.appendChild(shieldText);
 
       // Deflected axe bouncing backward
@@ -380,7 +389,8 @@ class MapAnimator {
       bounceAxe.setAttribute('text-anchor', 'middle');
       bounceAxe.setAttribute('dominant-baseline', 'central');
       bounceAxe.setAttribute('font-size', '24');
-      bounceAxe.textContent = '🪓';
+      bounceAxe.setAttribute('fill', '#dce6f2');
+      bounceAxe.textContent = '⚔';
       bounceAxe.style.transition = 'transform 0.45s ease-out, opacity 0.45s ease-out';
       defGroup.appendChild(bounceAxe);
 
@@ -463,7 +473,8 @@ class MapAnimator {
       swordText.setAttribute('text-anchor', 'middle');
       swordText.setAttribute('y', '8');
       swordText.setAttribute('font-size', '44');
-      swordText.textContent = '⚔️';
+      swordText.setAttribute('fill', '#f5cf68');
+      swordText.textContent = '⚔';
       badgeG.appendChild(swordText);
 
       badgePos.appendChild(badgeG);
@@ -496,7 +507,8 @@ class MapAnimator {
         splash.setAttribute('text-anchor', 'middle');
         splash.setAttribute('dominant-baseline', 'central');
         splash.setAttribute('font-size', '44');
-        splash.textContent = '🌀';
+        splash.setAttribute('fill', '#5a97b8');
+        splash.textContent = '≋';
         this.overlaysGroup.appendChild(splash);
 
         const duration = 700;
@@ -529,6 +541,58 @@ class MapAnimator {
       } else {
         resolve();
       }
+    });
+  }
+
+  animateCrewLoss(shipId, crewLost, nodeId = null, customPos = null) {
+    if (!shipId || !crewLost || crewLost <= 0) return Promise.resolve();
+    return new Promise((resolve) => {
+      let shipPos = customPos;
+      if (!shipPos) {
+        const rendered = this.getRenderedShipPosition(shipId);
+        const actualNode = this.findShipNode(shipId);
+        if (nodeId && this.isShipAtNode(nodeId, shipId)) {
+          shipPos = rendered || this.getShipCoordinates(nodeId, shipId);
+        } else if (nodeId) {
+          shipPos = this.getShipCoordinates(nodeId, shipId);
+        } else {
+          shipPos = rendered || (actualNode ? this.getShipCoordinates(actualNode, shipId) : null);
+        }
+      }
+      if (!shipPos) {
+        resolve();
+        return;
+      }
+
+      const outerG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      outerG.setAttribute('transform', `translate(${shipPos.x.toFixed(1)}, ${(shipPos.y - 28).toFixed(1)})`);
+
+      const innerG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      innerG.setAttribute('class', 'floating-crew-loss');
+
+      const pill = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      pill.setAttribute('class', 'floating-crew-loss-pill');
+      pill.setAttribute('x', '-28');
+      pill.setAttribute('y', '-14');
+      pill.setAttribute('width', '56');
+      pill.setAttribute('height', '28');
+      pill.setAttribute('rx', '14');
+      innerG.appendChild(pill);
+
+      const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      txt.setAttribute('class', 'floating-crew-loss-text');
+      txt.setAttribute('x', '0');
+      txt.setAttribute('y', '0');
+      txt.textContent = `-${crewLost} ⚔`;
+      innerG.appendChild(txt);
+
+      outerG.appendChild(innerG);
+      this.overlaysGroup.appendChild(outerG);
+
+      setTimeout(() => {
+        if (outerG.parentNode) outerG.parentNode.removeChild(outerG);
+        resolve();
+      }, 1300);
     });
   }
 }

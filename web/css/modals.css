@@ -1,298 +1,343 @@
 /* ==========================================================================
    IRON PRICE: Kingsmoot — Modals Stylesheet (Rules, Sacking, Victory)
+   "We Do Not Sow" • Ironbound Sea-Chests & Kingsmoot Arenas
    ========================================================================== */
 
-/* ---------------- MODALS (IRON COFFER POPUPS) ---------------- */
+/* ---------------- MODALS (IRONBOUND SEA-CHEST POPUPS) ---------------- */
 
 .modal-backdrop {
- position: fixed;
- inset: 0;
- background: rgba(4, 7, 11, 0.85);
- backdrop-filter: blur(8px);
- display: flex;
- align-items: center;
- justify-content: center;
- z-index: 100;
+  position: fixed;
+  inset: 0;
+  background: rgba(3, 6, 10, 0.88);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
 }
 
 .modal-card {
- background: linear-gradient(180deg, #172332 0%, #0b111a 100%);
- border: 2px solid var(--border-gold);
- border-radius: 6px;
- width: 90%;
- max-width: 540px;
- box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9), 0 0 30px rgba(197, 151, 44, 0.25);
- padding: 24px;
- display: flex;
- flex-direction: column;
- gap: 16px;
- position: relative;
+  background: 
+    radial-gradient(ellipse at 50% -10%, rgba(245, 207, 104, 0.12) 0%, transparent 60%),
+    repeating-linear-gradient(135deg, rgba(0, 0, 0, 0.22) 0px, rgba(0, 0, 0, 0.22) 3px, transparent 3px, transparent 6px),
+    linear-gradient(180deg, #182638 0%, #0e1724 60%, #070c14 100%);
+  border: 2px solid var(--border-gold);
+  border-radius: 6px;
+  width: 90%;
+  max-width: 540px;
+  box-shadow: 
+    0 24px 70px rgba(0, 0, 0, 0.95),
+    0 0 35px rgba(245, 207, 104, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: relative;
 }
 
+/* Ornamental Forged Iron Corner Straps on Modals */
+.modal-card::before,
+.modal-card::after {
+  content: '';
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #a8c1db, #34485e 65%, #131d28 100%);
+  border: 0.5px solid #0f1620;
+  box-shadow: 0 1px 3px #000;
+}
+.modal-card::before { top: 8px; left: 8px; }
+.modal-card::after { top: 8px; right: 8px; }
+
 .modal-large {
- max-width: 700px;
+  max-width: 720px;
 }
 
 .modal-header {
- display: flex;
- justify-content: space-between;
- align-items: center;
- border-bottom: 2px solid #28394c;
- padding-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid #2d4157;
+  padding-bottom: 12px;
 }
 
 .modal-header h2 {
- font-family: 'Cinzel', serif;
- font-size: 1.25rem;
- font-weight: 800;
- color: var(--gold-accent);
- letter-spacing: 1px;
+  font-family: var(--font-title);
+  font-size: 1.28rem;
+  font-weight: 800;
+  color: var(--gold-accent);
+  letter-spacing: 1.2px;
+  text-shadow: 0 1px 4px #000, 0 0 10px rgba(245, 207, 104, 0.3);
 }
 
 .modal-close {
- background: transparent;
- border: none;
- font-size: 1.6rem;
- color: var(--text-muted);
- cursor: pointer;
- transition: color 0.2s;
+  background: transparent;
+  border: none;
+  font-size: 1.6rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.2s;
 }
 .modal-close:hover {
- color: #fff;
+  color: #fff;
+  text-shadow: 0 0 8px #fff;
 }
 
 .form-group {
- display: flex;
- flex-direction: column;
- gap: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .form-label {
- font-family: 'Cinzel', serif;
- font-size: 0.85rem;
- font-weight: 800;
- color: #a2b5c7;
- letter-spacing: 0.5px;
+  font-family: var(--font-title);
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #adc1d4;
+  letter-spacing: 0.6px;
 }
 
 .radio-group {
- display: flex;
- flex-direction: column;
- gap: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .radio-label {
- display: flex;
- align-items: center;
- gap: 10px;
- background: linear-gradient(180deg, #121c28 0%, #0a111a 100%);
- padding: 12px 14px;
- border-radius: 4px;
- cursor: pointer;
- border: 1px solid #243446;
- font-size: 0.85rem;
- transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: 
+    linear-gradient(180deg, #131e2c 0%, #0a111a 100%);
+  padding: 12px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  border: 1px solid #283a4f;
+  font-size: 0.85rem;
+  font-family: var(--font-medieval);
+  transition: all 0.2s;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 .radio-label:hover {
- border-color: var(--border-gold);
- background: #192534;
+  border-color: var(--border-gold);
+  background: linear-gradient(180deg, #1a2738 0%, #0e1724 100%);
+  box-shadow: 0 0 10px rgba(197, 151, 44, 0.25);
 }
 
 .modal-footer {
- display: flex;
- justify-content: flex-end;
- gap: 10px;
- border-top: 1px solid #223244;
- padding-top: 14px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  border-top: 1px solid #26384c;
+  padding-top: 14px;
 }
 
+/* Weathered Ironborn Sea-Vellum Rules */
 .rules-content {
- max-height: 420px;
- overflow-y: auto;
- font-size: 0.86rem;
- line-height: 1.55;
- display: flex;
- flex-direction: column;
- gap: 12px;
- color: #ccd7e4;
+  max-height: 420px;
+  overflow-y: auto;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  color: #d2deec;
+  font-family: var(--font-medieval);
+  padding-right: 6px;
 }
 
 .rules-content h3 {
- font-family: 'Cinzel', serif;
- color: var(--gold-accent);
- font-size: 0.98rem;
- border-bottom: 1px dashed #2d3f54;
- padding-bottom: 4px;
+  font-family: var(--font-title);
+  color: var(--gold-accent);
+  font-size: 1rem;
+  border-bottom: 1px dashed #34485f;
+  padding-bottom: 4px;
+  letter-spacing: 0.8px;
 }
 
 .rules-content ul {
- padding-left: 20px;
+  padding-left: 22px;
 }
 
 /* ---------------- VICTORY MODAL (KINGSMOOT CORONATION) ---------------- */
 
 .modal-victory-card {
- text-align: center;
- align-items: center;
+  text-align: center;
+  align-items: center;
 }
 
 .victory-crown {
- font-size: 4rem;
- filter: drop-shadow(0 0 16px rgba(243, 195, 72, 0.6));
+  font-size: 4.2rem;
+  filter: drop-shadow(0 0 20px rgba(245, 207, 104, 0.7));
 }
 
 .victory-title {
- font-family: 'Cinzel', serif;
- font-size: 1.6rem;
- font-weight: 900;
- color: var(--gold-accent);
- letter-spacing: 2px;
+  font-family: var(--font-title);
+  font-size: 1.68rem;
+  font-weight: 900;
+  color: var(--gold-accent);
+  letter-spacing: 2.2px;
+  text-shadow: 0 2px 6px #000, 0 0 16px var(--gold-glow);
 }
 
 .victory-subtitle {
- font-style: italic;
- font-size: 0.88rem;
- color: var(--text-muted);
+  font-family: var(--font-medieval);
+  font-style: italic;
+  font-size: 0.92rem;
+  color: var(--text-muted);
 }
 
 .winner-box {
- background: linear-gradient(180deg, rgba(243, 195, 72, 0.2) 0%, rgba(16, 26, 38, 0.9) 100%);
- border: 2px solid var(--border-gold);
- border-radius: 6px;
- padding: 16px 32px;
- margin: 12px 0;
- box-shadow: 0 0 25px rgba(243, 195, 72, 0.35);
+  background: 
+    linear-gradient(180deg, rgba(245, 207, 104, 0.22) 0%, rgba(18, 28, 42, 0.95) 100%);
+  border: 2px solid var(--border-gold);
+  border-radius: 6px;
+  padding: 18px 36px;
+  margin: 12px 0;
+  box-shadow: 0 0 30px rgba(245, 207, 104, 0.4);
 }
 
 .winner-name {
- font-family: 'Cinzel', serif;
- font-size: 1.5rem;
- font-weight: 900;
- color: #fff;
+  font-family: var(--font-title);
+  font-size: 1.55rem;
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 0 2px 6px #000;
 }
 
 .winner-title {
- font-family: 'Cinzel', serif;
- font-size: 0.9rem;
- color: var(--gold-accent);
- font-weight: 800;
- letter-spacing: 1px;
+  font-family: var(--font-title);
+  font-size: 0.92rem;
+  color: var(--gold-accent);
+  font-weight: 800;
+  letter-spacing: 1.2px;
 }
 
 .final-scores-table {
- width: 100%;
+  width: 100%;
 }
 
 .score-row {
- display: flex;
- justify-content: space-between;
- padding: 8px 14px;
- background: #0d1520;
- border-radius: 4px;
- margin-bottom: 6px;
- font-size: 0.85rem;
- font-family: 'Cinzel', serif;
- font-weight: 700;
- border: 1px solid #1c2a38;
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 14px;
+  background: #0d1520;
+  border-radius: 4px;
+  margin-bottom: 6px;
+  font-size: 0.88rem;
+  font-family: var(--font-title);
+  font-weight: 700;
+  border: 1px solid #1e2c3d;
 }
 
 .score-row.winner-row {
- border: 1.5px solid var(--gold-accent);
- background: rgba(197, 151, 44, 0.25);
+  border: 1.5px solid var(--gold-accent);
+  background: rgba(197, 151, 44, 0.28);
+  box-shadow: 0 0 10px rgba(245, 207, 104, 0.3);
 }
 
-/* ---------------- TOAST NOTIFICATIONS ---------------- */
+/* ---------------- TOAST NOTIFICATIONS (FORGED IRON HERALD) ---------------- */
 
 .toast-container {
- position: fixed;
- top: 85px;
- left: 50%;
- transform: translateX(-50%);
- z-index: 200;
- display: flex;
- flex-direction: column;
- gap: 8px;
- pointer-events: none;
+  position: fixed;
+  top: 85px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
 }
 
 .toast-msg {
- background: linear-gradient(180deg, #182536 0%, #0d1622 100%);
- border: 1px solid var(--border-gold);
- border-left: 5px solid var(--gold-accent);
- color: #fff;
- padding: 10px 22px;
- border-radius: 4px;
- font-family: 'Cinzel', serif;
- font-size: 0.85rem;
- font-weight: 800;
- box-shadow: 0 8px 24px rgba(0, 0, 0, 0.8);
- backdrop-filter: blur(8px);
- animation: fadeIn 0.25s ease-out forwards;
- pointer-events: auto;
- display: flex;
- align-items: center;
- gap: 10px;
+  background: 
+    linear-gradient(180deg, #1b293a 0%, #0d1723 100%);
+  border: 1px solid var(--border-gold);
+  border-left: 5px solid var(--gold-accent);
+  color: #fff;
+  padding: 10px 22px;
+  border-radius: 4px;
+  font-family: var(--font-title);
+  font-size: 0.86rem;
+  font-weight: 800;
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  animation: fadeIn 0.25s ease-out forwards;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .toast-msg.error {
- border-left-color: #e74c3c;
- border-color: #c0392b;
- background: linear-gradient(180deg, #3d1414 0%, #1c0808 100%);
+  border-left-color: #e74c3c;
+  border-color: #c0392b;
+  background: linear-gradient(180deg, #441717 0%, #1e0909 100%);
 }
 
 /* ---------------- REAVE COMBAT MODAL (PAYING THE IRON PRICE) ---------------- */
 
 .modal-reave-card {
- max-width: 800px;
- width: 96%;
- background: radial-gradient(circle at 50% 10%, #19273a 0%, #0a111a 100%);
- border: 2px solid var(--border-gold);
- border-radius: 8px;
- box-shadow: 0 20px 60px rgba(0, 0, 0, 0.95), 0 0 35px rgba(243, 195, 72, 0.25);
- padding: 24px 30px;
- display: flex;
- flex-direction: column;
- gap: 18px;
- position: relative;
+  max-width: 800px;
+  width: 96%;
+  background: 
+    radial-gradient(circle at 50% 10%, rgba(220, 60, 40, 0.12) 0%, transparent 60%),
+    repeating-linear-gradient(135deg, rgba(0, 0, 0, 0.25) 0px, rgba(0, 0, 0, 0.25) 3px, transparent 3px, transparent 6px),
+    radial-gradient(circle at 50% 10%, #1c2b3e 0%, #0b121c 100%);
+  border: 2px solid var(--border-gold);
+  border-radius: 8px;
+  box-shadow: 
+    0 24px 70px rgba(0, 0, 0, 0.95),
+    0 0 40px rgba(245, 207, 104, 0.3);
+  padding: 24px 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  position: relative;
 }
 
 .reave-modal-header {
- display: flex;
- justify-content: space-between;
- align-items: center;
- border-bottom: 2px solid #283b50;
- padding-bottom: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid #2d4158;
+  padding-bottom: 14px;
 }
 
 .reave-header-left {
- display: flex;
- flex-direction: column;
- gap: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .reave-modal-title {
- font-family: 'Cinzel', serif;
- font-size: 1.55rem;
- font-weight: 900;
- color: var(--gold-accent);
- display: flex;
- align-items: center;
- gap: 8px;
- letter-spacing: 1px;
+  font-family: var(--font-title);
+  font-size: 1.58rem;
+  font-weight: 900;
+  color: var(--gold-accent);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  letter-spacing: 1.2px;
+  text-shadow: 0 2px 4px #000;
 }
 
 .reave-defense-badge {
- display: inline-flex;
- align-items: center;
- gap: 6px;
- background: #0b131d;
- border: 1px solid #233446;
- padding: 6px 14px;
- border-radius: 14px;
- font-size: 0.85rem;
- color: #9ab0c4;
- font-weight: 700;
- width: fit-content;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #0d1521;
+  border: 1px solid #273a4e;
+  padding: 6px 14px;
+  border-radius: 14px;
+  font-family: var(--font-medieval);
+  font-size: 0.85rem;
+  color: #a4b9cd;
+  font-weight: 700;
+  width: fit-content;
 }
 
 .reave-combat-arena {
@@ -300,11 +345,14 @@
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
   gap: 22px;
-  background: rgba(4, 7, 12, 0.75);
-  border: 1.5px solid #23364b;
+  background: 
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.01) 0px, rgba(255, 255, 255, 0.01) 2px, transparent 2px, transparent 12px),
+    radial-gradient(ellipse at 50% 50%, rgba(220, 50, 30, 0.08) 0%, transparent 70%),
+    linear-gradient(180deg, rgba(5, 9, 14, 0.92) 0%, rgba(9, 15, 24, 0.95) 100%);
+  border: 1.5px solid #273c52;
   border-radius: 8px;
   padding: 22px;
-  box-shadow: inset 0 2px 10px rgba(0,0,0,0.85);
+  box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.85);
 }
 
 .reave-side {
@@ -323,23 +371,24 @@
 }
 
 .reave-side-role {
-  font-family: 'Cinzel', serif;
+  font-family: var(--font-title);
   font-size: 0.85rem;
   font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 1.2px;
-  color: #8da5bc;
+  letter-spacing: 1.4px;
+  color: #9ab0c5;
 }
 
 .reave-side-name {
-  font-family: 'Cinzel', serif;
-  font-size: 1.28rem;
+  font-family: var(--font-title);
+  font-size: 1.3rem;
   font-weight: 900;
   color: #fff;
   display: flex;
   align-items: center;
   gap: 6px;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.6px;
+  text-shadow: 0 1px 3px #000;
 }
 
 .reave-dice-box {
@@ -361,7 +410,7 @@
   align-items: center;
   justify-content: center;
   font-weight: 900;
-  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.8);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.85);
   border: 3px solid rgba(255, 255, 255, 0.4);
   position: relative;
   transition: all 0.2s;
@@ -372,7 +421,7 @@
 }
 
 .reave-dice-face .dice-icon {
-  font-size: 2.85rem;
+  font-size: 2.9rem;
   line-height: 1;
 }
 
@@ -386,15 +435,15 @@
 }
 
 .reave-side-tally {
-  font-family: 'Cinzel', serif;
-  font-size: 1.05rem;
+  font-family: var(--font-title);
+  font-size: 1.08rem;
   font-weight: 800;
   padding: 8px 18px;
   border-radius: 4px;
-  background: #111b27;
-  border: 1.5px solid #2b4057;
+  background: #131e2c;
+  border: 1.5px solid #32475f;
   color: var(--gold-accent);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
 }
 
 .reave-vs-col {
@@ -405,24 +454,25 @@
 }
 
 .reave-vs-clash {
-  font-family: 'Cinzel', serif;
+  font-family: var(--font-title);
   font-weight: 900;
-  font-size: 1.5rem;
+  font-size: 1.55rem;
   color: var(--gold-accent);
-  background: radial-gradient(circle, #24374e 0%, #0d1622 100%);
+  background: 
+    radial-gradient(circle, #2a3d54 0%, #0f1824 100%);
   border: 2px solid var(--border-gold);
-  width: 60px;
-  height: 60px;
+  width: 62px;
+  height: 62px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 0 18px rgba(243, 195, 72, 0.4);
+  box-shadow: 0 0 20px rgba(245, 207, 104, 0.45);
 }
 
 .reave-formula-bar {
-  background: rgba(11, 18, 28, 0.9);
-  border: 1.5px solid #283e54;
+  background: rgba(12, 19, 29, 0.92);
+  border: 1.5px solid #2e4359;
   border-radius: 6px;
   padding: 14px 22px;
   display: flex;
@@ -430,114 +480,115 @@
   justify-content: space-around;
   font-size: 1.05rem;
   font-weight: 700;
-  color: #a7bccf;
+  color: #b2c5d8;
+  font-family: var(--font-medieval);
 }
 
 .reave-formula-stat {
- display: flex;
- align-items: center;
- gap: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 .reave-formula-stat strong {
- color: #fff;
- font-family: 'Cinzel', serif;
+  color: #fff;
+  font-family: var(--font-title);
 }
 
 .reave-formula-stat.highlight strong {
- color: var(--gold-accent);
- font-size: 1.15rem;
+  color: var(--gold-accent);
+  font-size: 1.18rem;
 }
 
 .reave-outcome-card {
- border-radius: 6px;
- padding: 16px 20px;
- text-align: center;
- display: flex;
- flex-direction: column;
- gap: 10px;
- box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  border-radius: 6px;
+  padding: 16px 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7);
 }
 
 .reave-outcome-card.victory {
- background: linear-gradient(135deg, rgba(46, 204, 113, 0.18) 0%, rgba(20, 90, 50, 0.3) 100%);
- border: 2px solid #2ecc71;
+  background: linear-gradient(135deg, rgba(46, 204, 113, 0.2) 0%, rgba(20, 90, 50, 0.35) 100%);
+  border: 2px solid #2ecc71;
 }
 
 .reave-outcome-card.repelled {
- background: linear-gradient(135deg, rgba(231, 76, 60, 0.18) 0%, rgba(100, 30, 22, 0.3) 100%);
- border: 2px solid #e74c3c;
+  background: linear-gradient(135deg, rgba(231, 76, 60, 0.2) 0%, rgba(100, 30, 22, 0.35) 100%);
+  border: 2px solid #e74c3c;
 }
 
 .reave-outcome-title {
- font-family: 'Cinzel', serif;
- font-size: 1.35rem;
- font-weight: 900;
- letter-spacing: 1px;
+  font-family: var(--font-title);
+  font-size: 1.38rem;
+  font-weight: 900;
+  letter-spacing: 1.2px;
 }
 
 .reave-outcome-card.victory .reave-outcome-title {
- color: #2ecc71;
- text-shadow: 0 0 14px rgba(46, 204, 113, 0.6);
+  color: #2ecc71;
+  text-shadow: 0 0 14px rgba(46, 204, 113, 0.6);
 }
 
 .reave-outcome-card.repelled .reave-outcome-title {
- color: #e74c3c;
- text-shadow: 0 0 14px rgba(231, 76, 60, 0.6);
+  color: #e74c3c;
+  text-shadow: 0 0 14px rgba(231, 76, 60, 0.6);
 }
 
 .reave-outcome-desc {
- font-size: 0.88rem;
- color: #e1ebf5;
- line-height: 1.4;
+  font-family: var(--font-medieval);
+  font-size: 0.92rem;
+  color: #e2ecf5;
+  line-height: 1.4;
 }
 
 .reave-spoils-row {
- display: flex;
- justify-content: center;
- align-items: center;
- flex-wrap: wrap;
- gap: 12px;
- margin-top: 6px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 6px;
 }
 
 .spoil-pill {
- display: inline-flex;
- align-items: center;
- gap: 6px;
- background: rgba(0, 0, 0, 0.5);
- border: 1px solid rgba(255, 255, 255, 0.2);
- padding: 6px 16px;
- border-radius: 20px;
- font-family: 'Cinzel', serif;
- font-size: 0.85rem;
- font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-family: var(--font-title);
+  font-size: 0.85rem;
+  font-weight: 800;
 }
 
 .spoil-pill.hoard {
- border-color: #f3c348;
- color: #f3c348;
+  border-color: #f5cf68;
+  color: #f5cf68;
 }
 
 .spoil-pill.legend {
- border-color: #e67e22;
- color: #f39c12;
+  border-color: #e67e22;
+  color: #f39c12;
 }
 
 .spoil-pill.casualty {
- border-color: #e74c3c;
- color: #e74c3c;
+  border-color: #e74c3c;
+  color: #e74c3c;
 }
 
 .spoil-pill.safe {
- border-color: #2ecc71;
- color: #2ecc71;
+  border-color: #2ecc71;
+  color: #2ecc71;
 }
 
 .reave-modal-footer {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-  border-top: 1px solid #233446;
+  border-top: 1px solid #283a4f;
   padding-top: 14px;
 }
-

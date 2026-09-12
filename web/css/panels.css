@@ -1,333 +1,563 @@
 /* ==========================================================================
    IRON PRICE: Kingsmoot — Panels Stylesheet (Sidebar, Orders, Chronicle)
+   "We Do Not Sow" • House Greyjoy Reaver Banners & Iron Chronicle
    ========================================================================== */
 
 /* ---------------- SIDEBAR SECTION (RIVETED SLATE ARMOR) ---------------- */
 
 .sidebar-section {
- background: linear-gradient(180deg, #0f1622 0%, #090e16 100%);
- display: flex;
- flex-direction: column;
- overflow-y: auto;
- gap: 12px;
- padding: 14px;
- border-left: 1px solid #1c2736;
+  background: linear-gradient(180deg, #0f1622 0%, #090e16 100%);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow-y: auto;
+  gap: 8px;
+  padding: 8px 10px;
+  border-left: 2px solid #293a4c;
+  box-shadow: inset 2px 0 12px rgba(0, 0, 0, 0.85);
 }
 
 .sidebar-card {
- background: linear-gradient(180deg, #141f2d 0%, #0d1520 100%);
- border: 1px solid #2d3e52;
- border-radius: 5px;
- padding: 14px;
- box-shadow: var(--shadow-iron);
- position: relative;
+  background: linear-gradient(180deg, #141f2d 0%, #0d1520 100%);
+  border: 1.5px solid #33475d;
+  border-radius: 5px;
+  padding: 8px 10px;
+  box-shadow: var(--shadow-iron);
+  position: relative;
 }
 
+/* Forged Iron Rivets on Card Corners */
 .sidebar-card::before,
 .sidebar-card::after {
- content: '';
- position: absolute;
- width: 5px;
- height: 5px;
- border-radius: 50%;
- background: radial-gradient(circle at 35% 35%, #9ab3cf, #2d3f54);
- box-shadow: 0 1px 2px #000;
+  content: '';
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #a8c1db, #34485e 65%, #131d28 100%);
+  border: 0.5px solid #0f1620;
+  box-shadow: 0 1px 2px #000;
 }
 .sidebar-card::before { top: 6px; left: 6px; }
 .sidebar-card::after { top: 6px; right: 6px; }
 
+/* 1. FACTIONS PANEL: War-room kraken banner background */
+.factions-panel {
+  background: linear-gradient(180deg, #141f2d 0%, #0d1520 100%);
+  border-top: 3px solid var(--border-gold);
+}
+
 .section-title {
- font-family: 'Cinzel', serif;
- font-size: 0.95rem;
- font-weight: 800;
- color: var(--gold-accent);
- letter-spacing: 0.8px;
- text-shadow: 0 1px 3px #000;
- display: flex;
- align-items: center;
- justify-content: space-between;
- margin-bottom: 8px;
+  font-family: var(--font-title);
+  font-size: 0.98rem;
+  font-weight: 800;
+  color: var(--gold-accent);
+  letter-spacing: 1px;
+  text-shadow: 0 1px 3px #000, 0 0 8px rgba(245, 207, 104, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
 }
 
 .panel-header-iron {
- display: flex;
- justify-content: space-between;
- align-items: center;
- margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 10px;
+  border-bottom: 1px solid rgba(197, 151, 44, 0.25);
+  padding-bottom: 6px;
+}
+
+.panel-header-iron .section-title {
+  margin-bottom: 0;
+  font-size: 0.90rem;
+  letter-spacing: 0.8px;
+  white-space: nowrap;
 }
 
 .panel-sub-label {
- font-family: 'Cinzel', serif;
- font-size: 0.68rem;
- font-weight: 700;
- color: #7d90a4;
- letter-spacing: 1px;
- text-transform: uppercase;
+  font-family: var(--font-medieval);
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #a9bfd6;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
-/* ---------------- CLAIMANTS LIST (WAR BANNERS) ---------------- */
+/* ---------------- CLAIMANTS LIST (HERALDIC WAR BANNERS) ---------------- */
 
 .claimants-list {
- display: flex;
- flex-direction: column;
- gap: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .claimant-card {
- background: linear-gradient(180deg, #0f1824 0%, #090e16 100%);
- border: 1px solid #283749;
- border-radius: 4px;
- padding: 10px 12px;
- display: flex;
- flex-direction: column;
- gap: 6px;
- transition: all 0.25s ease;
- position: relative;
- box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 3px 8px rgba(0,0,0,0.5);
+  /* Woven war-banner sailcloth with dark iron border */
+  background: linear-gradient(180deg, #0f1824 0%, #090e16 100%);
+  border: 1.5px solid #293a4d;
+  border-left: 4px solid #4a617a;
+  border-radius: 4px;
+  padding: 6px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: all 0.25s ease;
+  position: relative;
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 3px 8px rgba(0, 0, 0, 0.6);
 }
 
+/* Active Claimant: Golden Reaver Crown Focus & Kraken Gold Leaf Wash */
 .claimant-card.active-card {
- border-color: var(--gold-accent);
- box-shadow: 0 0 14px var(--gold-glow), inset 0 1px 0 rgba(255,255,255,0.12);
- background: linear-gradient(180deg, rgba(243, 195, 72, 0.08) 0%, #0d1522 100%);
+  border-color: var(--gold-accent);
+  border-left: 4px solid var(--gold-accent);
+  box-shadow: 
+    0 0 18px var(--gold-glow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 4px 14px rgba(0, 0, 0, 0.75);
+  background: linear-gradient(180deg, rgba(243, 195, 72, 0.1) 0%, #0e1623 100%);
 }
 
 .claimant-header {
- display: flex;
- justify-content: space-between;
- align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.claimant-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .claimant-name {
- font-family: 'Cinzel', serif;
- font-weight: 800;
- font-size: 0.88rem;
- display: flex;
- align-items: center;
- gap: 6px;
- letter-spacing: 0.5px;
- text-shadow: 0 1px 3px #000;
+  font-family: var(--font-title);
+  font-weight: 800;
+  font-size: 0.96rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  letter-spacing: 0.6px;
+  text-shadow: 0 1px 3px #000;
+  white-space: nowrap;
+}
+
+.claimant-icon {
+  font-size: 0.98rem;
+  line-height: 1;
+}
+
+.claimant-sub-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 1px;
+}
+
+.claimant-epithet {
+  font-family: var(--font-medieval);
+  font-size: 0.82rem;
+  color: #d6b258;
+  letter-spacing: 0.5px;
+  font-style: italic;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.claimant-flagship {
+  font-family: var(--font-medieval);
+  font-size: 0.78rem;
+  color: #9ec3e6;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
 }
 
 .claimant-role-badge {
- font-family: 'Inter', sans-serif;
- font-size: 0.65rem;
- font-weight: 700;
- padding: 2px 7px;
- border-radius: 3px;
- background: #172433;
- color: #8fa2b6;
- border: 1px solid #2b3e52;
- letter-spacing: 0.5px;
+  font-family: var(--font-title);
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 2.5px 8px;
+  border-radius: 3px;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.claimant-role-badge.you {
+  background: rgba(46, 204, 113, 0.15);
+  color: #52b788;
+  border: 1px solid #2d6a4f;
+  box-shadow: 0 0 6px rgba(82, 183, 136, 0.25);
+}
+
+.claimant-role-badge.bot {
+  background: #152230;
+  color: #8fa5bc;
+  border: 1px solid #2f4358;
 }
 
 .claimant-stats-row {
- display: grid;
- grid-template-columns: repeat(4, 1fr);
- gap: 5px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
 }
 
+/* Carved Basalt / Brass Counter Weights */
 .c-stat {
- background: var(--bg-stone-sunken);
- border: 1px solid #1a2736;
- padding: 5px 6px;
- border-radius: 3px;
- text-align: center;
- box-shadow: inset 0 2px 5px rgba(0,0,0,0.7);
+  background: #070b10;
+  border: 1px solid #202e3e;
+  padding: 3px 4px;
+  border-radius: 3px;
+  text-align: center;
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.85);
 }
 
 .c-stat-label {
- font-family: 'Cinzel', serif;
- font-size: 0.58rem;
- font-weight: 800;
- color: #6d8094;
- display: block;
- letter-spacing: 0.8px;
+  font-family: var(--font-title);
+  font-size: 0.62rem;
+  font-weight: 800;
+  color: #9bb2c8;
+  display: block;
+  letter-spacing: 0.8px;
 }
 
 .c-stat-val {
- font-family: 'Cinzel', serif;
- font-weight: 900;
- font-size: 0.88rem;
- margin-top: 1px;
- text-shadow: 0 1px 2px #000;
+  font-family: var(--font-title);
+  font-weight: 900;
+  font-size: 0.86rem;
+  margin-top: 1px;
+  text-shadow: 0 1px 3px #000;
 }
 
-.c-stat-val.gold { color: #f3c348; }
-.c-stat-val.legend { color: #e67e22; }
-.c-stat-val.favor { color: #3498db; }
-.c-stat-val.crew { color: #2ecc71; }
+.c-stat-val.gold { color: #f5cf68; }
+.c-stat-val.legend { color: #c86420; }
+.c-stat-val.favor { color: #4885ad; }
+.c-stat-val.crew { color: #357a5b; }
 
-/* ---------------- ACTION PANEL (REAVER ORDERS) ---------------- */
+/* ---------------- 2. ACTION PANEL (REAVER'S FORGED MAP TABLE) ---------------- */
+
+.action-panel {
+  background: linear-gradient(180deg, #141f2d 0%, #0d1520 100%);
+  border-top: 3px solid #842828;
+}
 
 .action-panel .panel-header {
- display: flex;
- justify-content: space-between;
- align-items: center;
- margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.panel-header-title-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.orders-action-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(16, 25, 36, 0.85);
+  border: 1px solid #3d5166;
+  border-radius: 3px;
+  padding: 2px 7px;
+  font-family: var(--font-title);
+  font-size: 0.74rem;
+  font-weight: 800;
+  color: #ffd043;
+  line-height: 1;
+}
+
+.orders-action-count.spent {
+  border-color: #702618;
+  color: #ff6b57;
+}
+
+.orders-action-count .tray-actions-icon {
+  font-size: 0.74rem;
+  color: var(--gold-accent);
+}
+
+.orders-action-count .tray-actions-count {
+  font-size: 0.76rem;
+  font-weight: 800;
 }
 
 .active-badge {
- font-family: 'Cinzel', serif;
- font-size: 0.68rem;
- font-weight: 800;
- padding: 3px 9px;
- border-radius: 3px;
- background: linear-gradient(180deg, #f3c348 0%, #c49320 100%);
- color: #0c0803;
- letter-spacing: 0.8px;
- box-shadow: 0 0 10px rgba(243, 195, 72, 0.4);
+  font-family: var(--font-title);
+  font-size: 0.74rem;
+  font-weight: 900;
+  padding: 3px 10px;
+  border-radius: 3px;
+  background: var(--gold-leaf-bg);
+  color: #0c0803;
+  letter-spacing: 0.9px;
+  box-shadow: 0 0 12px rgba(245, 207, 104, 0.45);
 }
 
+/* Carved Dark Basalt Selection Tablet */
 .selection-info-box {
- background: rgba(4, 7, 12, 0.65);
- border: 1px solid #233446;
- border-radius: 4px;
- padding: 8px 12px;
- margin-bottom: 12px;
- box-shadow: inset 0 2px 6px rgba(0,0,0,0.7);
+  background: rgba(4, 7, 12, 0.65);
+  border: 1.5px solid #2b3e52;
+  border-radius: 4px;
+  padding: 5px 10px;
+  margin-bottom: 6px;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.85);
 }
 
 .selection-info-box .info-label {
- font-family: 'Cinzel', serif;
- font-size: 0.65rem;
- font-weight: 800;
- color: #778b9e;
- letter-spacing: 0.8px;
+  font-family: var(--font-title);
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: #9bb3ca;
+  letter-spacing: 0.8px;
 }
 
 .selection-info-box .info-value {
- font-family: 'Cinzel', serif;
- font-size: 0.85rem;
- font-weight: 800;
- color: #fff;
- letter-spacing: 0.5px;
- text-shadow: 0 1px 2px #000;
+  font-family: var(--font-title);
+  font-size: 0.86rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 0.5px;
+  text-shadow: 0 1px 3px #000;
 }
 
 .action-buttons-grid {
- display: flex;
- flex-direction: column;
- gap: 8px;
- margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 6px;
 }
 
+/* Medieval Hammered Iron Command Billet */
 .action-btn {
- width: 100%;
- background: linear-gradient(180deg, #1b2737 0%, #101924 100%);
- border: 1px solid #2c3e52;
- border-radius: 4px;
- padding: 10px 14px;
- color: var(--text-main);
- cursor: pointer;
- display: flex;
- align-items: center;
- gap: 12px;
- text-align: left;
- transition: all 0.2s ease;
- box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 3px 8px rgba(0,0,0,0.5);
- position: relative;
+  width: 100%;
+  background: linear-gradient(180deg, #1b2737 0%, #101924 100%);
+  border: 1.5px solid #364b63;
+  border-radius: 4px;
+  padding: 6px 10px;
+  color: var(--text-main);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 3px 8px rgba(0, 0, 0, 0.6);
+  position: relative;
 }
 
 .action-btn:hover:not(:disabled) {
- background: linear-gradient(180deg, #24354b 0%, #14202e 100%);
- border-color: var(--border-gold);
- box-shadow: 0 0 12px var(--gold-glow);
- transform: translateX(2px);
+  background: linear-gradient(180deg, #24354b 0%, #14202e 100%);
+  border-color: var(--border-gold);
+  box-shadow: 0 0 14px var(--gold-glow), 0 4px 10px rgba(0, 0, 0, 0.6);
+  transform: translateX(2px);
 }
 
 .action-btn:active:not(:disabled) {
- transform: translateY(1px);
- box-shadow: inset 0 2px 6px #000;
+  transform: translateY(1px);
+  box-shadow: inset 0 2px 6px #000;
 }
 
 .action-btn:disabled {
- opacity: 0.35;
- filter: grayscale(0.8);
- cursor: not-allowed;
+  opacity: 0.35;
+  filter: grayscale(0.85);
+  cursor: not-allowed;
 }
 
+/* Blood-Iron Reave Action */
 .action-btn.btn-danger {
- background: linear-gradient(180deg, #381212 0%, #1a0808 100%);
- border-color: #631d1d;
+  background: linear-gradient(180deg, #381212 0%, #1a0808 100%);
+  border-color: #822727;
 }
 .action-btn.btn-danger:hover:not(:disabled) {
- background: linear-gradient(180deg, #571a1a 0%, #290d0d 100%);
- border-color: #e74c3c;
- box-shadow: 0 0 14px rgba(231, 76, 60, 0.4);
+  background: linear-gradient(180deg, #571a1a 0%, #290d0d 100%);
+  border-color: #9c2820;
+  box-shadow: 0 0 14px rgba(156, 40, 32, 0.5);
 }
 
+/* Drowned God Favor Prayer Action */
 .action-btn.btn-drowned {
- background: linear-gradient(180deg, #102932 0%, #09171d 100%);
- border-color: #1a4955;
+  background: linear-gradient(180deg, #102932 0%, #09171d 100%);
+  border-color: #1f5d6d;
 }
 .action-btn.btn-drowned:hover:not(:disabled) {
- background: linear-gradient(180deg, #173d4a 0%, #0d222b 100%);
- border-color: #2ecc71;
- box-shadow: 0 0 14px rgba(46, 204, 113, 0.4);
+  background: linear-gradient(180deg, #173d4a 0%, #0d222b 100%);
+  border-color: #357a5b;
+  box-shadow: 0 0 14px rgba(53, 122, 91, 0.5);
 }
 
 .action-btn .btn-icon {
- font-size: 1.45rem;
- line-height: 1;
- filter: drop-shadow(0 2px 4px #000);
+  font-size: 1.25rem;
+  line-height: 1;
+  filter: drop-shadow(0 2px 4px #000);
 }
 
 .action-btn .btn-text strong {
- display: block;
- font-family: 'Cinzel', serif;
- font-size: 0.86rem;
- font-weight: 800;
- letter-spacing: 0.5px;
- color: #fff;
+  display: block;
+  font-family: var(--font-title);
+  font-size: 0.86rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  color: #fff;
 }
 
 .action-btn .btn-text small {
- display: block;
- font-size: 0.68rem;
- color: #7e91a4;
- margin-top: 1px;
+  display: block;
+  font-family: var(--font-medieval);
+  font-size: 0.70rem;
+  color: #b0c4d8;
+  font-weight: 500;
+  margin-top: 1px;
 }
 
+/* Action Footer & End Turn Sidebar Button */
 .action-footer {
- display: flex;
- flex-direction: column;
- gap: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 2px;
 }
 
-/* ---------------- LOG PANEL (IRON CHRONICLE) ---------------- */
+.btn-endturn-sidebar {
+  width: 100%;
+  min-height: 44px;
+  padding: 6px 14px;
+  font-family: var(--font-title);
+  border-radius: 4px;
+  border: 2px solid #a35016;
+  background: linear-gradient(180deg, #b05414 0%, #6e2f07 55%, #3d1702 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.85), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9);
+}
+
+.btn-endturn-sidebar:hover:not(:disabled) {
+  background: linear-gradient(180deg, #cc661a 0%, #8c3e09 55%, #4d1d03 100%);
+  border-color: #f39c12;
+  box-shadow: 0 0 16px rgba(243, 156, 18, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  transform: translateY(-1px);
+}
+
+.btn-endturn-sidebar.btn-endturn-ready {
+  min-height: 48px;
+  border-color: #ffd043;
+  background: linear-gradient(180deg, #f39c12 0%, #d35400 45%, #872800 100%);
+  box-shadow: 0 0 20px rgba(243, 156, 18, 0.9), 0 6px 16px rgba(0, 0, 0, 0.85);
+  animation: pulse-endturn-sidebar 1.4s ease-in-out infinite;
+}
+
+@keyframes pulse-endturn-sidebar {
+  0%, 100% {
+    box-shadow: 0 0 14px rgba(243, 156, 18, 0.7), 0 3px 10px rgba(0, 0, 0, 0.8);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 24px rgba(243, 156, 18, 1), 0 6px 18px rgba(0, 0, 0, 0.9);
+    transform: scale(1.02);
+  }
+}
+
+.endturn-tray-icon {
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.endturn-tray-labels {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  line-height: 1.15;
+}
+
+.endturn-tray-main {
+  font-size: 0.92rem;
+  font-weight: 900;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+}
+
+.endturn-tray-sub {
+  font-family: var(--font-medieval);
+  font-size: 0.68rem;
+  color: #ffd08a;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+/* ---------------- 3. LOG PANEL (THE IRON CHRONICLE VELLUM SCROLL) ---------------- */
 
 .log-panel {
- flex: 1;
- min-height: 160px;
- display: flex;
- flex-direction: column;
+  flex: 1;
+  min-height: 80px;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, #141f2d 0%, #0d1520 100%);
+  border-top: 3px solid #4a617a;
 }
 
 .log-entries-container {
- flex: 1;
- max-height: 200px;
- overflow-y: auto;
- display: flex;
- flex-direction: column;
- gap: 6px;
- font-size: 0.76rem;
- padding-right: 4px;
+  flex: 1;
+  min-height: 50px;
+  max-height: none;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 0.80rem;
+  padding: 6px 6px 6px 8px;
+  background: #070b10;
+  border: 1px solid #1f2c3b;
+  border-radius: 4px;
+  box-shadow: inset 0 3px 10px rgba(0, 0, 0, 0.9);
 }
 
+/* Ancient Salt-Weathered Sea-Scroll Entry */
 .log-entry {
- background: rgba(4, 7, 12, 0.55);
- border-left: 3px solid #3c5168;
- padding: 6px 10px;
- border-radius: 0 3px 3px 0;
- line-height: 1.35;
- color: #bac9d8;
- box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+  background: 
+    linear-gradient(90deg, rgba(16, 25, 36, 0.85) 0%, rgba(8, 14, 21, 0.85) 100%);
+  border-left: 3px solid #3c5168;
+  padding: 5px 8px;
+  border-radius: 0 3px 3px 0;
+  line-height: 1.4;
+  color: #dbe7f3;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+  font-family: var(--font-medieval);
+  letter-spacing: 0.3px;
 }
 
+/* Rubricated Gold System Proclamations */
 .log-entry.system {
- border-color: var(--gold-accent);
- color: #f7dda2;
- font-style: italic;
+  border-color: var(--gold-accent);
+  color: #ffe6a8;
+  font-style: italic;
+  background: 
+    linear-gradient(90deg, rgba(245, 207, 104, 0.16) 0%, rgba(14, 22, 32, 0.88) 100%);
+  text-shadow: 0 1px 2px #000;
 }
-

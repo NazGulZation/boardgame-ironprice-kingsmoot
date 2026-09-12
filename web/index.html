@@ -4,12 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>IRON PRICE: Kingsmoot — Board Game</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🦑</text></svg>">
-  <link rel="stylesheet" href="css/style.css?v=2.22">
-  <link rel="stylesheet" href="css/panels.css?v=2.22">
-  <link rel="stylesheet" href="css/modals.css?v=2.22">
-  <link rel="stylesheet" href="css/battle.css?v=2.22">
-  <link rel="stylesheet" href="css/animations.css?v=2.22">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚓</text></svg>">
+  <link rel="stylesheet" href="css/style.css?v=2.46">
+  <link rel="stylesheet" href="css/panels.css?v=2.46">
+  <link rel="stylesheet" href="css/dice_tray.css?v=2.46">
+  <link rel="stylesheet" href="css/modals.css?v=2.46">
+  <link rel="stylesheet" href="css/battle.css?v=2.46">
+  <link rel="stylesheet" href="css/animations.css?v=2.46">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800;900&family=Metamorphous&family=MedievalSharp&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -19,9 +20,9 @@
   <!-- Top Header Bar -->
   <header class="game-header">
     <div class="header-left">
-      <div class="header-sigil">🦑</div>
+      <div class="header-sigil">⚓</div>
       <div>
-        <h1 class="game-title"><span class="iron">IRON PRICE</span> <span class="divider">⚔️</span> <span class="sub">KINGSMOOT</span></h1>
+        <h1 class="game-title"><span class="iron">IRON PRICE</span> <span class="divider">⚔</span> <span class="sub">KINGSMOOT</span></h1>
         <div class="header-motto">"WE DO NOT SOW" • WHAT IS DEAD MAY NEVER DIE</div>
       </div>
       <span class="phase-badge">Phase 2: Fleet Battles & Favor</span>
@@ -40,7 +41,7 @@
         <span class="tracker-label">ACTIVE CLAIMANT</span>
         <span class="tracker-value active-name" id="active-name-display">Asha Greyjoy</span>
       </div>
-      <div class="tracker-item actions-box">
+      <div class="tracker-item actions-box" id="header-actions-box">
         <span class="tracker-label">ACTIONS LEFT</span>
         <div class="actions-pips" id="actions-pips-display">
           <span class="pip active"></span>
@@ -50,8 +51,9 @@
     </div>
 
     <div class="header-right">
-      <button class="btn btn-secondary btn-iron" id="btn-new-game">🔄 New Game</button>
-      <button class="btn btn-secondary btn-iron" id="btn-rules">📜 Rules</button>
+      <button class="btn btn-secondary btn-iron" id="btn-sound-toggle">Sound</button>
+      <button class="btn btn-secondary btn-iron" id="btn-new-game">New Match</button>
+      <button class="btn btn-secondary btn-iron" id="btn-rules">Rules</button>
     </div>
   </header>
 
@@ -64,11 +66,11 @@
     <!-- Left / Center: Interactive Map Area -->
     <section class="map-section">
       <div class="map-toolbar">
-        <span class="toolbar-title">🗺️ The Iron Isles & The Sunset Sea</span>
+        <span class="toolbar-title">The Iron Isles & The Sunset Sea</span>
         <div class="map-controls">
-          <button class="tool-btn" id="btn-zoom-in" title="Zoom In">🔍 +</button>
-          <button class="tool-btn" id="btn-zoom-out" title="Zoom Out">🔍 −</button>
-          <button class="tool-btn" id="btn-zoom-reset" title="Fit to Screen">🎯 Fit</button>
+          <button class="tool-btn" id="btn-zoom-in" title="Zoom In">+ Zoom</button>
+          <button class="tool-btn" id="btn-zoom-out" title="Zoom Out">− Zoom</button>
+          <button class="tool-btn" id="btn-zoom-reset" title="Fit to Screen">Fit</button>
         </div>
         <div class="map-legend">
           <span class="legend-item"><span class="dot isle-dot"></span> Iron Isle</span>
@@ -135,19 +137,19 @@
       <!-- Bottom Dice Rolling Tray -->
       <div class="dice-tray-panel" id="dice-tray">
         <div class="dice-tray-header">
-          <span class="dice-tray-title">🎲 Reaver's Iron & Oak Dice Tray</span>
+          <span class="dice-tray-title">Reaver's Oak & Iron Dice Tray</span>
           <span class="dice-tray-subtitle" id="dice-tray-subtitle">The Drowned God Watches • What Is Dead May Never Die</span>
         </div>
         <div class="dice-tray-body">
           <div class="dice-group" id="attacker-dice-group">
-            <div class="dice-group-label">⚔️ Reaver Warband:</div>
+            <div class="dice-group-label">Warband Fleet:</div>
             <div class="dice-container" id="attacker-dice-container">
               <span class="dice-placeholder">No raid engaged</span>
             </div>
           </div>
           <div class="dice-vs-badge">VS</div>
           <div class="dice-group" id="defender-dice-group">
-            <div class="dice-group-label">🛡️ Keep Garrison:</div>
+            <div class="dice-group-label">Garrison Defense:</div>
             <div class="dice-container" id="defender-dice-container">
               <span class="dice-placeholder">No defense roll</span>
             </div>
@@ -165,7 +167,7 @@
       <!-- Faction Cards Panel -->
       <div class="sidebar-card factions-panel">
         <div class="panel-header-iron">
-          <h2 class="section-title">👑 The Ironborn Claimants</h2>
+          <h2 class="section-title">The Ironborn Claimants</h2>
           <span class="panel-sub-label">House Greyjoy</span>
         </div>
         <div class="claimants-list" id="claimants-list">
@@ -176,14 +178,20 @@
       <!-- Action Controls Panel -->
       <div class="sidebar-card action-panel">
         <div class="panel-header">
-          <h2 class="section-title">⚔️ Reaver Orders (2 / Turn)</h2>
+          <div class="panel-header-title-group">
+            <h2 class="section-title">Reaver Orders</h2>
+            <div class="orders-action-count" id="tray-actions-tracker">
+              <span class="tray-actions-icon">⚡</span>
+              <span class="tray-actions-count" id="tray-actions-count">2 / 2</span>
+            </div>
+          </div>
           <span class="active-badge" id="panel-active-indicator">Your Turn</span>
         </div>
 
         <div class="selection-info-box" id="selection-info">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
             <span class="info-label">TARGET SHIP / HAVEN:</span>
-            <span style="font-size: 0.68rem; color: #f5c518; font-weight: bold; letter-spacing: 0.5px;">🖱️ Right-Click = Sail / Reave</span>
+            <span style="font-size: 0.74rem; color: var(--gold-accent); font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase;">[Right-Click ➔ Sail / Reave]</span>
           </div>
           <span class="info-value" id="selected-entity-name">None (Select longship or island)</span>
         </div>
@@ -192,7 +200,7 @@
           <!-- Sail Action -->
           <div class="action-btn-wrapper">
             <button class="action-btn" id="btn-action-sail" disabled>
-              <span class="btn-icon">⛵</span>
+              <span class="btn-icon">⚓</span>
               <span class="btn-text"><strong>Sail Fleet</strong><small>Traverse seas up to 2-3 nodes</small></span>
             </button>
           </div>
@@ -200,7 +208,7 @@
           <!-- Reave Action -->
           <div class="action-btn-wrapper">
             <button class="action-btn btn-danger" id="btn-action-reave" disabled>
-              <span class="btn-icon">🪓</span>
+              <span class="btn-icon">⚔</span>
               <span class="btn-text"><strong>Reave Green Land</strong><small>Pay the Iron Price for Hoard & Legend</small></span>
             </button>
           </div>
@@ -208,7 +216,7 @@
           <!-- Muster Action -->
           <div class="action-btn-wrapper">
             <button class="action-btn" id="btn-action-muster" disabled>
-              <span class="btn-icon">🛡️</span>
+              <span class="btn-icon">⛨</span>
               <span class="btn-text"><strong>Muster Warriors</strong><small>Spend Hoard ➔ +3 Crew at Port</small></span>
             </button>
           </div>
@@ -216,7 +224,7 @@
           <!-- Pray Action -->
           <div class="action-btn-wrapper">
             <button class="action-btn btn-drowned" id="btn-action-pray">
-              <span class="btn-icon">🌊</span>
+              <span class="btn-icon">≋</span>
               <span class="btn-text"><strong>Pray to Drowned God</strong><small>+1 Favor (Blessing of Nagga)</small></span>
             </button>
           </div>
@@ -225,20 +233,27 @@
           <div class="action-btn-wrapper">
             <button class="action-btn btn-miracle-action" id="btn-action-callstorm" disabled>
               <span class="btn-icon">⚡</span>
-              <span class="btn-text"><strong>Call Storm (4 🌊)</strong><small>Batter adjacent rival fleet & push back</small></span>
+              <span class="btn-text"><strong>Call Storm (4 Favor)</strong><small>Batter adjacent rival fleet & push back</small></span>
             </button>
           </div>
         </div>
 
-        <div class="action-footer">
-          <button class="btn btn-warning btn-block btn-iron" id="btn-action-endturn">Pass Turn / Hold Tide</button>
-          <button class="btn btn-ai btn-block" id="btn-ai-step" style="display: none;">🤖 Step AI Turn</button>
+        <!-- Action Footer: End Turn / Pass Turn & AI Step -->
+        <div class="action-footer" id="action-footer">
+          <button class="btn btn-warning btn-block btn-iron btn-endturn-sidebar" id="btn-action-endturn">
+            <span class="endturn-tray-icon">⚓</span>
+            <div class="endturn-tray-labels">
+              <span class="endturn-tray-main">Pass Turn</span>
+              <small class="endturn-tray-sub">Hold Tide</small>
+            </div>
+          </button>
+          <button class="btn btn-ai btn-block btn-iron" id="btn-ai-step" style="display: none;">Step Rival Turn</button>
         </div>
       </div>
 
       <!-- Live Event & Combat Log -->
       <div class="sidebar-card log-panel">
-        <h2 class="section-title">📜 The Iron Chronicle</h2>
+        <h2 class="section-title">The Iron Chronicle</h2>
         <div class="log-entries-container" id="log-container">
           <div class="log-entry system">"We Do Not Sow." The Iron Price must be paid in blood and plunder.</div>
         </div>
@@ -252,7 +267,7 @@
   <div class="modal-backdrop" id="modal-new-game" style="display: none;">
     <div class="modal-card">
       <div class="modal-header">
-        <h2>⚔️ Start New Kingsmoot Match</h2>
+        <h2>Start New Kingsmoot Match</h2>
         <button class="modal-close" id="btn-close-new-game-modal">&times;</button>
       </div>
       <div class="modal-body">
@@ -299,7 +314,7 @@
   <div class="modal-backdrop" id="modal-rules" style="display: none;">
     <div class="modal-card modal-large">
       <div class="modal-header">
-        <h2>📜 Rules Quick Guide — IRON PRICE: Kingsmoot</h2>
+        <h2>Rules Quick Guide — IRON PRICE: Kingsmoot</h2>
         <button class="modal-close" id="btn-close-rules-modal">&times;</button>
       </div>
       <div class="modal-body rules-content">
@@ -349,8 +364,8 @@
     <div class="modal-reave-card">
       <div class="reave-modal-header">
         <div class="reave-header-left">
-          <h2 class="reave-modal-title" id="reave-modal-title">⚔️ Raid on Keep</h2>
-          <span class="reave-defense-badge" id="reave-defense-badge">🛡️ Keep Defense: 3 Hits Required</span>
+          <h2 class="reave-modal-title" id="reave-modal-title">Raid on Keep</h2>
+          <span class="reave-defense-badge" id="reave-defense-badge">Keep Defense: 3 Hits Required</span>
         </div>
         <button class="modal-close" id="btn-close-reave-x">&times;</button>
       </div>
@@ -365,7 +380,7 @@
           <div class="reave-dice-box" id="reave-attacker-dice">
             <!-- Animated dice populated dynamically -->
           </div>
-          <div class="reave-side-tally" id="reave-attacker-tally">⚔️ Rolling...</div>
+          <div class="reave-side-tally" id="reave-attacker-tally">Rolling...</div>
         </div>
 
         <!-- Clash VS -->
@@ -382,7 +397,7 @@
           <div class="reave-dice-box" id="reave-defender-dice">
             <!-- Animated dice populated dynamically -->
           </div>
-          <div class="reave-side-tally" id="reave-defender-tally">🛡️ Rolling...</div>
+          <div class="reave-side-tally" id="reave-defender-tally">Rolling...</div>
         </div>
       </div>
 
@@ -417,7 +432,7 @@
     <div class="modal-battle-card">
       <div class="battle-modal-header">
         <div class="battle-header-left">
-          <h2 class="battle-modal-title" id="battle-modal-title">⚔️ NAVAL CLASH: IRONMAN'S BAY</h2>
+          <h2 class="battle-modal-title" id="battle-modal-title">NAVAL CLASH: IRONMAN'S BAY</h2>
           <span class="battle-round-badge" id="battle-round-badge">Round 1 of 2</span>
         </div>
         <button class="modal-close" id="btn-close-battle-x" style="display: none;">&times;</button>
@@ -427,14 +442,14 @@
         <!-- Attacker Column -->
         <div class="battle-side attacker-side" id="battle-attacker-side">
           <div class="battle-side-header">
-            <span class="battle-side-role">ATTACKING DREADNOUGHT</span>
+            <span class="battle-side-role">ATTACKING FLEET</span>
             <h3 class="battle-side-name" id="battle-attacker-name">Euron Greyjoy</h3>
-            <span class="battle-side-ship" id="battle-attacker-ship">The Silence (4/4 Crew)</span>
+            <div class="battle-side-ships fleet-rows" id="battle-attacker-ship"></div>
           </div>
           <div class="battle-dice-box" id="battle-attacker-dice">
             <!-- Animated dice populated dynamically -->
           </div>
-          <div class="battle-side-tally" id="battle-attacker-tally">⚔️ Rolling...</div>
+          <div class="battle-side-tally" id="battle-attacker-tally">Rolling...</div>
           <div class="battle-trait-box" id="battle-attacker-traits"></div>
         </div>
 
@@ -447,14 +462,14 @@
         <!-- Defender Column -->
         <div class="battle-side defender-side" id="battle-defender-side">
           <div class="battle-side-header">
-            <span class="battle-side-role">DEFENDING WARSHIP</span>
+            <span class="battle-side-role">DEFENDING FLEET</span>
             <h3 class="battle-side-name" id="battle-defender-name">Victarion Greyjoy</h3>
-            <span class="battle-side-ship" id="battle-defender-ship">Iron Victory (6/6 Crew)</span>
+            <div class="battle-side-ships fleet-rows" id="battle-defender-ship"></div>
           </div>
           <div class="battle-dice-box" id="battle-defender-dice">
             <!-- Animated dice populated dynamically -->
           </div>
-          <div class="battle-side-tally" id="battle-defender-tally">🛡️ Rolling...</div>
+          <div class="battle-side-tally" id="battle-defender-tally">Rolling...</div>
           <div class="battle-trait-box" id="battle-defender-traits"></div>
         </div>
       </div>
@@ -475,19 +490,19 @@
       <!-- Special Powers & Miracles Section -->
       <div class="battle-powers-bar" id="battle-powers-bar">
         <div class="battle-power-group">
-          <span class="battle-power-title">🔥 Faction Powers:</span>
+          <span class="battle-power-title">Faction Powers:</span>
           <button class="btn btn-sm btn-blood" id="btn-battle-blood-price" style="display: none;">
-            🩸 Blood Price (Re-roll • Eye: +1🌊/-1⚔️)
+            Blood Price (Re-roll • Eye: +1 Favor / -1 Hit)
           </button>
           <span class="battle-passive-notice" id="battle-passive-notice"></span>
         </div>
         <div class="battle-miracles-group">
-          <span class="battle-power-title">🌊 Drowned Miracles:</span>
+          <span class="battle-power-title">Drowned Miracles:</span>
           <button class="btn btn-sm btn-miracle" id="btn-battle-miracle-reroll" title="Spend 2 Favor to re-roll tactical dice">
-            🌊 Re-roll (2 Favor)
+            Re-roll (2 Favor)
           </button>
           <button class="btn btn-sm btn-miracle-gold" id="btn-battle-miracle-autowin" title="Spend 6 Favor to deal 5 unblockable hits">
-            ⚡ Auto-Win Round (6 Favor)
+            Wrath of Nagga (6 Favor)
           </button>
         </div>
       </div>
@@ -501,21 +516,21 @@
 
       <!-- Willing-attacker choice: resolve NOW or WAIT for reinforcements -->
       <div class="battle-choice-box" id="battle-choice-box" style="display: none;">
-        <div class="battle-choice-title">⏳ Clash on approach — resolve NOW or WAIT for reinforcements?</div>
+        <div class="battle-choice-title">Clash on approach — resolve NOW or WAIT for reinforcements?</div>
         <div class="battle-choice-desc" id="battle-choice-desc">Sail a second friendly longship into the contested sea before dice are rolled for +1 bonus die.</div>
         <div class="battle-choice-row">
-          <button class="btn btn-primary" id="btn-battle-resolve-now">⚔️ Resolve Now</button>
-          <button class="btn btn-secondary btn-iron" id="btn-battle-defer">⏳ Wait for Reinforcements</button>
+          <button class="btn btn-primary" id="btn-battle-resolve-now">Resolve Now</button>
+          <button class="btn btn-secondary btn-iron" id="btn-battle-defer">Wait for Reinforcements</button>
         </div>
       </div>
 
       <!-- Battle Controls Footer -->
       <div class="battle-modal-footer" id="battle-modal-footer">
         <button class="btn btn-secondary btn-iron" id="btn-battle-retreat">
-          🏳️ Retreat Fleet
+          Retreat Fleet
         </button>
         <button class="btn btn-primary" id="btn-battle-continue">
-          ⚔️ Fight Round 2
+          Fight Round 2
         </button>
         <button class="btn btn-primary" id="btn-battle-dismiss" style="display: none;">
           Done
@@ -527,7 +542,7 @@
   <!-- Kingsmoot Victory Ceremony Modal -->
   <div class="modal-backdrop" id="modal-victory" style="display: none;">
     <div class="modal-card modal-victory-card">
-      <div class="victory-crown">👑</div>
+      <div class="victory-crown">♚</div>
       <h2 class="victory-title">THE KINGSMOOT IS DECIDED!</h2>
       <p class="victory-subtitle">"What is dead may never die, but rises again harder and stronger."</p>
       
@@ -547,12 +562,14 @@
   </div>
 
   <!-- JS Application Scripts with Cache Buster -->
-  <script src="js/api.js?v=2.22"></script>
-  <script src="js/map_builder.js?v=2.22"></script>
-  <script src="js/map_animator.js?v=2.22"></script>
-  <script src="js/map_renderer.js?v=2.22"></script>
-  <script src="js/ui.js?v=2.22"></script>
-  <script src="js/app.js?v=2.22"></script>
-  <script src="js/naval_choice.js?v=2.22"></script>
+  <script src="js/api.js?v=2.46"></script>
+  <script src="js/map_builder.js?v=2.46"></script>
+  <script src="js/map_animator.js?v=2.46"></script>
+  <script src="js/map_renderer.js?v=2.46"></script>
+  <script src="js/battle_fleets.js?v=2.46"></script>
+  <script src="js/sound.js?v=2.46"></script>
+  <script src="js/ui.js?v=2.46"></script>
+  <script src="js/app.js?v=2.46"></script>
+  <script src="js/naval_choice.js?v=2.46"></script>
 </body>
 </html>

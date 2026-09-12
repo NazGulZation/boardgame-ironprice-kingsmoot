@@ -156,6 +156,57 @@ class TestPhase1Engine(unittest.TestCase):
         self.assertIsNotNone(game.winner)
         self.assertIn(game.winner, ["Asha", "Euron", "Victarion"])
 
+    def test_zero_crew_cannot_sail_out_of_home_base(self):
+        """A ship with 0 crew cannot be moved out of its home base."""
+        # Asha reaver1 starts with 0 crew at Harlaw
+        reaver1 = next(s for s in self.game.nodes["harlaw"].occupants if s.id == "asha_reaver1")
+        self.assertEqual(reaver1.crew, 0)
+
+        # Attempt to sail 0-crew ship
+        res = self.game.action_sail("asha_reaver1", "bay")
+        self.assertFalse(res.get("success"))
+        self.assertIn("0 crew", res.get("error"))
+
+        # Mustering crew to fill flagship, overflow gives reaver1 3 crew
+        self.game.action_muster("harlaw", "asha_flagship")
+        self.assertGreater(reaver1.crew, 0)
+
+        # Now reaver1 can sail
+        res = self.game.action_sail("asha_reaver1", "bay")
+        self.assertTrue(res.get("success"), res.get("error"))
+        node_id, _ = self.game.find_ship_location("asha_reaver1")
+        self.assertEqual(node_id, "bay")
+
+    def test_human_actions_spent_requires_manual_end_turn(self):
+        """When all actions are spent, human player does not auto-advance until manual end turn."""
+        self.assertEqual(self.game.active_player_idx, 0)
+        self.assertFalse(self.game.players[0].is_ai)
+        self.assertEqual(self.game.actions_remaining, 2)
+
+        # Action 1: Pray
+        res1 = self.game.action_pray()
+        self.assertTrue(res1.get("success"))
+        self.assertEqual(self.game.actions_remaining, 1)
+        self.assertEqual(self.game.active_player_idx, 0)
+
+        # Action 2: Pray again (all actions spent)
+        res2 = self.game.action_pray()
+        self.assertTrue(res2.get("success"))
+        self.assertEqual(self.game.actions_remaining, 0)
+        # Turn must NOT automatically advance to Euron (player 1)
+        self.assertEqual(self.game.active_player_idx, 0)
+
+        # Attempting further action fails
+        res3 = self.game.action_pray()
+        self.assertFalse(res3.get("success"))
+        self.assertIn("No actions remaining", res3.get("error"))
+
+        # Manual end turn advances to player 1
+        end_res = self.game.action_end_turn()
+        self.assertTrue(end_res.get("success"))
+        self.assertEqual(self.game.active_player_idx, 1)
+        self.assertEqual(self.game.actions_remaining, 2)
+
 
 if __name__ == "__main__":
     unittest.main()

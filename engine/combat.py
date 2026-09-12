@@ -85,6 +85,11 @@ class CombatEngine:
         # Defeat fueling miracles: 1 Favor per 2 crew lost
         favor_gained = CombatEngine.apply_casualties_and_favor(attacker, crew_lost)
 
+        # Garrison attrition: if raid repelled and unblocked hits landed, weaken guard
+        guard_lost = 0
+        if not success and net_att_hits > 0:
+            guard_lost = min(target_node.defense, net_att_hits)
+
         return ReaveOutcome(
             target_id=target_node.id,
             target_name=target_node.name,
@@ -97,7 +102,9 @@ class CombatEngine:
             hoard_gained=hoard_loot,
             legend_gained=legend_loot,
             crew_lost=crew_lost,
-            favor_gained=favor_gained
+            favor_gained=favor_gained,
+            guard_lost=guard_lost,
+            new_defense=max(0, target_node.defense - guard_lost)
         )
 
     @staticmethod
@@ -186,6 +193,45 @@ class CombatEngine:
         return evaluate_dice_faces(new_dice, double_axes=double_axes)
 
     @staticmethod
+    def fleet_ships(primary: Ship, aux_ships: Optional[List[Ship]] = None) -> List[Ship]:
+        """Ordered fleet: primary first, then auxiliaries (deduped by id)."""
+        fleet: List[Ship] = [primary]
+        seen = {primary.id}
+        if aux_ships:
+            for s in aux_ships:
+                if s.id not in seen:
+                    fleet.append(s)
+                    seen.add(s.id)
+        return fleet
+
+    @staticmethod
+    def deal_fleet_damage(primary: Ship, aux_ships: Optional[List[Ship]], net_hits: int) -> int:
+        """Distribute net hits across fleet (primary first, then aux). Returns total lost."""
+        if net_hits <= 0:
+            return 0
+        remaining = net_hits
+        total = 0
+        for s in CombatEngine.fleet_ships(primary, aux_ships):
+            if remaining <= 0:
+                break
+            if s.crew <= 0:
+                continue
+            loss = min(s.crew, remaining)
+            s.crew -= loss
+            remaining -= loss
+            total += loss
+        return total
+
+    @staticmethod
+    def fleet_alive(primary: Ship, aux_ships: Optional[List[Ship]] = None) -> bool:
+        """True if any fleet hull still has crew."""
+        return any(s.crew > 0 for s in CombatEngine.fleet_ships(primary, aux_ships))
+
+    @staticmethod
+    def fleet_total_crew(primary: Ship, aux_ships: Optional[List[Ship]] = None) -> int:
+        return sum(s.crew for s in CombatEngine.fleet_ships(primary, aux_ships))
+
+    @staticmethod
     def resolve_naval_round(
         attacker: PlayerState,
         defender: PlayerState,
@@ -239,12 +285,8 @@ class CombatEngine:
             net_att_hits = max(0, attacker_roll.hits - defender_roll.blocks)
             net_def_hits = max(0, defender_roll.hits - attacker_roll.blocks)
 
-        att_crew_lost = min(attacker_ship.crew, net_def_hits)
-        def_crew_lost = min(defender_ship.crew, net_att_hits)
-
-        # Apply casualties
-        attacker_ship.crew -= att_crew_lost
-        defender_ship.crew -= def_crew_lost
+        att_crew_lost = CombatEngine.deal_fleet_damage(attacker_ship, attacker_aux_ships, net_def_hits)
+        def_crew_lost = CombatEngine.deal_fleet_damage(defender_ship, defender_aux_ships, net_att_hits)
 
         # Fuel miracles from defeat casualties (1 Favor per 2 crew lost)
         CombatEngine.apply_casualties_and_favor(attacker, att_crew_lost)

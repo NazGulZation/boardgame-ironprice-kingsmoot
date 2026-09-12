@@ -41,9 +41,20 @@ class SimpleAI:
                     if res.get("success"):
                         return res
 
-            # Check retreat heuristic for Round 1
+            # Check retreat heuristic for Round 1 (fleet totals, not single hull)
             if battle.state == "round1_decision" and my_ship and opp_ship:
-                if my_ship.crew == 1 and opp_ship.crew >= 3:
+                from engine.combat import CombatEngine as _CE
+                node = game.nodes.get(battle.node_id)
+                if node is not None:
+                    my_aux = [s for s in node.occupants if s.faction == active.faction and s.id != my_ship.id and s.crew > 0]
+                    opp_faction = battle.defender_faction if battle.attacker_faction == active.faction else battle.attacker_faction
+                    opp_primary_id = battle.defender_ship_id if battle.attacker_faction == active.faction else battle.attacker_ship_id
+                    opp_aux = [s for s in node.occupants if s.faction == opp_faction and s.id != opp_primary_id and s.crew > 0]
+                    my_total = _CE.fleet_total_crew(my_ship, my_aux)
+                    opp_total = _CE.fleet_total_crew(opp_ship, opp_aux)
+                else:
+                    my_total, opp_total = my_ship.crew, opp_ship.crew
+                if my_total == 1 and opp_total >= 3:
                     return game.action_battle_round(battle_id=battle.battle_id, retreat=True)
 
             # Otherwise proceed to Round 2
@@ -88,28 +99,32 @@ class SimpleAI:
                 return res
 
         # 4. SAIL towards sea zones connecting to Green Lands or attack vulnerable enemy ships
-        reachable = game.map_engine.get_reachable_nodes(node_id, max_speed=ship.get_speed())
-        sea_targets = ["seaS", "seaC", "seaN", "storm", "bay"]
+        sailable_ships = [s for s in ships if s[1].crew > 0]
+        if sailable_ships:
+            s_sorted = sorted(sailable_ships, key=lambda s: (s[1].is_flagship, s[1].crew), reverse=True)
+            s_node_id, s_ship = s_sorted[0]
+            reachable = game.map_engine.get_reachable_nodes(s_node_id, max_speed=s_ship.get_speed())
+            sea_targets = ["seaS", "seaC", "seaN", "storm", "bay"]
 
-        # Prioritize sea zones with unburned targets or where we have crew advantage
-        best_target = None
-        for r_node in reachable:
-            if r_node in sea_targets:
-                targets_from_r = game.map_engine.get_reavable_targets(r_node, game.nodes)
-                unburned_count = sum(1 for t in targets_from_r if not game.nodes[t].is_burned)
-                if unburned_count > 0:
-                    best_target = r_node
-                    break
-        
-        if not best_target and reachable:
-            valid_destinations = [r for r in reachable if game.nodes[r].kind in [NodeKind.SEA.value, NodeKind.ISLE.value]]
-            if valid_destinations:
-                best_target = random.choice(valid_destinations)
+            # Prioritize sea zones with unburned targets or where we have crew advantage
+            best_target = None
+            for r_node in reachable:
+                if r_node in sea_targets:
+                    targets_from_r = game.map_engine.get_reavable_targets(r_node, game.nodes)
+                    unburned_count = sum(1 for t in targets_from_r if not game.nodes[t].is_burned)
+                    if unburned_count > 0:
+                        best_target = r_node
+                        break
 
-        if best_target and best_target != node_id:
-            res = game.action_sail(ship.id, best_target)
-            if res.get("success"):
-                return res
+            if not best_target and reachable:
+                valid_destinations = [r for r in reachable if game.nodes[r].kind in [NodeKind.SEA.value, NodeKind.ISLE.value]]
+                if valid_destinations:
+                    best_target = random.choice(valid_destinations)
+
+            if best_target and best_target != s_node_id:
+                res = game.action_sail(s_ship.id, best_target)
+                if res.get("success"):
+                    return res
 
         # 5. PRAY if favor < 7
         if active.favor < 7:

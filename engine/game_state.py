@@ -377,7 +377,12 @@ class GameStateManager:
             target_node.is_burned = True
             self._log(f"⚔️ [{active.faction}] SACKED {target_node.name}! +{outcome.hoard_gained} Hoard, +{outcome.legend_gained} Legend. (Lost {outcome.crew_lost} crew)")
         else:
-            self._log(f"🛡️ [{active.faction}] raid on {target_node.name} was REPELLED! (Hits: {outcome.net_attacker_hits}/{outcome.defense_required}, Lost {outcome.crew_lost} crew)")
+            if outcome.guard_lost > 0:
+                target_node.defense = max(0, target_node.defense - outcome.guard_lost)
+                outcome.new_defense = target_node.defense
+                self._log(f"🛡️ [{active.faction}] raid on {target_node.name} was REPELLED! (Hits: {outcome.net_attacker_hits}/{outcome.defense_required}, Lost {outcome.crew_lost} crew. Guard reduced by {outcome.guard_lost} → {target_node.defense} defense remaining)")
+            else:
+                self._log(f"🛡️ [{active.faction}] raid on {target_node.name} was REPELLED! (Hits: {outcome.net_attacker_hits}/{outcome.defense_required}, Lost {outcome.crew_lost} crew)")
 
         self.actions_remaining -= 1
         self._check_auto_turn_advance()
@@ -440,7 +445,7 @@ class GameStateManager:
         return {"success": True}
 
     def _check_auto_turn_advance(self):
-        """Auto advance if no actions remaining and no active battle in progress."""
+        """Auto advance if no actions remaining, no active battle in progress, and active player is AI."""
         if self.active_battle is not None:
             if self.active_battle.state == "awaiting_choice":
                 return
@@ -448,7 +453,8 @@ class GameStateManager:
                 self._maybe_activate_deferred_battle()
                 return
             return
-        if self.actions_remaining <= 0:
+        active = self.get_active_player()
+        if self.actions_remaining <= 0 and active and active.is_ai:
             self._advance_turn()
 
     def respawn_ship_if_dead(self, ship: Ship):
@@ -471,6 +477,17 @@ class GameStateManager:
 
     def _advance_turn(self):
         """Advance player turn, round, and season. Also checks No-Elimination respawn."""
+        # Check flagship end-of-turn harbor bonus: +1 free crew if crew <= 3 and in harbor (isle)
+        concluding_player = self.get_active_player()
+        if concluding_player:
+            for loc_node_id, ship in self.get_player_ships(concluding_player.faction):
+                if ship.is_flagship and ship.crew <= 3:
+                    node = self.nodes.get(loc_node_id)
+                    if node and node.kind == NodeKind.ISLE.value:
+                        ship.crew = min(ship.max_crew, ship.crew + 1)
+                        self._log(f"⚓ [{concluding_player.faction}] {ship.get_name()} docked at {node.name} harbor (+1 free crew, now {ship.crew})!")
+                        break
+
         self.actions_remaining = 2
         self.active_player_idx = (self.active_player_idx + 1) % len(self.players)
 
@@ -515,6 +532,14 @@ class GameStateManager:
                     break
         if refreshed > 0:
             self._log(f"🔥 Refreshed {refreshed} Burned keep(s).")
+
+        replenished = 0
+        for node in self.nodes.values():
+            if node.kind == NodeKind.LAND.value and node.defense < node.max_defense:
+                node.defense = node.max_defense
+                replenished += 1
+        if replenished > 0:
+            self._log(f"🛡️ Guard replenished at {replenished} settlement(s).")
 
         for p in self.players:
             p.first_raid_defense_used = False

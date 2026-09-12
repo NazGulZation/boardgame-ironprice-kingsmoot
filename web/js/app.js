@@ -72,41 +72,53 @@ class KingsmootApp {
   }
 
   handleSelection(selection) {
-    // Left-click targeting: if user already has an active owned ship selected
-    if (this.currentSelection.type === 'ship') {
-      const activeFaction = this.gameState.active_faction;
-      let shipObj = null;
-      for (const n of Object.values(this.gameState.nodes)) {
-        const s = n.occupants.find(x => x.id === this.currentSelection.shipId);
-        if (s) { shipObj = s; break; }
-      }
-
-      if (shipObj && shipObj.faction === activeFaction) {
-        let targetNodeId = null;
-        if (selection.type === 'node') {
-          targetNodeId = selection.nodeId;
-        } else if (selection.type === 'ship' && selection.shipId !== this.currentSelection.shipId) {
-          targetNodeId = selection.nodeId;
-        }
-
-        if (targetNodeId && this.gameState.nodes[targetNodeId]) {
-          const targetNode = this.gameState.nodes[targetNodeId];
-          if (targetNode.kind === 'land') {
-            this.ui.enableReaveButton(this.currentSelection.shipId, targetNode);
-            this.currentSelection.targetLandId = targetNode.id;
-            delete this.currentSelection.targetSeaId;
-            return;
-          } else if (targetNode.kind === 'sea' || targetNode.kind === 'isle') {
-            const hasEnemy = targetNode.occupants && targetNode.occupants.some(s => s.faction !== activeFaction && s.crew > 0);
-            this.ui.enableSailButton(this.currentSelection.shipId, targetNode, hasEnemy);
-            this.currentSelection.targetSeaId = targetNode.id;
-            delete this.currentSelection.targetLandId;
-            return;
-          }
-        }
-      }
+    if (selection.type === 'ship') {
+      this.currentSelection = selection;
+      this.refresh();
+      return;
     }
 
+    if (this.currentSelection.type === 'ship' && selection.type === 'node') {
+      let shipObj = null, shipLoc = null;
+      for (const [nid, n] of Object.entries(this.gameState.nodes)) {
+        const s = n.occupants.find(x => x.id === this.currentSelection.shipId);
+        if (s) { shipObj = s; shipLoc = nid; break; }
+      }
+      const target = this.gameState.nodes[selection.nodeId];
+      if (shipObj && shipObj.faction === this.gameState.active_faction && target && target.id !== shipLoc) {
+        if (this.gameState.actions_remaining <= 0) {
+          this.ui.showToast("All actions spent. Click 'End Turn' to pass.", "info");
+          return;
+        }
+        if (shipObj.crew <= 0) {
+          const msg = (target.kind === 'land')
+            ? `Cannot reave with ${this.ui.getShipDisplayName(shipObj.id)}: 0 warriors on board!`
+            : `Cannot move ${this.ui.getShipDisplayName(shipObj.id)}: 0 warriors on board (Muster first)!`;
+          this.ui.showToast(msg, 'error');
+          return;
+        }
+        const desc = `${shipObj.faction} ${this.ui.getShipDisplayName(shipObj.id)}`;
+        const locName = this.gameState.nodes[shipLoc].name;
+        this.mapRenderer.selectedShipId = this.currentSelection.shipId;
+        const isLand = target.kind === 'land';
+        if (isLand) {
+          this.ui.enableReaveButton(shipObj.id, target);
+          this.currentSelection.targetLandId = target.id;
+          delete this.currentSelection.targetSeaId;
+        } else {
+          const hasEnemy = target.occupants && target.occupants.some(s => s.faction !== shipObj.faction && s.crew > 0);
+          this.ui.enableSailButton(shipObj.id, target, hasEnemy);
+          this.currentSelection.targetSeaId = target.id;
+          delete this.currentSelection.targetLandId;
+        }
+        this.ui.elements.selectedEntityName.textContent = `${desc} @ ${locName} ➔ ${isLand ? 'Target: ' : 'Destination: '}${target.name}`;
+        this.ui.elements.btnMuster.disabled = true;
+        this.mapRenderer.highlightSelection();
+        const el = document.getElementById(`node-g-${target.id}`);
+        if (el) el.classList.add(isLand ? 'reave-highlight' : 'target-highlight');
+        return;
+      }
+    }
     this.currentSelection = selection;
     this.refresh();
   }
@@ -118,6 +130,11 @@ class KingsmootApp {
     
     if (activePlayer.is_ai) {
       this.ui.showToast("Not your turn (Bot's turn).", "error");
+      return;
+    }
+
+    if (this.gameState.actions_remaining <= 0) {
+      this.ui.showToast("All actions spent. Click 'End Turn' to pass.", "info");
       return;
     }
 
@@ -164,6 +181,10 @@ class KingsmootApp {
 
     // Right-click on Green Land -> REAVE!
     if (targetNode.kind === 'land') {
+      if (shipObj.crew <= 0) {
+        this.ui.showToast(`Cannot reave with ${this.ui.getShipDisplayName(shipObj.id)}: 0 warriors on board!`, "error");
+        return;
+      }
       this.executeReaveDirect(selectedShipId, targetNodeId);
       return;
     }
@@ -172,6 +193,10 @@ class KingsmootApp {
     if (targetNode.kind === 'sea' || targetNode.kind === 'isle') {
       if (targetNodeId === shipLocation) {
         this.ui.showToast(`Ship is already at ${targetNode.name}.`, "info");
+        return;
+      }
+      if (shipObj.crew <= 0) {
+        this.ui.showToast(`Cannot move ${this.ui.getShipDisplayName(shipObj.id)}: 0 warriors on board (Muster first)!`, "error");
         return;
       }
       this.executeSail(selectedShipId, targetNodeId);
@@ -233,15 +258,17 @@ class KingsmootApp {
 
   async executeSail(shipId, targetNodeId) {
     try {
-      let currentLoc = null;
+      let currentLoc = null, shipObj = null;
       const activeFaction = this.gameState ? this.gameState.active_faction : 'Asha';
       if (this.gameState) {
         for (const [nid, node] of Object.entries(this.gameState.nodes)) {
-          if (node.occupants && node.occupants.some(s => s.id === shipId)) {
-            currentLoc = nid;
-            break;
-          }
+          const found = node.occupants && node.occupants.find(s => s.id === shipId);
+          if (found) { currentLoc = nid; shipObj = found; break; }
         }
+      }
+      if (shipObj && shipObj.crew <= 0) {
+        this.ui.showToast(`Cannot move ${this.ui.getShipDisplayName(shipId)}: 0 warriors on board (Muster first)!`, "error");
+        return;
       }
 
       const res = await API.sendAction('sail', {
@@ -254,6 +281,7 @@ class KingsmootApp {
         if (battle) {
           this.isClashAnimating = true;
           if (currentLoc && currentLoc !== targetNodeId) {
+            if (typeof SoundFX !== 'undefined') SoundFX.play('sail');
             await this.mapRenderer.animateShipSail(shipId, currentLoc, targetNodeId, activeFaction);
           }
           await this.mapRenderer.stageNavalClash(battle, this.gameState, res.state);
@@ -267,6 +295,7 @@ class KingsmootApp {
         }
 
         if (currentLoc && currentLoc !== targetNodeId) {
+          if (typeof SoundFX !== 'undefined') SoundFX.play('sail');
           await this.mapRenderer.animateShipSail(shipId, currentLoc, targetNodeId, activeFaction);
         }
 
@@ -378,6 +407,7 @@ class KingsmootApp {
     try {
       const res = await API.sendAction('end_turn');
       if (res.success) {
+        if (typeof SoundFX !== 'undefined') SoundFX.play('endTurn');
         this.gameState = res.state;
         this.currentSelection = { type: 'none' };
         this.refresh();
@@ -400,6 +430,7 @@ class KingsmootApp {
 
         // 1. Check if a SAIL action occurred -> animate ship sailing across nodes
         if (res.ship_id && res.from && res.to && res.from !== res.to) {
+          if (typeof SoundFX !== 'undefined') SoundFX.play('sail');
           await this.mapRenderer.animateShipSail(res.ship_id, res.from, res.to, activeFaction);
         }
 
@@ -511,13 +542,13 @@ class KingsmootApp {
         if (this.ui.elements.modalBattle) {
           this.ui.elements.modalBattle.style.display = 'none';
         }
-        // Dying animation runs AFTER the dice popup closes.
+        if (battle && this.mapRenderer) this.mapRenderer.animateBattleCasualties(battle);
         if (battle.state === 'finished' && (battle.sunk_ship_ids || []).length) {
           await this.mapRenderer.playShipSinking(battle);
         }
         this.refresh();
       }
-    }, activeFaction, playerFavor);
+    }, activeFaction, playerFavor, this.gameState);
   }
 
   async handleBattleAction(actionPayload) {
@@ -566,11 +597,8 @@ class KingsmootApp {
     const activeFaction = this.gameState.active_faction;
     const validNodes = [];
     for (const [nId, node] of Object.entries(this.gameState.nodes)) {
-      if (node.kind === 'sea') {
-        const hasEnemy = node.occupants && node.occupants.some(s => s.faction !== activeFaction && s.crew > 0);
-        if (hasEnemy) {
-          validNodes.push(nId);
-        }
+      if (node.kind === 'sea' && node.occupants && node.occupants.some(s => s.faction !== activeFaction && s.crew > 0)) {
+        validNodes.push(nId);
       }
     }
 
@@ -587,15 +615,19 @@ class KingsmootApp {
 
   async executeCallStorm(targetNodeId) {
     try {
+      const enemy = (this.gameState && this.gameState.nodes[targetNodeId])
+        ? this.gameState.nodes[targetNodeId].occupants.find(s => s.faction !== this.gameState.active_faction && s.crew > 0)
+        : null;
       const res = await API.sendAction('favor_miracle', {
         miracle_type: 'call_storm',
         target_node: targetNodeId
       });
 
       if (res.success) {
+        if (enemy && this.mapRenderer) this.mapRenderer.animateCrewLoss(enemy.id, 1, targetNodeId);
         this.gameState = res.state;
         this.refresh();
-        this.ui.showToast(`🌊 STORM INVOKED! Rival fleet at ${targetNodeId.toUpperCase()} battered by raging waves (-1 crew & pushed back)!`, "info");
+        this.ui.showToast(`≋ STORM INVOKED! Rival fleet at ${targetNodeId.toUpperCase()} battered by raging waves (-1 crew & pushed back)!`, "info");
       } else {
         this.ui.showToast(res.error || "Failed to invoke storm!", "error");
       }
@@ -606,52 +638,30 @@ class KingsmootApp {
   }
 
   bindEvents() {
-    // Action buttons
-    if (this.ui.elements.btnSail) {
-      this.ui.elements.btnSail.addEventListener('click', () => this.executeSailFromButton());
-    }
-    this.ui.elements.btnReave.addEventListener('click', () => this.executeReave());
-    this.ui.elements.btnMuster.addEventListener('click', () => this.executeMuster());
-    this.ui.elements.btnPray.addEventListener('click', () => this.executePray());
-    this.ui.elements.btnEndTurn.addEventListener('click', () => this.executeEndTurn());
-    this.ui.elements.btnAiStep.addEventListener('click', () => this.stepAi());
+    const el = this.ui.elements;
+    if (el.btnSail) el.btnSail.addEventListener('click', () => this.executeSailFromButton());
+    el.btnReave.addEventListener('click', () => this.executeReave());
+    el.btnMuster.addEventListener('click', () => this.executeMuster());
+    el.btnPray.addEventListener('click', () => this.executePray());
+    el.btnEndTurn.addEventListener('click', () => this.executeEndTurn());
+    el.btnAiStep.addEventListener('click', () => this.stepAi());
+    if (typeof SoundFX !== 'undefined') SoundFX.bindToggle();
+    if (el.btnCallStorm) el.btnCallStorm.addEventListener('click', () => this.handleCallStormClick());
 
-    if (this.ui.elements.btnCallStorm) {
-      this.ui.elements.btnCallStorm.addEventListener('click', () => this.handleCallStormClick());
-    }
-
-    // New Game Button & Modals
-    document.getElementById('btn-new-game').addEventListener('click', () => {
-      this.ui.elements.modalNewGame.style.display = 'flex';
-    });
-
-    document.getElementById('btn-close-new-game-modal').addEventListener('click', () => {
-      this.ui.elements.modalNewGame.style.display = 'none';
-    });
-
-    document.getElementById('btn-cancel-new-game').addEventListener('click', () => {
-      this.ui.elements.modalNewGame.style.display = 'none';
-    });
+    // Modals
+    const hideNewGame = () => { this.ui.elements.modalNewGame.style.display = 'none'; };
+    document.getElementById('btn-new-game').addEventListener('click', () => { this.ui.elements.modalNewGame.style.display = 'flex'; });
+    document.getElementById('btn-close-new-game-modal').addEventListener('click', hideNewGame);
+    document.getElementById('btn-cancel-new-game').addEventListener('click', hideNewGame);
 
     document.getElementById('btn-start-game-confirm').addEventListener('click', async () => {
       const seasonsRadio = document.querySelector('input[name="season-length"]:checked');
       const modeRadio = document.querySelector('input[name="player-mode"]:checked');
-      
       const maxSeasons = parseInt(seasonsRadio ? seasonsRadio.value : "5");
       const mode = modeRadio ? modeRadio.value : "solo";
+      const aiFactions = (mode === "solo") ? ["Euron", "Victarion"] : (mode === "ai_spectate" ? ["Asha", "Euron", "Victarion"] : []);
 
-      let aiFactions = [];
-      if (mode === "solo") {
-        aiFactions = ["Euron", "Victarion"];
-      } else if (mode === "ai_spectate") {
-        aiFactions = ["Asha", "Euron", "Victarion"];
-      }
-
-      const res = await API.startNewGame({
-        max_seasons: maxSeasons,
-        ai_factions: aiFactions
-      });
-
+      const res = await API.startNewGame({ max_seasons: maxSeasons, ai_factions: aiFactions });
       this.gameState = res.state;
       this.currentBattle = null;
       this.lastSeenHazardStr = null;
@@ -661,20 +671,11 @@ class KingsmootApp {
       this.refresh();
     });
 
-    // Rules Modal
-    document.getElementById('btn-rules').addEventListener('click', () => {
-      this.ui.elements.modalRules.style.display = 'flex';
-    });
+    const hideRules = () => { this.ui.elements.modalRules.style.display = 'none'; };
+    document.getElementById('btn-rules').addEventListener('click', () => { this.ui.elements.modalRules.style.display = 'flex'; });
+    document.getElementById('btn-close-rules-modal').addEventListener('click', hideRules);
+    document.getElementById('btn-close-rules-confirm').addEventListener('click', hideRules);
 
-    document.getElementById('btn-close-rules-modal').addEventListener('click', () => {
-      this.ui.elements.modalRules.style.display = 'none';
-    });
-
-    document.getElementById('btn-close-rules-confirm').addEventListener('click', () => {
-      this.ui.elements.modalRules.style.display = 'none';
-    });
-
-    // Play Again button
     document.getElementById('btn-play-again').addEventListener('click', () => {
       this.ui.elements.modalVictory.style.display = 'none';
       this.ui.elements.modalNewGame.style.display = 'flex';

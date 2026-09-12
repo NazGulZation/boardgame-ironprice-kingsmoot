@@ -131,9 +131,23 @@ Web UI will be live at: `http://localhost:8000`
    * Positioned SVG groups must NEVER carry a CSS-transform animation on the same element: nest an outer `<g transform="translate(...)">` (position) with an inner `<g class="...">` (animation), plus `transform-box: fill-box; transform-origin: center;` — otherwise the CSS transform overrides the SVG translate and the icon jumps to the origin.
    * `getShipCoordinates` must index into the FULL occupant list exactly like `renderShips()` (never filter out 0-crew hulls), or dock slots diverge from rendered badges.
 9. **Tactical Fleet Stacking & Respawn Mechanics**:
-   * **Dice Stacking**: Co-located friendly longships with $\ge 1$ crew in the same zone contribute $+1$ bonus tactical die to both Keep Reaves (`calculate_reave_dice_count`) and Naval Clashes (`calculate_naval_dice_count`).
-   * **What Is Dead May Never Die**: When any ship's crew is reduced to 0 (in naval combat or from Keep counter-attack retaliation during Reave), the ship immediately respawns at its home port with **1 crew** (if Flagship) or **0 crew** (if standard Longship). No faction is ever eliminated.
-   * **Thematic Ship Heraldry**: Ships feature authentic Lore names via `Ship.get_name()`: Asha's *Black Wind*, Euron's *Silence*, Victarion's *Iron Victory*, and *{Faction} Longship I / II*.
+    * **Dice Stacking**: Co-located friendly longships with $\ge 1$ crew in the same zone contribute $+1$ bonus tactical die to both Keep Reaves (`calculate_reave_dice_count`) and Naval Clashes (`calculate_naval_dice_count`).
+    * **What Is Dead May Never Die**: When any ship's crew is reduced to 0 (in naval combat or from Keep counter-attack retaliation during Reave), the ship immediately respawns at its home port with **1 crew** (if Flagship) or **0 crew** (if standard Longship). No faction is ever eliminated.
+    * **Thematic Ship Heraldry**: Ships feature authentic Lore names via `Ship.get_name()`: Asha's *Black Wind*, Euron's *Silence*, Victarion's *Iron Victory*, and *{Faction} Longship I / II*.
+
+10. **Settlement Garrison Attrition & Harbor Recovery**:
+    * **Garrison Defense Attrition**: When a Green Land keep raid fails, any net attacker hits (`hits - defender_blocks`) permanently reduce the settlement's defense rating (`defense = max(1, defense - net_hits)`), creating tactical opportunities for subsequent raiders.
+    * **Seasonal Replenishment**: All depleted settlement defenses replenish back to their original `max_defense` at the end of each Season.
+    * **Home Harbor Crew Recovery**: Any faction flagship docked at its home harbor (Pyke, Great Wyk, or Harlaw) at the end of its turn with $\le 3$ crew passively recovers $+1$ free crew (up to 3). Reaver longships do not receive passive harbor recovery.
+
+11. **SoundFX Audio Subsystem**:
+    * **Vanilla Web Audio Pipeline**: Standalone `SoundFX` class (`web/js/sound.js`) manages low-latency CC0 WAV audio playback without external libraries.
+    * **Clips & Dynamics**: Includes randomized sailing wave surges (`sail.wav`, `sail2.wav`, `sail3.wav`) with subtle pitch/volume jitter and an atmospheric end-turn warhorn sting (`end_turn.wav`).
+    * **Audio Mute & Persistence**: UI toggle (`#btn-sound-toggle`) persists mute state in `localStorage` (`ironprice_muted`) and lazily unlocks Web Audio on first user interaction to comply with browser autoplay policies.
+
+12. **Naval Battle Fleet Rows Display**:
+    * **Multi-Hull Battle Arena**: `BattleFleets` (`web/js/battle_fleets.js`) renders vertical fleet rows in the battle modal for every participating hull on both attacker and defender sides, preventing reinforcing ships from being hidden behind the flagship.
+    * **Real-Time Hull Status**: Live crew counts, flagship pennants, and sunk markers are displayed cleanly and updated dynamically through battle resolution.
 
 ---
 

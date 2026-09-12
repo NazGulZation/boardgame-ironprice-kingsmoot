@@ -73,6 +73,7 @@ class MapNode:
     x: int
     y: int
     defense: int = 0
+    max_defense: int = 0
     hoard: int = 0
     legend: int = 0
     special: str = ""
@@ -82,6 +83,10 @@ class MapNode:
     neutral_crew: int = 0
     image: Optional[str] = None
 
+    def __post_init__(self):
+        if self.max_defense == 0 and self.defense > 0:
+            self.max_defense = self.defense
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "id": self.id,
@@ -90,6 +95,7 @@ class MapNode:
             "x": self.x,
             "y": self.y,
             "defense": self.defense,
+            "max_defense": self.max_defense,
             "hoard": self.hoard,
             "legend": self.legend,
             "special": self.special,
@@ -168,6 +174,8 @@ class ReaveOutcome:
     origin_node: str = ""
     ship_id: str = ""
     dead_ship_ids: List[str] = field(default_factory=list)
+    guard_lost: int = 0
+    new_defense: int = 0
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -185,7 +193,9 @@ class ReaveOutcome:
             "favor_gained": self.favor_gained,
             "origin_node": self.origin_node,
             "ship_id": self.ship_id,
-            "dead_ship_ids": list(self.dead_ship_ids)
+            "dead_ship_ids": list(self.dead_ship_ids),
+            "guard_lost": self.guard_lost,
+            "new_defense": self.new_defense
         }
 
 
@@ -241,6 +251,10 @@ class BattleState:
     total_defender_crew_lost: int = 0
     sunk_ship_ids: List[str] = field(default_factory=list)
     deferred: bool = False  # True while attacker defers resolution to muster reinforcements
+    attacker_fleet_ids: List[str] = field(default_factory=list)
+    defender_fleet_ids: List[str] = field(default_factory=list)
+    attacker_fleet: List[Dict[str, Any]] = field(default_factory=list)
+    defender_fleet: List[Dict[str, Any]] = field(default_factory=list)
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -263,7 +277,11 @@ class BattleState:
             "total_attacker_crew_lost": self.total_attacker_crew_lost,
             "total_defender_crew_lost": self.total_defender_crew_lost,
             "sunk_ship_ids": list(self.sunk_ship_ids),
-            "deferred": self.deferred
+            "deferred": self.deferred,
+            "attacker_fleet_ids": list(self.attacker_fleet_ids),
+            "defender_fleet_ids": list(self.defender_fleet_ids),
+            "attacker_fleet": [dict(s) for s in self.attacker_fleet],
+            "defender_fleet": [dict(s) for s in self.defender_fleet]
         }
 
 
