@@ -225,4 +225,59 @@ renderer.handleNodeClick('bay');
 renderer.highlightSelection();
 console.log('  ✅ MapRenderer.highlightSelection() executed cleanly for selected node.');
 
+// Sunk-hull staging: limbo hulls (absent from live state) must re-appear
+// at the fight site from outcome snapshots so the sinking animation has
+// a visible badge to play on before the ship disappears.
+const limboPostState = JSON.parse(JSON.stringify(testState));
+limboPostState.nodes['bay'].occupants = limboPostState.nodes['bay'].occupants.filter(
+  s => s.id !== 'asha_reaver1'
+);
+const reaveOutcome = {
+  dead_ship_ids: ['asha_reaver1'],
+  dead_ships: [{ id: 'asha_reaver1', faction: 'Asha', is_flagship: false, crew: 0, max_crew: 4 }]
+};
+const raidTab = renderer.raidTableau(reaveOutcome, 'bay', limboPostState);
+if (!raidTab.nodes['bay'].occupants.some(s => s.id === 'asha_reaver1')) {
+  throw new Error('raidTableau failed to re-stage limbo hull from dead_ships snapshot');
+}
+console.log('  ✅ raidTableau re-stages limbo hulls from snapshots before sinking.');
+
+// Harbor recovery: the +N floater fires exactly once per turn advance.
+const harborCalls = [];
+renderer.animateCrewGain = (sid, gained, nid) => { harborCalls.push({ sid, gained, nid }); };
+const harborState = JSON.parse(JSON.stringify(testState));
+harborState.last_harbor_recovery = {
+  ship_id: 'asha_flagship', gained: 1, node_id: 'harlaw',
+  faction: 'Asha', season: 1, turn: 1
+};
+renderer.update(harborState);
+renderer.update(harborState);
+if (harborCalls.length !== 1 || harborCalls[0].sid !== 'asha_flagship' || harborCalls[0].gained !== 1) {
+  throw new Error(`Harbor floater fired ${harborCalls.length} times, expected exactly 1`);
+}
+console.log('  ✅ Harbor recovery floater fires exactly once per turn advance.');
+
+// Clash tableau: a reinforcing sail present at the site in nextState must
+// stay at the site (no snap-back to origin mid-animation).
+const clashPrev = JSON.parse(JSON.stringify(testState));
+const clashNext = JSON.parse(JSON.stringify(testState));
+clashNext.nodes['harlaw'].occupants = clashNext.nodes['harlaw'].occupants.filter(
+  s => s.id !== 'asha_reaver1'
+);
+clashNext.nodes['bay'].occupants.push(
+  { id: 'asha_reaver1', faction: 'Asha', is_flagship: false, crew: 2 }
+);
+const clashBattle = { node_id: 'bay', attacker_ship_id: 'asha_reaver2', defender_ship_id: 'vic_reaver1' };
+const clashTab = renderer._battleTableau(clashPrev, clashBattle, clashNext);
+const bayIds = clashTab.nodes['bay'].occupants.map(s => s.id);
+for (const sid of ['asha_reaver1', 'asha_reaver2', 'vic_reaver1']) {
+  if (!bayIds.includes(sid)) {
+    throw new Error(`_battleTableau lost ${sid} from the clash site`);
+  }
+}
+if (clashTab.nodes['harlaw'].occupants.some(s => s.id === 'asha_reaver1')) {
+  throw new Error('_battleTableau left the reinforcing ship at its origin');
+}
+console.log('  ✅ Clash tableau keeps reinforcing arrivals at the battle site.');
+
 console.log('🎉 ALL WEB UI & SVG RENDERER TESTS PASSED SUCCESSFULLY!');

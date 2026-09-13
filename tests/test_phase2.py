@@ -172,13 +172,14 @@ class TestPhase2Features(unittest.TestCase):
         self.assertIsNone(self.game.active_battle)
 
     def test_no_elimination_respawn(self):
-        """Test that wiped claimants respawn with flagship + 1 crew at home port on their turn."""
+        """Test that sunk ships wait in limbo and return at their owner's next turn."""
         euron = self.game.players[1]
-        # Strip all Euron's ships of crew
-        for _, s in self.game.get_player_ships("Euron"):
-            s.crew = 0
+        _, euron_flag = self.game.find_ship_location("euron_flagship")
+        euron_flag.crew = 0
+        self.game.send_ship_to_limbo(euron_flag)
+        self.assertEqual(self.game.find_ship_location("euron_flagship"), (None, None))
 
-        # Advance turn to Euron
+        # Advance turn to Euron (Asha -> Euron): limbo returns at turn start.
         self.game.active_player_idx = 0
         self.game.actions_remaining = 0
         self.game._advance_turn()
@@ -190,7 +191,7 @@ class TestPhase2Features(unittest.TestCase):
         self.assertEqual(loc, "pyke")
 
     def test_reave_casualty_respawn(self):
-        """Test that a ship wiped out during reave triggers WHAT IS DEAD MAY NEVER DIE."""
+        """Test that a ship wiped out during reave waits in limbo, then washes ashore."""
         # Setup Asha at seaS adjacent to shield with only 1 crew
         loc, flag = self.game.find_ship_location("asha_flagship")
         self.game._move_ship_to(flag, loc, "seaS")
@@ -204,10 +205,66 @@ class TestPhase2Features(unittest.TestCase):
         self.game.rng = DefenseWinsRNG()
         res = self.game.action_reave("asha_flagship", "shield")
         self.assertTrue(res.get("success"), msg=res.get("error"))
-        # Flagship died during reave -> washed ashore at Harlaw with 1 crew
+        # Flagship died during reave -> off-board limbo (not home yet).
+        self.assertIn("asha_flagship", res["outcome"]["dead_ship_ids"])
+        dead_ships = res["outcome"]["dead_ships"]
+        self.assertEqual(len(dead_ships), 1)
+        self.assertEqual(dead_ships[0]["id"], "asha_flagship")
+        self.assertEqual(dead_ships[0]["faction"], "Asha")
+        self.assertEqual(self.game.find_ship_location("asha_flagship"), (None, None))
+        self.assertIn("Asha", self.game.limbo)
+
+        # Cycle turns back to Asha: limbo returns at Asha's next turn start.
+        self.game._advance_turn()  # Asha -> Euron
+        self.game._advance_turn()  # Euron -> Victarion
+        self.game._advance_turn()  # Victarion -> Asha
         new_loc, updated_flag = self.game.find_ship_location("asha_flagship")
         self.assertEqual(new_loc, "harlaw")
         self.assertEqual(updated_flag.crew, 1)
+
+    def test_battle_wipe_records_sunk_snapshot(self):
+        """Test that a wiped battle fleet records sunk snapshots for the sinking animation."""
+        from engine.models import BattleState
+        _, vic_ship = self.game.find_ship_location("victarion_flagship")
+        vic_ship.crew = 0
+        self.game._move_ship_to(vic_ship, "greatwyk", "bay")
+        _, asha_flag = self.game.find_ship_location("asha_flagship")
+        self.game._move_ship_to(asha_flag, "harlaw", "bay")
+        self.game.active_player_idx = 0
+        self.game.actions_remaining = 2
+
+        battle = BattleState(
+            battle_id="t_snap", node_id="bay", origin_node_id="harlaw",
+            attacker_faction="Asha", defender_faction="Victarion",
+            attacker_ship_id="asha_flagship", defender_ship_id="victarion_flagship",
+        )
+        self.game.battle_manager.finalize_battle(battle)
+        self.assertEqual(battle.state, "finished")
+        self.assertIn("victarion_flagship", battle.sunk_ship_ids)
+        self.assertEqual([s["id"] for s in battle.sunk_ships], battle.sunk_ship_ids)
+        # Wiped hull is off-board (limbo), snapshot carries render fields.
+        self.assertEqual(self.game.find_ship_location("victarion_flagship"), (None, None))
+        snap = battle.sunk_ships[0]
+        self.assertEqual(snap["faction"], "Victarion")
+        self.assertIn("is_flagship", snap)
+        d = battle.to_dict()
+        self.assertEqual([s["id"] for s in d["sunk_ships"]], battle.sunk_ship_ids)
+
+    def test_sunk_reaver_returns_empty(self):
+        """Test that a sunk reaver returns at 0 crew on its owner's next turn."""
+        _, reaver = self.game.find_ship_location("asha_reaver1")
+        reaver.crew = 0
+        self.game.nodes["harlaw"].occupants.remove(reaver)
+        self.game.nodes["bay"].occupants.append(reaver)
+        self.game.send_ship_to_limbo(reaver)
+        self.assertEqual(self.game.find_ship_location("asha_reaver1"), (None, None))
+
+        self.game._advance_turn()  # Asha -> Euron
+        self.game._advance_turn()  # Euron -> Victarion
+        self.game._advance_turn()  # Victarion -> Asha
+        new_loc, updated = self.game.find_ship_location("asha_reaver1")
+        self.assertEqual(new_loc, "harlaw")
+        self.assertEqual(updated.crew, 0)
 
     def test_friendly_ships_stack_dice(self):
         """Test that co-located friendly ships stack dice in raids and naval battles."""

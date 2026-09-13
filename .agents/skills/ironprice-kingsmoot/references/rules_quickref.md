@@ -41,7 +41,7 @@ A 1v1v1 strategic Ironborn board game where three claimants vie to become King o
   * Faces: Kraken = 2 hits, Axe = 1 hit (2 for Victarion in `bay`), Shield = 1 block, Eye = drowned trigger.
   * `net_att = max(0, att.hits − def.blocks)`; `net_def = max(0, def.hits − att.blocks)`.
   * Total hits $\ge \text{Keep Defense}$: **Victory!** Plunder Hoard + Legend (Burned keeps: −1 Hoard min 1, −1 Legend min 0; Asha +1 Hoard if 0 crew lost). Keep becomes **Burned**. Counter-damage still applies.
-  * Total hits $< \text{Keep Defense}$: **Repelled!** Ship + auxiliaries share `min(total_crew, net_def)` casualties (primary first); guard weakens by `min(defense, net_att)` (see §5D). If crew reaches 0, the ship immediately respawns at home port (1 crew for flagship, 0 for standard longship).
+  * Total hits $< \text{Keep Defense}$: **Repelled!** Ship + auxiliaries share `min(total_crew, net_def)` casualties (primary first); guard weakens by `min(defense, net_att)` (see §5D). If crew reaches 0, the ship leaves the board into limbo and returns at its owner's next turn (1 crew for flagship, 0 for standard longship).
   * Every 2 crew lost → +1 Favor (cap 7).
 * **Controls**: Left-click ship -> **Right-click adjacent Green Land keep** to reave instantly.
 
@@ -92,9 +92,9 @@ A 1v1v1 strategic Ironborn board game where three claimants vie to become King o
 * Human attacker with actions left first chooses **Resolve NOW** (Round 1 rolls immediately) or **WAIT** (`deferred`: sail one more friendly hull in for extra dice; clash auto-erupts at 0 actions / End Turn). AI never defers; AI-vs-AI auto-resolves.
 * Both sides roll `ceil(crew/2)` per live hull + Victarion +1 / Euron-first-raid defender −1, cap 6 (Victarion double Axes in `bay`). `net = max(0, hits − enemy.blocks)`; damage spreads primary-first across the fleet.
 * Round 1 survivor line → `round1_decision`: Blood Price (Euron, once/battle), Favor reroll (2), Auto-Win (6), Retreat, or `continue_round` → Round 2 → finalize.
-* Retreat: Asha free; others lose 1 rearguard crew. Attacker retreat falls back to origin; defender retreat is pushed to an adjacent sea/isle. Wiped hulls are recorded in `sunk_ship_ids` BEFORE respawn.
+* Retreat: Asha free; others lose 1 rearguard crew. Attacker retreat falls back to origin; defender retreat is pushed to an adjacent sea/isle. Wiped hulls are recorded in `sunk_ship_ids` BEFORE limbo intake.
 * Completely wiping an enemy fleet plunders 50% of their Hoard (Silence as loser flagship is immune to cargo steal) and awards **+1 Legend**. Both-survive ties compare total net hits (attacker wins ties → defender pushed; defender wins → attacker falls back; exact tie → stalemate, attacker falls back).
-* **What Is Dead May Never Die**: When any ship's crew drops to 0, it respawns at its home port with **1 crew** (if Flagship) or **0 crew** (if standard longship). No faction is ever eliminated.
+* **What Is Dead May Never Die**: When any ship's crew drops to 0, it waits in off-board limbo and returns at its owner's next turn start at its home port with **1 crew** (if Flagship) or **0 crew** (if standard longship). No faction is ever eliminated.
 
 ### B. Drowned Favor Track (0–7) & Miracles
 * Gained via: free Pray action (+1), every 2 crew lost (+1 via `casualties_accumulator`), Storm Eye (+1), Blood Price Eyes (+1 each, costs 1 crew each).
@@ -110,7 +110,7 @@ A 1v1v1 strategic Ironborn board game where three claimants vie to become King o
 
 ### D. Season End & Harbor
 * Per isle (`pyke/harlaw/greatwyk/oldwyk/orkmont`): most-crew faction gains +1 Legend. Refresh ≤ 2 Burned keeps; replenish ALL defenses to `max_defense`; reset Euron first-raid flags.
-* Harbor: flagship ending its turn docked at ANY isle with ≤ 3 crew gains +1 crew (first qualifying hull only).
+* Harbor: from turn 2 onward, ONE ship already on its OWN home node gains +1 crew at the start of its turn (flagship first, else highest crew, capped at max_crew; just-returned limbo ships excluded).
 
 ---
 

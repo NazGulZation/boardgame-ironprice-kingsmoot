@@ -174,6 +174,7 @@ class ReaveOutcome:
     origin_node: str = ""
     ship_id: str = ""
     dead_ship_ids: List[str] = field(default_factory=list)
+    dead_ships: List[Dict[str, Any]] = field(default_factory=list)
     guard_lost: int = 0
     new_defense: int = 0
 
@@ -194,6 +195,7 @@ class ReaveOutcome:
             "origin_node": self.origin_node,
             "ship_id": self.ship_id,
             "dead_ship_ids": list(self.dead_ship_ids),
+            "dead_ships": [dict(s) for s in self.dead_ships],
             "guard_lost": self.guard_lost,
             "new_defense": self.new_defense
         }
@@ -250,6 +252,7 @@ class BattleState:
     total_attacker_crew_lost: int = 0
     total_defender_crew_lost: int = 0
     sunk_ship_ids: List[str] = field(default_factory=list)
+    sunk_ships: List[Dict[str, Any]] = field(default_factory=list)
     deferred: bool = False  # True while attacker defers resolution to muster reinforcements
     attacker_fleet_ids: List[str] = field(default_factory=list)
     defender_fleet_ids: List[str] = field(default_factory=list)
@@ -277,6 +280,7 @@ class BattleState:
             "total_attacker_crew_lost": self.total_attacker_crew_lost,
             "total_defender_crew_lost": self.total_defender_crew_lost,
             "sunk_ship_ids": list(self.sunk_ship_ids),
+            "sunk_ships": [dict(s) for s in self.sunk_ships],
             "deferred": self.deferred,
             "attacker_fleet_ids": list(self.attacker_fleet_ids),
             "defender_fleet_ids": list(self.defender_fleet_ids),

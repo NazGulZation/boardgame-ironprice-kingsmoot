@@ -332,14 +332,17 @@ class BattleManager:
                         self.gs._push_ship_back(s, battle.node_id)
                 battle.winner = attacker.faction
 
-            # Any 0-crew hulls left at the clash site sink then wash home.
+            # Any 0-crew hulls left at the clash site sink into limbo.
             sunk = []
+            sunk_ships = []
             for s in list(self.gs.nodes[battle.node_id].occupants):
                 if s.crew == 0 and (s.faction == attacker.faction or s.faction == defender.faction):
                     if s.id not in sunk:
                         sunk.append(s.id)
+                        sunk_ships.append(s.to_dict())
             # Also include recorded fleet ids that already left? No, only site hulls.
             battle.sunk_ship_ids = sunk
+            battle.sunk_ships = sunk_ships
             for s in list(self.gs.nodes[battle.node_id].occupants):
                 if s.crew == 0 and (s.faction == attacker.faction or s.faction == defender.faction):
                     self.gs.respawn_ship_if_dead(s)
@@ -442,13 +445,16 @@ class BattleManager:
                         if s.crew > 0:
                             self.gs._move_ship_to(s, battle.node_id, battle.origin_node_id)
 
-        # What Is Dead May Never Die: record wiped hulls BEFORE respawn moves
-        # them home, so the UI can sink them at the battle site first.
+        # What Is Dead May Never Die: record wiped hulls (+ snapshots) BEFORE
+        # limbo intake, so the UI can sink them at the battle site first.
         sunk = []
+        sunk_ships = []
         for s in att_fleet + def_fleet:
             if s.crew == 0 and s.id not in sunk:
                 sunk.append(s.id)
+                sunk_ships.append(s.to_dict())
         battle.sunk_ship_ids = sunk
+        battle.sunk_ships = sunk_ships
         for s in att_fleet + def_fleet:
             if s.crew == 0:
                 self.gs.respawn_ship_if_dead(s)

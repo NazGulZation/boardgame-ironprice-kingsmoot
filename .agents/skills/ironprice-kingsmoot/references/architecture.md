@@ -133,7 +133,7 @@ class ReaveOutcome:
     net_attacker_hits: int; defense_required: int; success: bool
     hoard_gained: int; legend_gained: int; crew_lost: int
     favor_gained: int = 0; origin_node: str = ""; ship_id: str = ""
-    dead_ship_ids: List[str] = ...  # recorded BEFORE respawn for sink animation
+    dead_ship_ids: List[str] = ...  # recorded BEFORE limbo intake for sink animation
     guard_lost: int = 0             # min(defense, net_hits) on failed raids
     new_defense: int = 0
 
@@ -160,7 +160,7 @@ class BattleState:
     hoard_plundered: int = 0; legend_awarded: int = 0
     blood_price_available: bool = True
     total_attacker_crew_lost: int = 0; total_defender_crew_lost: int = 0
-    sunk_ship_ids: List[str] = ...  # recorded BEFORE respawn
+    sunk_ship_ids: List[str] = ...  # recorded BEFORE limbo intake
     deferred: bool = False
     attacker_fleet_ids / defender_fleet_ids: List[str]  # every hull, never shrinks
     attacker_fleet / defender_fleet: List[dict]         # per-hull modal rows

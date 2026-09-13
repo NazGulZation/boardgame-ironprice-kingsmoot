@@ -33,6 +33,10 @@ class GameStateManager:
         self.last_battle_outcome: Optional[BattleState] = None
         self.logs: List[str] = []
         self.logger = get_logger("game_state")
+        # Sunk ships awaiting return at their owner's next turn start.
+        self.limbo: Dict[str, List[Ship]] = {}
+        # Latest home-harbor recovery for the +N crew-gain animation.
+        self.last_harbor_recovery: Optional[Dict[str, Any]] = None
 
         # Initialize Nodes
         self.nodes: Dict[str, MapNode] = self.map_engine.create_fresh_nodes()
@@ -356,11 +360,13 @@ class GameStateManager:
         ship_loss = min(ship.crew, rem_lost)
         ship.crew -= ship_loss
         rem_lost -= ship_loss
-        # Record wiped hulls BEFORE respawn moves them home, so the UI can
+        # Record wiped hulls (+ snapshots) BEFORE limbo intake, so the UI can
         # play the dying animation at the raid origin first.
         dead_ship_ids = []
+        dead_ships = []
         if ship.crew == 0:
             dead_ship_ids.append(ship.id)
+            dead_ships.append(ship.to_dict())
             self.respawn_ship_if_dead(ship)
 
         if rem_lost > 0 and aux_friendly:
@@ -370,10 +376,12 @@ class GameStateManager:
                 rem_lost -= take
                 if aux.crew == 0:
                     dead_ship_ids.append(aux.id)
+                    dead_ships.append(aux.to_dict())
                     self.respawn_ship_if_dead(aux)
                 if rem_lost <= 0:
                     break
         outcome.dead_ship_ids = dead_ship_ids
+        outcome.dead_ships = dead_ships
 
         if outcome.success:
             active.hoard += outcome.hoard_gained
@@ -464,52 +472,84 @@ class GameStateManager:
 
     def respawn_ship_if_dead(self, ship: Ship):
         """
-        WHAT IS DEAD MAY NEVER DIE:
-        If a ship reaches 0 crew, it immediately respawns at its home port:
-        - 1 crew if it is a Flagship
-        - 0 crew if it is a non-flagship war longship
+        WHAT IS DEAD MAY NEVER DIE (deferred):
+        A ship reduced to 0 crew is taken off the board into limbo and
+        returns at its owner's next turn start (Flagship 1 crew, reaver 0).
         """
         if ship.crew <= 0:
-            player = self._get_player_by_faction(ship.faction)
-            home_node = player.home_node if player else "pyke"
-            curr_node_id, _ = self.find_ship_location(ship.id)
-            if curr_node_id != home_node:
-                self._move_ship_to(ship, curr_node_id or home_node, home_node)
+            self.send_ship_to_limbo(ship)
+
+    def send_ship_to_limbo(self, ship: Ship):
+        """Removes a 0-crew ship from the board into off-board limbo."""
+        curr_node_id, _ = self.find_ship_location(ship.id)
+        if curr_node_id is not None and ship in self.nodes[curr_node_id].occupants:
+            self.nodes[curr_node_id].occupants.remove(ship)
+        waiting = self.limbo.setdefault(ship.faction, [])
+        if all(s.id != ship.id for s in waiting):
+            waiting.append(ship)
+            s_name = ship.get_name() if hasattr(ship, "get_name") else ship.id
+            self._log(f"💀 {s_name} was sunk! It will wash ashore when {ship.faction} takes their next turn.")
+
+    def return_limbo_ships(self, faction: str):
+        """Returns all limbo ships of a faction to its home node at turn start."""
+        waiting = self.limbo.pop(faction, [])
+        if not waiting:
+            return []
+        player = self._get_player_by_faction(faction)
+        home_node = player.home_node if player else "pyke"
+        for ship in waiting:
             ship.crew = 1 if ship.is_flagship else 0
+            if home_node in self.nodes:
+                self.nodes[home_node].occupants.append(ship)
             crew_str = "1 warrior" if ship.is_flagship else "empty hull (0 crew)"
             s_name = ship.get_name() if hasattr(ship, "get_name") else ship.id
             self._log(f"⚓ [WHAT IS DEAD MAY NEVER DIE] {s_name} washed ashore at {self.nodes[home_node].name} ({crew_str})!")
+        return waiting
 
     def _advance_turn(self):
-        """Advance player turn, round, and season. Also checks No-Elimination respawn."""
-        # Check flagship end-of-turn harbor bonus: +1 free crew if crew <= 3 and in harbor (isle)
-        concluding_player = self.get_active_player()
-        if concluding_player:
-            for loc_node_id, ship in self.get_player_ships(concluding_player.faction):
-                if ship.is_flagship and ship.crew <= 3:
-                    node = self.nodes.get(loc_node_id)
-                    if node and node.kind == NodeKind.ISLE.value:
-                        ship.crew = min(ship.max_crew, ship.crew + 1)
-                        self._log(f"⚓ [{concluding_player.faction}] {ship.get_name()} docked at {node.name} harbor (+1 free crew, now {ship.crew})!")
-                        break
-
+        """Advance player turn, round, and season. Limbo returns + harbor recovery."""
         self.actions_remaining = 2
         self.active_player_idx = (self.active_player_idx + 1) % len(self.players)
+        incoming = self.get_active_player()
+        self.last_harbor_recovery = None
 
-        # No-Elimination Respawn check for incoming active player
-        active = self.get_active_player()
-        total_crew = sum(s.crew for _, s in self.get_player_ships(active.faction))
-        if total_crew <= 0:
-            ships = self.get_player_ships(active.faction)
-            flagship = next((s for _, s in ships if s.is_flagship), None)
-            if flagship:
-                self.respawn_ship_if_dead(flagship)
+        # Deferred WHAT IS DEAD: incoming player's sunk ships wash ashore now.
+        just_returned = self.return_limbo_ships(incoming.faction)
+        just_returned_ids = {s.id for s in just_returned}
 
         # If wrapped back to first player (Asha), advance turn in season
         if self.active_player_idx == 0:
             self.turn_in_season += 1
             if self.turn_in_season > 3:
                 self._resolve_season_end()
+                return
+
+        # Home harbor recovery from turn 2 onward: the opening round stays
+        # recovery-free so the first player opens on equal footing.
+        # Incoming player's ONE ship already on its OWN home node gains +1
+        # crew (flagship first, else highest crew, cap max_crew). Ships
+        # washing ashore above are not eligible until their following turn,
+        # keeping the 1/0 return loadout exact.
+        if self.turn_in_season >= 2:
+            home_node = self.nodes.get(incoming.home_node)
+            if home_node:
+                candidates = [
+                    s for s in home_node.occupants
+                    if s.id not in just_returned_ids and s.faction == incoming.faction and s.crew < s.max_crew
+                ]
+                if candidates:
+                    flagships = [s for s in candidates if s.is_flagship]
+                    chosen = flagships[0] if flagships else max(candidates, key=lambda s: s.crew)
+                    chosen.crew = min(chosen.max_crew, chosen.crew + 1)
+                    self._log(f"⚓ [{incoming.faction}] {chosen.get_name()} docked at {home_node.name} harbor (+1 free crew, now {chosen.crew})!")
+                    self.last_harbor_recovery = {
+                        "ship_id": chosen.id,
+                        "gained": 1,
+                        "node_id": home_node.id,
+                        "faction": incoming.faction,
+                        "season": self.season,
+                        "turn": self.turn_in_season,
+                    }
 
     def _resolve_season_end(self):
         """Handle end-of-season scoring and transition."""
@@ -588,6 +628,8 @@ class GameStateManager:
             "last_battle_outcome": self.last_battle_outcome.to_dict() if self.last_battle_outcome else None,
             "players": [p.to_dict() for p in self.players],
             "nodes": {nid: node.to_dict() for nid, node in self.nodes.items()},
+            "limbo": {fac: [s.to_dict() for s in ships] for fac, ships in self.limbo.items()},
+            "last_harbor_recovery": dict(self.last_harbor_recovery) if self.last_harbor_recovery else None,
             "logs": self.logs[-20:]
         }
 

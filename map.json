@@ -66,7 +66,8 @@
       "kind": "sea",
       "x": 920,
       "y": 250,
-      "special": ""
+      "special": "",
+      "image": "assets/nodes/seaN.jpg"
     },
     {
       "id": "seaC",
@@ -74,7 +75,8 @@
       "kind": "sea",
       "x": 920,
       "y": 460,
-      "special": ""
+      "special": "",
+      "image": "assets/nodes/seaC.jpg"
     },
     {
       "id": "seaS",
@@ -82,7 +84,8 @@
       "kind": "sea",
       "x": 920,
       "y": 670,
-      "special": ""
+      "special": "",
+      "image": "assets/nodes/seaS.jpg"
     },
     {
       "id": "storm",
@@ -90,7 +93,8 @@
       "kind": "sea",
       "x": 720,
       "y": 620,
-      "special": "Roll Storm on entry"
+      "special": "Roll Storm on entry",
+      "image": "assets/nodes/storm.jpg"
     },
     {
       "id": "deepwood",

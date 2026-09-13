@@ -13,6 +13,7 @@ class MapRenderer {
     this.selectedNodeId = null;
     this.selectedShipId = null;
     this.animLock = 0;
+    this._lastHarborKey = null;
 
     this.edgesGroup = document.getElementById('edges-layer');
     this.nodesGroup = document.getElementById('nodes-layer');
@@ -175,6 +176,20 @@ class MapRenderer {
 
     // Re-apply selection highlights
     this.highlightSelection();
+
+    // One-shot home-harbor +1 floater (same visual as muster crew gain).
+    this.maybePlayHarborRecovery(this.gameState);
+  }
+
+  // Fires the harbor crew-gain floater exactly once per turn advance.
+  // Tableau states carry the same payload, so re-renders never refire.
+  maybePlayHarborRecovery(gameState) {
+    const rec = gameState ? gameState.last_harbor_recovery : null;
+    if (!rec) { this._lastHarborKey = null; return; }
+    const key = JSON.stringify(rec);
+    if (key === this._lastHarborKey) return;
+    this._lastHarborKey = key;
+    if (rec.gained > 0) this.animateCrewGain(rec.ship_id, rec.gained, rec.node_id);
   }
 
   renderShips() {
@@ -490,8 +505,10 @@ class MapRenderer {
 
   // Battle-time tableau from prevState with both hulls at the clash site,
   // so swords play where the fight happened even though nextState already
-  // pushed losers home (WHAT IS DEAD respawns).
-  _battleTableau(prevState, battle) {
+  // pushed losers home (WHAT IS DEAD respawns). Arrivals present at the
+  // site in nextState (e.g. a reinforcing sail) are merged in, so sailed
+  // ships never snap back to their origin mid-animation.
+  _battleTableau(prevState, battle, nextState = null) {
     const nodeId = battle.node_id;
     let tableau = prevState;
     try {
@@ -509,6 +526,19 @@ class MapRenderer {
       };
       moveToClash(battle.attacker_ship_id);
       moveToClash(battle.defender_ship_id);
+      const site = nextState && nextState.nodes ? nextState.nodes[nodeId] : null;
+      const arrivals = (site && site.occupants) || [];
+      for (const s of arrivals) {
+        if (!s || !s.id || !tableau.nodes[nodeId]) continue;
+        if (tableau.nodes[nodeId].occupants.some(o => o.id === s.id)) continue;
+        for (const [nid, n] of Object.entries(tableau.nodes)) {
+          if (nid !== nodeId && n.occupants) {
+            const i = n.occupants.findIndex(o => o.id === s.id);
+            if (i >= 0) { tableau.nodes[nid].occupants.splice(i, 1); break; }
+          }
+        }
+        tableau.nodes[nodeId].occupants.push(JSON.parse(JSON.stringify(s)));
+      }
     } catch (e) { tableau = prevState; }
     return tableau;
   }
@@ -521,7 +551,7 @@ class MapRenderer {
       if (nextState) this.update(nextState, { type: 'none' });
       return null;
     }
-    const tableau = (prevState && prevState.nodes) ? this._battleTableau(prevState, battle) : nextState;
+    const tableau = (prevState && prevState.nodes) ? this._battleTableau(prevState, battle, nextState) : nextState;
     this.update(tableau, { type: 'none' });
     try {
       await this.animateNavalClash(battle.node_id, battle.attacker_ship_id, battle.defender_ship_id);
@@ -529,6 +559,29 @@ class MapRenderer {
     } catch (e) { console.warn('Naval clash animation failed:', e); }
     if (nextState && !opts.alertOnly) this.update(nextState, { type: 'none' });
     return tableau;
+  }
+
+  // Moves wiped hulls back to the fight site for the sinking animation.
+  // Hulls already in limbo are re-staged from outcome snapshots, so the
+  // whirlpool always plays on a visible badge before the ship disappears.
+  _injectSunkenHulls(tableau, siteNodeId, ids, snapshots) {
+    if (!tableau || !tableau.nodes || !tableau.nodes[siteNodeId]) return;
+    const byId = {};
+    (snapshots || []).forEach(s => { if (s && s.id) byId[s.id] = s; });
+    (ids || []).forEach(sid => {
+      for (const [nid, n] of Object.entries(tableau.nodes)) {
+        if (nid !== siteNodeId && n.occupants) {
+          const i = n.occupants.findIndex(s => s.id === sid);
+          if (i >= 0) {
+            tableau.nodes[siteNodeId].occupants.push(...tableau.nodes[nid].occupants.splice(i, 1));
+            return;
+          }
+        }
+      }
+      if (byId[sid]) {
+        tableau.nodes[siteNodeId].occupants.push(JSON.parse(JSON.stringify(byId[sid])));
+      }
+    });
   }
 
   // Sinking plays AFTER the dice popup is dismissed: each sunk hull is
@@ -544,17 +597,7 @@ class MapRenderer {
     let tableau = null;
     try {
       tableau = JSON.parse(JSON.stringify(live));
-      for (const sid of sunk) {
-        for (const [nid, n] of Object.entries(tableau.nodes)) {
-          if (nid !== nodeId && n.occupants) {
-            const i = n.occupants.findIndex(s => s.id === sid);
-            if (i >= 0 && tableau.nodes[nodeId]) {
-              tableau.nodes[nodeId].occupants.push(...tableau.nodes[nid].occupants.splice(i, 1));
-              break;
-            }
-          }
-        }
-      }
+      this._injectSunkenHulls(tableau, nodeId, sunk, battle.sunk_ships);
     } catch (e) { return; }
     this.update(tableau, { type: 'none' });
     for (const sid of sunk) {
@@ -590,17 +633,7 @@ class MapRenderer {
     try {
       const tableau = JSON.parse(JSON.stringify(postState));
       if (!tableau.nodes[originNode]) return postState;
-      for (const sid of dead) {
-        for (const [nid, n] of Object.entries(tableau.nodes)) {
-          if (nid !== originNode && n.occupants) {
-            const i = n.occupants.findIndex(s => s.id === sid);
-            if (i >= 0) {
-              tableau.nodes[originNode].occupants.push(...tableau.nodes[nid].occupants.splice(i, 1));
-              break;
-            }
-          }
-        }
-      }
+      this._injectSunkenHulls(tableau, originNode, dead, reaveOutcome.dead_ships);
       return tableau;
     } catch (e) { return postState; }
   }
