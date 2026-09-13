@@ -15,8 +15,8 @@
  *   https://bigsoundbank.com/four-dice-on-wooden-table-s0582.html (1.60 s tumble).
  * - Naval clash: "Broken twigs #1" (#1299) + "Sword" (#0129) by Joseph SARDIN,
  *   https://bigsoundbank.com (0.92 s timber fracture & metal blade clash).
- * - Ship sinking: "Broken twigs #1" (#1299) + "Splash, Big #3" (#1521) by Joseph SARDIN,
- *   https://bigsoundbank.com (2.35 s hull snap & deep water plunge).
+ * - Ship sinking: "Broken twigs #1" (#1299) + "Thunder #3" (#3114) + "Sea: Waves" (#0266),
+ *   https://bigsoundbank.com (2.40 s violent hull fracture, deep bass rumble & ocean surge).
  * - Reave plunder: "Coins #2" (#0194) + "Sword" (#0129) by Joseph SARDIN,
  *   https://bigsoundbank.com (1.80 s cascading iron coins & blade strike).
  * - Storm call / hazard: "Thunder #3" (#3114) + "Sea: Waves" (#0266),
@@ -31,6 +31,10 @@
  *   https://opengameart.org/content/war-horns (2.80 s somber low horn drone).
  * - Tactile click: "Switch #5" (#0321) by Joseph SARDIN,
  *   https://bigsoundbank.com/switch-5-s0321.html (0.16 s iron/wood switch click).
+ * - Ship click: "Boat: foredeck" (#0694) + "Rowing slowly" (#1514) by Joseph SARDIN,
+ *   https://bigsoundbank.com (0.52 s timber creak & oar water lap).
+ * - Muster crew: "Sword" (#0129) + "Broken twigs #1" (#1299) by Joseph SARDIN + "War Horns" by Eldritch Grim,
+ *   (1.75 s shield strike, steel draw & rally horn call).
  *
  * All clips live under web/assets/sounds/.
  */
@@ -54,7 +58,9 @@ class SoundFX {
     card: 'assets/sounds/card.wav',
     victory: 'assets/sounds/victory.wav',
     defeat: 'assets/sounds/defeat.wav',
-    click: 'assets/sounds/click.wav'
+    click: 'assets/sounds/click.wav',
+    shipClick: 'assets/sounds/ship_click.wav',
+    muster: 'assets/sounds/muster.wav'
   };
 
   static volumes = {
@@ -69,7 +75,9 @@ class SoundFX {
     card: 0.35,
     victory: 0.42,
     defeat: 0.40,
-    click: 0.28
+    click: 0.28,
+    shipClick: 0.36,
+    muster: 0.42
   };
 
   static _pools = {};
@@ -177,7 +185,7 @@ class SoundFX {
       el.volume = Math.max(0.05, Math.min(1.0, jitterVol));
 
       // Subtle playback rate variation for natural organic feel
-      if (name === 'sail' || name === 'dice' || name === 'click') {
+      if (name === 'sail' || name === 'dice' || name === 'click' || name === 'shipClick') {
         el.playbackRate = 0.95 + Math.random() * 0.10;
       } else {
         el.playbackRate = 1.0;
@@ -224,7 +232,7 @@ class SoundFX {
         const target = e.target && e.target.closest(
           'button, .btn-action, .modal-close, .battle-action-btn, .choice-btn, .card-action-btn'
         );
-        if (target && target.id !== 'btn-sound-toggle') {
+        if (target && target.id !== 'btn-sound-toggle' && target.id !== 'btn-music-toggle') {
           SoundFX.play('click');
         }
       }, { passive: true });

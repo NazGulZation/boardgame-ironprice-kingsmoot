@@ -174,7 +174,8 @@
       "y": 820,
       "defense": 2,
       "hoard": 2,
-      "legend": 1
+      "legend": 1,
+      "image": "assets/nodes/fair.jpg"
     },
     {
       "id": "oldtown",
@@ -194,7 +195,8 @@
       "y": 820,
       "defense": 3,
       "hoard": 3,
-      "legend": 1
+      "legend": 1,
+      "image": "assets/nodes/banefort.jpg"
     },
     {
       "id": "arbor",
@@ -214,7 +216,8 @@
       "y": 820,
       "defense": 3,
       "hoard": 3,
-      "legend": 1
+      "legend": 1,
+      "image": "assets/nodes/flint.jpg"
     }
   ],
   "edges": [

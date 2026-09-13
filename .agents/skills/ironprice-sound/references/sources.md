@@ -15,7 +15,7 @@ Record every shipped clip's source URL, author, and license in the
 | `end_turn.wav` (2.60 s war horn) | "War Horns", https://opengameart.org/content/war-horns | Eldritch Grim | CC0 | `slice` mode: deep resonant war horn (@24.6 s), mono, peak 0.45, soft ease-in/out |
 | `dice.wav` (1.60 s dice roll) | "Four dice on wooden table" (#0582), https://bigsoundbank.com/four-dice-on-wooden-table-s0582.html | Joseph SARDIN | CC0 | `slice` mode: dice throw window (@4.9 s), mono, peak 0.45, natural tumble |
 | `clash.wav` (0.92 s naval clash) | "Broken twigs #1" (#1299) + "Sword" (#0129) | Joseph SARDIN | CC0 | `mix` mode: timber fracture + metallic blade clash, mono, peak 0.45 |
-| `sink.wav` (2.35 s ship sinking) | "Broken twigs #1" (#1299) + "Splash, Big #3" (#1521) | Joseph SARDIN | CC0 | `mix` mode: hull fracture + heavy water plunge, mono, peak 0.45 |
+| `sink.wav` (2.40 s ship sinking) | "Broken twigs #1" (#1299) + "Thunder #3" (#3114) + "Sea: Waves" (#0266) | Joseph SARDIN / DenisChardonnet | CC0 | `mix` mode: violent hull fracture + deep sub-bass rumble + ocean plunge, mono, peak 0.45 |
 | `reave.wav` (1.80 s reave plunder) | "Coins #2" (#0194) + "Sword" (#0129) | Joseph SARDIN | CC0 | `mix` mode: cascading coins + iron blade strike, mono, peak 0.45 |
 | `storm.wav` (3.20 s storm call) | "Thunder #3" (#3114) + "Sea: Waves" (#0266) | Joseph SARDIN / DenisChardonnet | CC0 | `mix` mode: low thunderclap + ocean gale surge, mono, peak 0.45 |
 | `favor.wav` (2.20 s drowned favor) | "Sea: Waves" (#0266), https://bigsoundbank.com/sea-waves-s0266.html | DenisChardonnet | CC0 | `slice` mode: eerie deep water murmur (@26.5 s), mono, peak 0.38, raised-cosine fades |
@@ -23,6 +23,17 @@ Record every shipped clip's source URL, author, and license in the
 | `victory.wav` (3.00 s war horn fanfare) | "War Horns", https://opengameart.org/content/war-horns | Eldritch Grim | CC0 | `slice` mode: triumphant war horn flourish (@35.8 s), mono, peak 0.45 |
 | `defeat.wav` (2.80 s somber war horn) | "War Horns", https://opengameart.org/content/war-horns | Eldritch Grim | CC0 | `slice` mode: somber low horn drone (@40.8 s), mono, peak 0.42 |
 | `click.wav` (0.16 s tactile click) | "Switch #5" (#0321), https://bigsoundbank.com/switch-5-s0321.html | Joseph SARDIN | CC0 | `slice` mode: mechanical iron/wood switch click (@0.18 s), mono, peak 0.35 |
+| `ship_click.wav` (0.52 s ship click) | "Boat: foredeck" (#0694) + "Rowing slowly" (#1514) | Joseph SARDIN | CC0 | `mix` mode: timber creak + oar water lap, mono, peak 0.36 |
+| `muster.wav` (1.75 s muster crew) | "Sword" (#0129) + "Broken twigs #1" (#1299) + "War Horns" | Joseph SARDIN / Eldritch Grim | CC0 | `mix` mode: shield knock + blade draw + rally horn call, mono, peak 0.42 |
+
+## Shipped Background Soundtracks (`web/assets/music/`)
+
+| Track | Title | Composer | License | Mood / Description |
+|---|---|---|---|---|
+| `track1_vikings_at_shore.mp3` | "Vikings at Shore" | Eldritch Grim | CC0 (OGA #156806) | Low ocean swell, coastal wind, and somber Nordic strings |
+| `track2_something_approaches.mp3` | "Something Approaches" | Eldritch Grim | CC0 (OGA #156806) | Tense atmospheric percussion and low rhythmic drone |
+| `track3_ditty_at_camp.mp3` | "Ditty at the Viking Camp" | Eldritch Grim | CC0 (OGA #156806) | Acoustic Ironborn camp/tavern harbor melody |
+| `track4_pirates_incoming.mp3` | "Pirates Incoming" | Eldritch Grim | CC0 (OGA #161636) | Resonant tribal war drums and rhythmic battle pulse |
 
 ## BigSoundBank (primary — CC0, no login, static direct links)
 

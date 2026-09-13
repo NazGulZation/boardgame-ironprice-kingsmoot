@@ -74,6 +74,7 @@ class KingsmootApp {
 
   handleSelection(selection) {
     if (selection.type === 'ship') {
+      if (typeof SoundFX !== 'undefined') SoundFX.play('shipClick');
       this.currentSelection = selection;
       this.refresh();
       return;
@@ -356,16 +357,9 @@ class KingsmootApp {
   }
 
   async executeMuster() {
-    let nodeId = null;
-    let shipId = null;
-
-    if (this.currentSelection.type === 'node') {
-      nodeId = this.currentSelection.nodeId;
-    } else if (this.currentSelection.type === 'ship') {
-      nodeId = this.currentSelection.nodeId;
-      shipId = this.currentSelection.shipId;
-    }
-
+    const sel = this.currentSelection;
+    const nodeId = (sel.type === 'node' || sel.type === 'ship') ? sel.nodeId : null;
+    const shipId = (sel.type === 'ship') ? sel.shipId : null;
     if (!nodeId) {
       this.ui.showToast("Click your home port or ship to muster crew!", "error");
       return;
@@ -375,6 +369,7 @@ class KingsmootApp {
       const res = await API.sendAction('muster', { node_id: nodeId, ship_id: shipId });
 
       if (res.success) {
+        if (typeof SoundFX !== 'undefined') SoundFX.play('muster');
         if (this.mapRenderer) this.mapRenderer.animateMusterGains(res.crew_gains, res.node_id || nodeId);
         this.gameState = res.state;
         this.refresh();
@@ -434,7 +429,10 @@ class KingsmootApp {
           if (this.mapRenderer) this.mapRenderer.animateStormHit(res.ship_id, res.target_node);
           this.ui.showToast(`≋ STORM INVOKED! ${activeFaction} batters rival fleet at ${(res.target_node || 'sea').toUpperCase()} (-1 crew & pushed back)!`, "info");
         }
-        if (res.action === 'muster' && this.mapRenderer) this.mapRenderer.animateMusterGains(res.crew_gains, res.node_id);
+        if (res.action === 'muster') {
+          if (typeof SoundFX !== 'undefined') SoundFX.play('muster');
+          if (this.mapRenderer) this.mapRenderer.animateMusterGains(res.crew_gains, res.node_id);
+        }
 
         // 1. Check if a SAIL action occurred -> animate ship sailing across nodes
         if (res.ship_id && res.from && res.to && res.from !== res.to) {
@@ -655,21 +653,18 @@ class KingsmootApp {
     });
     if (el.btnAiStep) el.btnAiStep.addEventListener('click', () => this.stepAi());
     if (typeof SoundFX !== 'undefined') SoundFX.bindToggle();
+    if (typeof MusicPlayer !== 'undefined') MusicPlayer.bindToggle();
     if (el.btnCallStorm) el.btnCallStorm.addEventListener('click', () => this.handleCallStormClick());
 
     // Modals
     const hideNewGame = () => { this.ui.elements.modalNewGame.style.display = 'none'; };
     document.getElementById('btn-new-game').addEventListener('click', () => { this.ui.elements.modalNewGame.style.display = 'flex'; });
-    document.getElementById('btn-close-new-game-modal').addEventListener('click', hideNewGame);
-    document.getElementById('btn-cancel-new-game').addEventListener('click', hideNewGame);
+    ['btn-close-new-game-modal', 'btn-cancel-new-game'].forEach(id => document.getElementById(id)?.addEventListener('click', hideNewGame));
 
     document.getElementById('btn-start-game-confirm').addEventListener('click', async () => {
-      const seasonsRadio = document.querySelector('input[name="season-length"]:checked');
-      const modeRadio = document.querySelector('input[name="player-mode"]:checked');
-      const maxSeasons = parseInt(seasonsRadio ? seasonsRadio.value : "5");
-      const mode = modeRadio ? modeRadio.value : "solo";
+      const maxSeasons = parseInt(document.querySelector('input[name="season-length"]:checked')?.value || "5");
+      const mode = document.querySelector('input[name="player-mode"]:checked')?.value || "solo";
       const aiFactions = (mode === "solo") ? ["Euron", "Victarion"] : (mode === "ai_spectate" ? ["Asha", "Euron", "Victarion"] : []);
-
       const res = await API.startNewGame({ max_seasons: maxSeasons, ai_factions: aiFactions });
       this.gameState = res.state;
       this.currentBattle = null;
@@ -682,8 +677,7 @@ class KingsmootApp {
 
     const hideRules = () => { this.ui.elements.modalRules.style.display = 'none'; };
     document.getElementById('btn-rules').addEventListener('click', () => { this.ui.elements.modalRules.style.display = 'flex'; });
-    document.getElementById('btn-close-rules-modal').addEventListener('click', hideRules);
-    document.getElementById('btn-close-rules-confirm').addEventListener('click', hideRules);
+    ['btn-close-rules-modal', 'btn-close-rules-confirm'].forEach(id => document.getElementById(id)?.addEventListener('click', hideRules));
 
     document.getElementById('btn-play-again').addEventListener('click', () => {
       this.ui.elements.modalVictory.style.display = 'none';
