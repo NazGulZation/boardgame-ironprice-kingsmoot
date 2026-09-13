@@ -241,7 +241,7 @@ class GameStateManager:
             self.actions_remaining -= 1
             self._log(f"🌊 [{active.faction}] invokes CALL STORM (4 Favor)! {enemy_ship.id} at {node.name} loses 1 crew and is battered back!")
             self._check_auto_turn_advance()
-            return {"success": True, "miracle": "call_storm", "favor": active.favor}
+            return {"success": True, "miracle": "call_storm", "favor": active.favor, "action": "call_storm", "target_node": target_node, "ship_id": enemy_ship.id}
 
         return {"success": False, "error": f"Unknown miracle type: {miracle_type}"}
 
@@ -275,6 +275,7 @@ class GameStateManager:
         active.hoard -= cost
         crew_to_add = 3
         assigned_details = []
+        crew_gains = []
 
         target_ship = None
         if ship_id:
@@ -287,6 +288,8 @@ class GameStateManager:
             take = min(target_ship.max_crew - target_ship.crew, crew_to_add)
             target_ship.crew += take
             crew_to_add -= take
+            if take > 0:
+                crew_gains.append({"ship_id": target_ship.id, "gained": take, "node_id": node_id})
             assigned_details.append(f"{target_ship.id} (now {target_ship.crew})")
 
         if crew_to_add > 0:
@@ -295,6 +298,8 @@ class GameStateManager:
                     take = min(s.max_crew - s.crew, crew_to_add)
                     s.crew += take
                     crew_to_add -= take
+                    if take > 0:
+                        crew_gains.append({"ship_id": s.id, "gained": take, "node_id": node_id})
                     assigned_details.append(f"{s.id} (now {s.crew})")
                     if crew_to_add <= 0:
                         break
@@ -308,7 +313,7 @@ class GameStateManager:
         self._log(f"🛡️ [{active.faction}] mustered 3 crew at {node.name} for {cost} Hoard -> {detail_str}.")
 
         self._check_auto_turn_advance()
-        return {"success": True, "node_id": node_id, "cost": cost}
+        return {"success": True, "action": "muster", "node_id": node_id, "cost": cost, "crew_gains": crew_gains}
 
     def action_reave(self, ship_id: str, target_land_id: str) -> Dict[str, Any]:
         """Reave an adjacent Green Land keep."""

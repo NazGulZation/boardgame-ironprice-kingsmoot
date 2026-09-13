@@ -20,7 +20,7 @@ This skill provides the architecture guide, coding standards, UI conventions, an
    * No node_modules, npm builds, bundlers, React, or Vue.
    * Frontend consists of standard HTML5, CSS3, and Vanilla JavaScript with SVG 1.1 graphics.
 3. **Browser Cache Busting**:
-   * Whenever editing `.js` or `.css` files in `web/`, always bump the query version string (e.g. `?v=1.7`) in `web/index.html`.
+   * Whenever editing `.js` or `.css` files in `web/`, always bump the query version string (e.g. `?v=2.52`) in `web/index.html`.
    * `server.py` sends `Cache-Control: no-cache, no-store, must-revalidate`.
 4. **Interaction Separation (Prevent Misclicks)**:
    * **Left-Click**: Inspect node, select ship, open detail cards.
@@ -78,6 +78,28 @@ Web UI will be live at: `http://localhost:8000`
 └── references/
     ├── rules_quickref.md             # Complete game rules & faction data
     └── architecture.md               # Technical architecture, models, and UI layout
+
+engine/                               # Authoritative rules (headless, zero-dependency)
+├── models.py                         # Ship / MapNode / PlayerState / ReaveOutcome / BattleState / StormHazardResult
+├── dice.py                           # Custom d6 pool: ceil(crew/2) dice, Kraken=2 hits, Axe=1, Shield=1 block, Eye=drowned
+├── map_engine.py                     # Graph topology, adjacency, reachable-nodes by ship speed
+├── combat.py                         # Reave + naval round resolution, Blood Price, favor reroll/autowin, loot
+├── battle_manager.py                 # Naval clash lifecycle: awaiting_choice → deferred → round1/round2 → finished
+├── sail_manager.py                   # Sail + Storm Belt hazard + deferred-reinforcement window
+├── game_state.py                     # GameStateManager: actions, seasons, harbor recovery, respawn, scoring
+├── logger.py                         # Persistent file & error logger (logs/game.log, logs/error.log)
+└── ai.py                             # SimpleAI heuristic agent for bot opponents
+
+web/
+├── index.html                        # Single-page markup & modals (battle / reave / victory / rules / new-game)
+├── css/ (6 files)                    # style / panels / dice_tray / modals / battle / animations
+├── js/ (10 files)                    # api / app / battle_fleets / dice_gate / map_animator /
+│                                     #   map_builder / map_renderer / naval_choice / sound / ui
+└── assets/sounds/ (14 clips)         # Full SFX library — see ironprice-sound skill
+
+tests/ (51 tests)                     # test_engine / test_phase2 / test_deferred_battle /
+                                      #   test_garrison_and_harbor / test_server / test_sound /
+                                      #   test_web_ui + js_ui_validator.js
 ```
 
 * For in-depth rules, claimants, and dice math, see [Rules Quick Reference](./references/rules_quickref.md).
@@ -130,24 +152,53 @@ Web UI will be live at: `http://localhost:8000`
    * Animation lock: all `MapRenderer` tween delegates run inside `guarded()` (balanced `animLock` counter); board left-clicks (`handleNodeClick` / `handleShipClick` / `clearSelection`) return early while `isAnimating`, otherwise `renderShips()` rebuilds badge elements mid-flight and running tweens break on detached nodes. Orchestrated sequences must route through the guarded delegates, never `this.animator.*` directly.
    * Positioned SVG groups must NEVER carry a CSS-transform animation on the same element: nest an outer `<g transform="translate(...)">` (position) with an inner `<g class="...">` (animation), plus `transform-box: fill-box; transform-origin: center;` — otherwise the CSS transform overrides the SVG translate and the icon jumps to the origin.
    * `getShipCoordinates` must index into the FULL occupant list exactly like `renderShips()` (never filter out 0-crew hulls), or dock slots diverge from rendered badges.
-9. **Tactical Fleet Stacking & Respawn Mechanics**:
-    * **Dice Stacking**: Co-located friendly longships with $\ge 1$ crew in the same zone contribute $+1$ bonus tactical die to both Keep Reaves (`calculate_reave_dice_count`) and Naval Clashes (`calculate_naval_dice_count`).
-    * **What Is Dead May Never Die**: When any ship's crew is reduced to 0 (in naval combat or from Keep counter-attack retaliation during Reave), the ship immediately respawns at its home port with **1 crew** (if Flagship) or **0 crew** (if standard Longship). No faction is ever eliminated.
-    * **Thematic Ship Heraldry**: Ships feature authentic Lore names via `Ship.get_name()`: Asha's *Black Wind*, Euron's *Silence*, Victarion's *Iron Victory*, and *{Faction} Longship I / II*.
+ 9. **Tactical Fleet Stacking & Respawn Mechanics**:
+    * **Dice Stacking**: Co-located friendly hulls with $\ge 1$ crew in the fight node add their own crew-dice pool (`ceil(crew/2)` each) to both Keep Reaves (`resolve_greenland_reave`) and Naval Clashes (`calculate_naval_dice_count`). Total pool capped at 6 dice. Victarion adds a further $+1$ (Iron Captain); a defender facing Euron's flagship on its first raid of the season suffers $-1$ (min 1).
+    * **What Is Dead May Never Die**: When any ship's crew is reduced to 0 (in naval combat or from Keep counter-attack retaliation during Reave), the ship immediately respawns at its home port with **1 crew** (if Flagship) or **0 crew** (if standard Longship). No faction is ever eliminated. Backend records `sunk_ship_ids` / `dead_ship_ids` BEFORE respawn so the UI can sink hulls at the fight site first.
+    * **Thematic Ship Heraldry**: Ships feature authentic Lore names via `Ship.get_name()`: Asha's *Black Wind*, Euron's *Silence*, Victarion's *Iron Victory*, and *Iron Longship I / II*.
 
-10. **Settlement Garrison Attrition & Harbor Recovery**:
-    * **Garrison Defense Attrition**: When a Green Land keep raid fails, any net attacker hits (`hits - defender_blocks`) permanently reduce the settlement's defense rating (`defense = max(1, defense - net_hits)`), creating tactical opportunities for subsequent raiders.
-    * **Seasonal Replenishment**: All depleted settlement defenses replenish back to their original `max_defense` at the end of each Season.
-    * **Home Harbor Crew Recovery**: Any faction flagship docked at its home harbor (Pyke, Great Wyk, or Harlaw) at the end of its turn with $\le 3$ crew passively recovers $+1$ free crew (up to 3). Reaver longships do not receive passive harbor recovery.
+ 10. **Settlement Garrison Attrition & Harbor Recovery**:
+    * **Garrison Defense Attrition**: When a Green Land keep raid fails but lands unblocked hits, the guard is weakened by `guard_lost = min(defense, net_attacker_hits)` (`defense = max(0, defense - guard_lost)`), creating openings for subsequent raiders.
+    * **Seasonal Reset**: At season end all depleted settlement defenses replenish to `max_defense`; up to 2 Burned keeps are refreshed (unburned); Euron's first-raid flag resets.
+    * **Home Harbor Crew Recovery**: At end of its turn, a faction flagship docked at ANY isle node with $\le 3$ crew passively recovers $+1$ crew (first qualifying flagship only). Reaver longships do not receive passive recovery.
 
-11. **SoundFX Audio Subsystem**:
-    * **Vanilla Web Audio Pipeline**: Standalone `SoundFX` class (`web/js/sound.js`) manages low-latency CC0 WAV audio playback without external libraries.
-    * **Clips & Dynamics**: Includes randomized sailing wave surges (`sail.wav`, `sail2.wav`, `sail3.wav`) with subtle pitch/volume jitter and an atmospheric end-turn warhorn sting (`end_turn.wav`).
+ 11. **SoundFX Audio Subsystem (see `ironprice-sound` skill)**:
+    * **Vanilla Web Audio Pipeline**: Standalone `SoundFX` class (`web/js/sound.js`, 12 keys) manages low-latency CC0 WAV playback without external libraries. Voice pools (`MAX_VOICES=4`), volume/pitch jitter, lazy `unlock()` on first gesture.
+    * **Full 14-clip library**: `sail/sail2/sail3` (waves), `end_turn` (horn), `dice`, `clash`, `sink`, `reave`, `storm`, `favor`, `card`, `victory`, `defeat`, `click` under `web/assets/sounds/`.
     * **Audio Mute & Persistence**: UI toggle (`#btn-sound-toggle`) persists mute state in `localStorage` (`ironprice_muted`) and lazily unlocks Web Audio on first user interaction to comply with browser autoplay policies.
 
 12. **Naval Battle Fleet Rows Display**:
     * **Multi-Hull Battle Arena**: `BattleFleets` (`web/js/battle_fleets.js`) renders vertical fleet rows in the battle modal for every participating hull on both attacker and defender sides, preventing reinforcing ships from being hidden behind the flagship.
     * **Real-Time Hull Status**: Live crew counts, flagship pennants, and sunk markers are displayed cleanly and updated dynamically through battle resolution.
+
+13. **Deferred Clash — Resolve NOW vs WAIT (`naval_choice.js` + `battle_manager.py`)**:
+    * A human attacker who sails willingly into an enemy sea/isle with actions remaining enters `awaiting_choice` (no dice rolled yet; modal shows "resolve NOW or WAIT").
+    * `POST /api/action {"action_type":"battle_choice","battle_id":..,"choice":"defer"}` parks the clash as `deferred`; remaining actions can sail a second friendly hull into the node (`reinforced:true`, $+1$ bonus die pool via stacking). Sailing elsewhere or opening a second battle is blocked.
+    * The deferred clash auto-erupts (Round 1 roll) when actions hit 0 or on End Turn (`activate_deferred_battle`). AI attackers never defer — human-vs-AI rolls Round 1 immediately, AI-vs-AI auto-resolves both rounds headlessly.
+    * Frontend: `NavalChoice.updateBanner` drives `#deferred-banner`; `refresh()` must never pop the dice modal while deferred; `updateActionButtons` keeps End Turn enabled but disables Call Storm while pending.
+
+14. **Dice Math & Faction Traits (authoritative: `engine/dice.py`, `engine/combat.py`)**:
+    * **Custom d6**: Kraken ×2 = 2 hits, Axe ×2 = 1 hit (2 if Victarion double-axes in `bay`), Shield ×1 = 1 block, Eye ×1 = drowned trigger.
+    * **Pool**: `ceil(crew/2)` per hull, + aux-hull pools, Victarion $+1$, Euron-first-raid defender $-1$, cap 6. Reave attacker pool = flagship/reaver crew dice + bonuses; defender pool = `min(max(defense,1),6)`. Naval pools symmetric per side.
+    * **Reave loot**: success needs `net_hits >= defense`. Burned keeps pay `-1 Hoard (min 1)`, `-1 Legend (min 0)`. Asha winning with 0 crew lost gains $+1$ Hoard (Kraken's Daughter). Casualties feed Favor: every 2 crew lost → $+1$ Favor (cap 7) via `apply_casualties_and_favor`.
+    * **Flagships**: *Silence* (speed 3, Blood Price once/battle: reroll any dice, each new Eye = $+1$ Favor / $-1$ crew, defender $-1$ die on Euron's first raid/round-1); *Iron Victory* (capacity 6, speed 1 if crew ≥ 5 else 2, $+1$ die always, double Axes in `bay`); *Black Wind* (speed 2, Storm Belt immune — only this hull, not all Asha ships — free retreat, Asha plunder bonus).
+    * **Miracles**: map `call_storm` = 4 Favor (sea zone only, 1 crew damage + pushback, costs 1 action, blocked while clash pending); battle `miracle_cost:2` = reroll own dice; `miracle_cost:6` = 5 unblockable hits. `Pray` is FREE ($+1$ Favor, cap 7, costs 1 action). Retreat: Asha free, others sacrifice 1 rearguard crew.
+    * **Storm Belt** (all hulls except `asha_flagship`): Kraken/Axe = safe, Shield = pushed back to origin (action still spent), Eye = $-1$ crew / $+1$ Favor then continue into storm.
+    * **Naval loot**: wiping a fleet steals 50% of loser's Hoard (Silence immune as loser flagship) + $+1$ Legend to winner.
+
+15. **Season End & Scoring (`game_state.py`)**:
+    * Per isle (`pyke/harlaw/greatwyk/oldwyk/orkmont`): faction with most crew present gains $+1$ Legend.
+    * Refresh ≤ 2 Burned keeps, replenish ALL defenses to `max_defense`, reset Euron first-raid flags, then `season += 1`.
+    * Game over after `max_seasons`: winner = sort by `(legend, hoard, favor, successful_raids)` descending — NOT the old `Legend×2+Hoard+Favor×1.5` formula still quoted in stale docs.
+
+16. **REST Actions (`server.py` — `ai_factions`, not `ai_players`)**:
+    * `POST /api/new_game {"max_seasons":5,"ai_factions":["Euron","Victarion"]}`; `GET /api/state|/api/map_data|/api/logs?lines=N`.
+    * `POST /api/action`: `sail {ship_id,target_node}` (speed-gated, land targets rejected) | `muster {node_id,ship_id?}` (2 Hoard at Great Wyk else 3, full-capacity guard) | `reave {ship_id,target_land_id}` (adjacency + crew>0) | `battle_round {battle_id,retreat,use_blood_price,reroll_dice_indices,miracle_cost:2|6,continue_round}` | `battle_choice {battle_id,choice:resolve_now|defer}` | `favor_miracle {miracle_type:"call_storm",target_node}` | `pray {}` | `end_turn {}`. Sail/muster/reave/pray/call_storm are blocked while `awaiting_choice`; sail-while-`deferred` only reinforces.
+    * `POST /api/ai_step {}` advances exactly one bot action.
+
+17. **Frontend Module Map & Quota Pressure**:
+    * `map_builder.js` (static SVG defs/edges/nodes) / `map_renderer.js` (ships, halos, clash/raid/sink tweens via `map_animator.js`) / `ui.js` (HUD, modals, dice tray) / `app.js` (event routing, AI pacing, reave/naval orchestration) / `dice_gate.js` (human click-to-roll gates) / `naval_choice.js` (NOW-vs-WAIT patches) / `battle_fleets.js` (fleet rows) / `api.js` / `sound.js`.
+    * Quota watch (700-line limit, `tests/test_file_size.py`): `app.js` ~627 and `ui.js` ~620 are closest — put new UI logic in `dice_gate.js` / `naval_choice.js` / `battle_fleets.js` patches, never inline into `app.js`/`ui.js`. Bump `?v=` on every JS/CSS touch. Binary audio is exempt.
 
 ---
 
@@ -159,11 +210,11 @@ When implementing subsequent game phases, follow the phase specifications:
   * Implemented: Movement, Reave combat dice, Muster with overflow, Pray, End Turn, 3 AI claimants, Web UI.
   * Spec: [MVP-Phase-1-Tactical-Engine.md](../../../MVP-Phase-1-Tactical-Engine.md).
 * **Phase 2: Combat & Favor** (Completed)
-  * Implemented: Direct naval battle when entering enemy ship sea zone, tactical dice rolling with net damage, retreat mechanics.
-  * Implemented: Drowned Favor track (0–7), tactical reroll (2 Favor), Call Storm (4 Favor) and Auto-Win (6 Favor) miracles.
-  * Implemented: Asymmetric flagships (Silence speed 3 & Blood Price, Iron Victory 6 capacity & Iron Captain bonus, Black Wind storm immunity & free retreat).
-  * Implemented: Co-located friendly fleet dice stacking for Reaves and Naval battles.
-  * Implemented: Storm Belt hazards, no-elimination respawn ("What is dead may never die" with 1 crew flagship / 0 crew reaver, triggered in battle and reave wipeout), southern map re-routing, and persistent logging subsystem (`logs/game.log`, `logs/error.log`).
+  * Implemented: Willing-attacker naval clash choice (resolve NOW or WAIT/defer for reinforcements), 2-round fleet battles with retreat/stalemate/pushback, tactical dice rolling with net damage, Blood Price / reroll (2) / auto-win (6) / Call Storm (4) miracles.
+  * Implemented: Drowned Favor track (0–7) via free Pray, casualty conversion (2 crew → 1 Favor), Storm Eye, and Blood Price Eyes.
+  * Implemented: Asymmetric flagships (Silence speed 3 & Blood Price & first-raid −1 defender die, Iron Victory capacity 6 & Iron Captain +1 die & double Axes in bay & speed 1 at 5+ crew, Black Wind storm immunity & free retreat & Asha plunder bonus).
+  * Implemented: Co-located friendly fleet dice stacking (each hull contributes ceil(crew/2), cap 6) for Reaves and Naval battles.
+  * Implemented: Storm Belt hazards (Black Wind only immune), no-elimination respawn ("What is dead may never die" with 1 crew flagship / 0 crew reaver, triggered in battle and reave wipeout), southern map re-routing (`bay–storm–seaS` chain, `seaS`→fair/banefort/flint), garrison attrition + seasonal replenishment, flagship harbor recovery, and persistent logging subsystem (`logs/game.log`, `logs/error.log`).
   * Spec: [MVP-Phase-2-Combat-Favor.md](../../../MVP-Phase-2-Combat-Favor.md).
 * **Phase 3: Tide & Faction Cards** (Next)
   * Add: 30 Tide event deck (Winter storms, Merchant convoys, Kraken sightings).

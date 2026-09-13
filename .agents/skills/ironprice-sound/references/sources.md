@@ -9,10 +9,20 @@ Record every shipped clip's source URL, author, and license in the
 
 | Game clip | Source | Author | License | Remix |
 |---|---|---|---|---|
-| `sail.wav` (2.2 s wave spray) | "Sea: Waves" (#0266), https://bigsoundbank.com/sea-waves-s0266.html | DenisChardonnet | CC0 | `sea` mode: wave spray window (@27.0 s), mono, −7 dB peak (0.45), cosine fades |
-| `sail2.wav` (2.2 s rolling surf) | "Sea Waves" (#0698), https://bigsoundbank.com/sea-waves-s0698.html | Joseph SARDIN | CC0 | `sea` mode: rolling surf window (@11.0 s), mono, −7 dB peak (0.45), cosine fades |
-| `sail3.wav` (2.2 s bow wave whoosh) | "Sea Waves" (#0698), https://bigsoundbank.com/sea-waves-s0698.html | Joseph SARDIN | CC0 | `sea` mode: bow wave whoosh window (@31.0 s), mono, −7 dB peak (0.45), cosine fades |
-| `end_turn.wav` (3.55 s ship horn) | "Ocean Liner Horn #1" (#0261), https://bigsoundbank.com/horn-of-a-ship-1-s0261.html | Joseph SARDIN | CC0 | `ship` mode: 1.8 s blast crossfaded (350 ms) to natural release tail (5.5–7.6 s), −7 dB peak (0.45), 80 ms soft ease-in |
+| `sail.wav` (2.2 s wave spray) | "Sea: Waves" (#0266), https://bigsoundbank.com/sea-waves-s0266.html | DenisChardonnet | CC0 | `sea` mode: wave spray window (@27.0 s), mono, peak 0.45, cosine fades |
+| `sail2.wav` (2.2 s rolling surf) | "Sea Waves" (#0698), https://bigsoundbank.com/sea-waves-s0698.html | Joseph SARDIN | CC0 | `sea` mode: rolling surf window (@11.0 s), mono, peak 0.45, cosine fades |
+| `sail3.wav` (2.2 s bow wave whoosh) | "Sea Waves" (#0698), https://bigsoundbank.com/sea-waves-s0698.html | Joseph SARDIN | CC0 | `sea` mode: bow wave whoosh window (@31.0 s), mono, peak 0.45, cosine fades |
+| `end_turn.wav` (2.60 s war horn) | "War Horns", https://opengameart.org/content/war-horns | Eldritch Grim | CC0 | `slice` mode: deep resonant war horn (@24.6 s), mono, peak 0.45, soft ease-in/out |
+| `dice.wav` (1.60 s dice roll) | "Four dice on wooden table" (#0582), https://bigsoundbank.com/four-dice-on-wooden-table-s0582.html | Joseph SARDIN | CC0 | `slice` mode: dice throw window (@4.9 s), mono, peak 0.45, natural tumble |
+| `clash.wav` (0.92 s naval clash) | "Broken twigs #1" (#1299) + "Sword" (#0129) | Joseph SARDIN | CC0 | `mix` mode: timber fracture + metallic blade clash, mono, peak 0.45 |
+| `sink.wav` (2.35 s ship sinking) | "Broken twigs #1" (#1299) + "Splash, Big #3" (#1521) | Joseph SARDIN | CC0 | `mix` mode: hull fracture + heavy water plunge, mono, peak 0.45 |
+| `reave.wav` (1.80 s reave plunder) | "Coins #2" (#0194) + "Sword" (#0129) | Joseph SARDIN | CC0 | `mix` mode: cascading coins + iron blade strike, mono, peak 0.45 |
+| `storm.wav` (3.20 s storm call) | "Thunder #3" (#3114) + "Sea: Waves" (#0266) | Joseph SARDIN / DenisChardonnet | CC0 | `mix` mode: low thunderclap + ocean gale surge, mono, peak 0.45 |
+| `favor.wav` (2.20 s drowned favor) | "Sea: Waves" (#0266), https://bigsoundbank.com/sea-waves-s0266.html | DenisChardonnet | CC0 | `slice` mode: eerie deep water murmur (@26.5 s), mono, peak 0.38, raised-cosine fades |
+| `card.wav` (1.10 s card play) | "Great Page that Turns #1" (#0362), https://bigsoundbank.com/great-page-that-turns-1-s0362.html | Joseph SARDIN | CC0 | `slice` mode: heavy parchment flutter (@0.55 s), mono, peak 0.40 |
+| `victory.wav` (3.00 s war horn fanfare) | "War Horns", https://opengameart.org/content/war-horns | Eldritch Grim | CC0 | `slice` mode: triumphant war horn flourish (@35.8 s), mono, peak 0.45 |
+| `defeat.wav` (2.80 s somber war horn) | "War Horns", https://opengameart.org/content/war-horns | Eldritch Grim | CC0 | `slice` mode: somber low horn drone (@40.8 s), mono, peak 0.42 |
+| `click.wav` (0.16 s tactile click) | "Switch #5" (#0321), https://bigsoundbank.com/switch-5-s0321.html | Joseph SARDIN | CC0 | `slice` mode: mechanical iron/wood switch click (@0.18 s), mono, peak 0.35 |
 
 ## BigSoundBank (primary — CC0, no login, static direct links)
 

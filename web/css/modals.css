@@ -592,3 +592,24 @@
   border-top: 1px solid #283a4f;
   padding-top: 14px;
 }
+
+/* Click-to-roll gate: big pulsing Roll prompt + face-down dice */
+.btn-roll-pulse {
+  width: 100%;
+  font-size: 1.15rem;
+  font-weight: 900;
+  letter-spacing: 1px;
+  padding: 14px 18px;
+  animation: rollPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes rollPulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(243, 195, 72, 0.5); transform: scale(1); }
+  50% { box-shadow: 0 0 22px rgba(243, 195, 72, 0.95); transform: scale(1.02); }
+}
+
+.dice-face.dice-hidden {
+  background: linear-gradient(180deg, #232f40 0%, #121a26 100%);
+  border-style: dashed;
+  opacity: 0.85;
+}

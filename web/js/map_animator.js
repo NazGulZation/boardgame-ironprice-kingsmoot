@@ -595,4 +595,91 @@ class MapAnimator {
       }, 1300);
     });
   }
+
+  _resolveShipPos(shipId, nodeId = null, customPos = null) {
+    if (customPos) return customPos;
+    const rendered = this.getRenderedShipPosition(shipId);
+    const actualNode = this.findShipNode(shipId);
+    if (nodeId && this.isShipAtNode(nodeId, shipId)) {
+      return rendered || this.getShipCoordinates(nodeId, shipId);
+    } else if (nodeId) {
+      return this.getShipCoordinates(nodeId, shipId);
+    }
+    return rendered || (actualNode ? this.getShipCoordinates(actualNode, shipId) : null);
+  }
+
+  animateCrewGain(shipId, gained, nodeId = null, customPos = null) {
+    if (!shipId || !gained || gained <= 0) return Promise.resolve();
+    return new Promise((resolve) => {
+      const shipPos = this._resolveShipPos(shipId, nodeId, customPos);
+      if (!shipPos) { resolve(); return; }
+      const outerG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      outerG.setAttribute('transform', `translate(${shipPos.x.toFixed(1)}, ${(shipPos.y - 28).toFixed(1)})`);
+      const innerG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      innerG.setAttribute('class', 'floating-crew-gain');
+      const pill = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      pill.setAttribute('class', 'floating-crew-gain-pill');
+      pill.setAttribute('x', '-28');
+      pill.setAttribute('y', '-14');
+      pill.setAttribute('width', '56');
+      pill.setAttribute('height', '28');
+      pill.setAttribute('rx', '14');
+      innerG.appendChild(pill);
+      const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      txt.setAttribute('class', 'floating-crew-gain-text');
+      txt.setAttribute('x', '0');
+      txt.setAttribute('y', '0');
+      txt.textContent = `+${gained} ⚒`;
+      innerG.appendChild(txt);
+      outerG.appendChild(innerG);
+      this.overlaysGroup.appendChild(outerG);
+      setTimeout(() => {
+        if (outerG.parentNode) outerG.parentNode.removeChild(outerG);
+        resolve();
+      }, 1300);
+    });
+  }
+
+  animateStormStrike(shipId, nodeId = null, customPos = null) {
+    return new Promise((resolve) => {
+      const shipPos = shipId ? this._resolveShipPos(shipId, nodeId, customPos)
+        : (nodeId ? this.getNodeCenter(nodeId) : null);
+      if (!shipPos) { resolve(); return; }
+      const outerG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      outerG.setAttribute('transform', `translate(${shipPos.x.toFixed(1)}, ${shipPos.y.toFixed(1)})`);
+      const boltG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      boltG.setAttribute('class', 'storm-strike-bolt');
+      const bolt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      bolt.setAttribute('text-anchor', 'middle');
+      bolt.setAttribute('dominant-baseline', 'central');
+      bolt.setAttribute('font-size', '52');
+      bolt.textContent = '⚡';
+      boltG.appendChild(bolt);
+      outerG.appendChild(boltG);
+      const splash = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      splash.setAttribute('class', 'storm-splash-icon');
+      splash.setAttribute('y', '26');
+      splash.setAttribute('text-anchor', 'middle');
+      splash.setAttribute('dominant-baseline', 'central');
+      splash.setAttribute('font-size', '40');
+      splash.textContent = '≋';
+      outerG.appendChild(splash);
+      this.overlaysGroup.appendChild(outerG);
+      const ring = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      ring.setAttribute('class', 'storm-splash-ring');
+      ring.setAttribute('cx', shipPos.x.toFixed(1));
+      ring.setAttribute('cy', shipPos.y.toFixed(1));
+      ring.setAttribute('r', '14');
+      this.overlaysGroup.appendChild(ring);
+      requestAnimationFrame(() => {
+        ring.setAttribute('r', '72');
+        ring.style.opacity = '0';
+      });
+      setTimeout(() => {
+        if (outerG.parentNode) outerG.parentNode.removeChild(outerG);
+        if (ring.parentNode) ring.parentNode.removeChild(ring);
+        resolve();
+      }, 950);
+    });
+  }
 }

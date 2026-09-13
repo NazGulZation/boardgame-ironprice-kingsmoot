@@ -22,7 +22,6 @@ class UIController {
       btnPray: document.getElementById('btn-action-pray'),
       btnCallStorm: document.getElementById('btn-action-callstorm'),
       btnEndTurn: document.getElementById('btn-action-endturn'),
-      btnAiStep: document.getElementById('btn-ai-step'),
       trayActionsTracker: document.getElementById('tray-actions-tracker'),
       trayActionsCount: document.getElementById('tray-actions-count'),
 
@@ -201,7 +200,6 @@ class UIController {
 
     this.elements.panelActiveIndicator.textContent = isHumanTurn ? 'Your Turn' : 'Bot Turn';
     this.elements.panelActiveIndicator.style.background = isHumanTurn ? '#2ecc71' : '#8e44ad';
-    this.elements.btnAiStep.style.display = activePlayer.is_ai && !gameState.game_over ? 'block' : 'none';
 
     // Selection details
     const sailSmall = this.elements.btnSail ? this.elements.btnSail.querySelector('small') : null;
@@ -215,8 +213,8 @@ class UIController {
       this.elements.selectedEntityName.textContent = (isHumanTurn && gameState.actions_remaining <= 0)
         ? 'All actions spent — Click End Turn'
         : 'None (Select Longship or Island Haven)';
-      this.elements.btnSail.disabled = true;
-      this.elements.btnReave.disabled = true;
+      if (this.elements.btnSail) this.elements.btnSail.disabled = true;
+      if (this.elements.btnReave) this.elements.btnReave.disabled = true;
       this.elements.btnMuster.disabled = true;
     } else if (selection.type === 'ship') {
       const nodeObj = gameState.nodes[selection.nodeId];
@@ -227,8 +225,8 @@ class UIController {
 
       const isOwned = shipObj && (shipObj.faction === activePlayer.faction);
       const hasCrew = shipObj && shipObj.crew > 0;
-      this.elements.btnSail.disabled = !isHumanTurn || !isOwned || !hasCrew || gameState.actions_remaining <= 0;
-      this.elements.btnReave.disabled = true; // Reave enabled when clicking target land
+      if (this.elements.btnSail) this.elements.btnSail.disabled = !isHumanTurn || !isOwned || !hasCrew || gameState.actions_remaining <= 0;
+      if (this.elements.btnReave) this.elements.btnReave.disabled = true; // Reave enabled when clicking target land
       this.elements.btnMuster.disabled = !isHumanTurn || (nodeObj.control !== activePlayer.faction && nodeObj.id !== activePlayer.home_node) || activePlayer.hoard < (nodeObj.id === 'greatwyk' ? 2 : 3) || gameState.actions_remaining <= 0;
       if (sailSmall && !hasCrew && isOwned) {
         sailSmall.textContent = 'Muster crew at port before sailing';
@@ -240,34 +238,45 @@ class UIController {
       // Muster enabled if controlled isle
       const canMuster = isHumanTurn && (nodeObj.control === activePlayer.faction || nodeObj.id === activePlayer.home_node) && activePlayer.hoard >= (nodeObj.id === 'greatwyk' ? 2 : 3) && gameState.actions_remaining > 0;
       this.elements.btnMuster.disabled = !canMuster;
-      this.elements.btnSail.disabled = true;
-      this.elements.btnReave.disabled = true;
+      if (this.elements.btnSail) this.elements.btnSail.disabled = true;
+      if (this.elements.btnReave) this.elements.btnReave.disabled = true;
     }
 
-    // Pray, Call Storm & End Turn
+    // Pray, Call Storm & single swapping footer (Pass / Step Rival)
     this.elements.btnPray.disabled = !isHumanTurn || activePlayer.favor >= 7 || gameState.actions_remaining <= 0;
     if (this.elements.btnCallStorm) {
       this.elements.btnCallStorm.disabled = !isHumanTurn || activePlayer.favor < 4 || gameState.actions_remaining <= 0 || gameState.active_battle !== null;
     }
-    this.elements.btnEndTurn.disabled = !isHumanTurn || gameState.game_over || gameState.active_battle !== null;
-    const actionsSpent = isHumanTurn && gameState.actions_remaining <= 0;
-    this.elements.btnEndTurn.innerHTML = actionsSpent
-      ? '<span class="endturn-tray-icon">⚔</span><div class="endturn-tray-labels"><span class="endturn-tray-main">END TURN</span><small class="endturn-tray-sub">Actions Spent</small></div>'
-      : '<span class="endturn-tray-icon">⚓</span><div class="endturn-tray-labels"><span class="endturn-tray-main">PASS TURN</span><small class="endturn-tray-sub">Hold Tide</small></div>';
-    this.elements.btnEndTurn.classList.toggle('btn-endturn-ready', actionsSpent);
-    if (this.elements.trayActionsTracker) this.elements.trayActionsTracker.classList.toggle('spent', actionsSpent);
+    const footerBtn = this.elements.btnEndTurn, spent = isHumanTurn && gameState.actions_remaining <= 0;
+    footerBtn.disabled = gameState.game_over || gameState.active_battle !== null;
+    if (!isHumanTurn) {
+      footerBtn.innerHTML = '<span class="endturn-tray-icon">👁</span><div class="endturn-tray-labels"><span class="endturn-tray-main">Step Rival Turn</span><small class="endturn-tray-sub">Bot Acting</small></div>';
+      footerBtn.classList.remove('btn-warning', 'btn-endturn-ready');
+      footerBtn.classList.add('btn-ai', 'btn-endturn-ai');
+    } else {
+      footerBtn.innerHTML = spent
+        ? '<span class="endturn-tray-icon">⚔</span><div class="endturn-tray-labels"><span class="endturn-tray-main">END TURN</span><small class="endturn-tray-sub">Actions Spent</small></div>'
+        : '<span class="endturn-tray-icon">⚓</span><div class="endturn-tray-labels"><span class="endturn-tray-main">PASS TURN</span><small class="endturn-tray-sub">Hold Tide</small></div>';
+      footerBtn.classList.remove('btn-ai', 'btn-endturn-ai');
+      footerBtn.classList.add('btn-warning');
+      footerBtn.classList.toggle('btn-endturn-ready', spent);
+    }
+    if (this.elements.trayActionsTracker) this.elements.trayActionsTracker.classList.toggle('spent', spent);
     if (this.elements.trayActionsCount) {
       this.elements.trayActionsCount.textContent = `${gameState.actions_remaining} / 2`;
-      this.elements.trayActionsCount.classList.toggle('spent', actionsSpent);
+      this.elements.trayActionsCount.classList.toggle('spent', spent);
     }
   }
 
   enableReaveButton(shipId, targetLandNode) {
+    if (!this.elements.btnReave) return;
     this.elements.btnReave.disabled = false;
-    this.elements.btnReave.querySelector('small').textContent = `Target: ${targetLandNode.name} (Def: ${targetLandNode.defense})`;
+    const smallEl = this.elements.btnReave.querySelector('small');
+    if (smallEl) smallEl.textContent = `Target: ${targetLandNode.name} (Def: ${targetLandNode.defense})`;
   }
 
   enableSailButton(shipId, targetNode, hasEnemy = false) {
+    if (!this.elements.btnSail) return;
     this.elements.btnSail.disabled = false;
     const actionDesc = hasEnemy ? `⚔️ Attack Fleet at ${targetNode.name}` : `Sail to ${targetNode.name}`;
     const smallEl = this.elements.btnSail.querySelector('small');

@@ -105,9 +105,36 @@ class TestPhase2Features(unittest.TestCase):
         self.assertTrue(res.get("success"), res.get("error"))
         self.assertEqual(asha.favor, 0)
         self.assertEqual(euron_ship.crew, initial_crew - 1)
+        # Animation payload: target + victim ship for storm-strike FX
+        self.assertEqual(res.get("target_node"), "bay")
+        self.assertEqual(res.get("ship_id"), "euron_flagship")
+        self.assertEqual(res.get("miracle"), "call_storm")
         # Euron pushed back
         new_loc, _ = self.game.find_ship_location("euron_flagship")
         self.assertNotEqual(new_loc, "bay")
+
+    def test_muster_returns_per_ship_gains(self):
+        """Muster returns per-ship crew gains for +N floaters (reserve excluded)."""
+        self.game.active_player_idx = 0  # Asha
+        self.game.actions_remaining = 2
+        asha = self.game.players[0]
+        asha.hoard = 10
+        _, flag = self.game.find_ship_location("asha_flagship")
+        # Ensure flagship is at home and below capacity
+        self.game._move_ship_to(flag, self.game.find_ship_location("asha_flagship")[0], "harlaw")
+        flag.crew = max(0, flag.max_crew - 2)
+        res = self.game.action_muster("harlaw", "asha_flagship")
+        self.assertTrue(res.get("success"), res.get("error"))
+        gains = res.get("crew_gains")
+        self.assertIsInstance(gains, list)
+        self.assertGreater(len(gains), 0)
+        total = sum(g.get("gained", 0) for g in gains)
+        self.assertGreater(total, 0)
+        self.assertLessEqual(total, 3)
+        for g in gains:
+            self.assertIn("ship_id", g)
+            self.assertIn("node_id", g)
+            self.assertEqual(g["node_id"], "harlaw")
 
     def test_naval_combat_and_loot_on_wipe(self):
         """Test naval combat trigger and looting 50% Hoard + 1 Legend when enemy is wiped."""

@@ -24,18 +24,18 @@ Python standard library only, and wiring it into the vanilla Web UI.
    inspiration only. Primary: BigSoundBank (CC0, static direct links).
    See `references/sources.md` for the vetted catalog and URL patterns.
 3. **Standard library only**: remixing uses `wave`/`struct`/`math`/`array`
-   (see `scripts/remix_sounds.py`). Never add audio packages
-   (`pydub`, `librosa`, `ffmpeg` wrappers) — same zero-dependency rule
-   as the game engine.
-4. **Small clips only**: mono 16-bit WAV, ≤ ~4 s, ≤ ~400 KB per clip.
-   Ship excerpts, never full-length ambience beds.
+   (see `scripts/remix_sounds.py` with 5 modes: `ship`/`horn`/`sea`/`slice`/`mix`).
+   Never add audio packages (`pydub`, `librosa`, `ffmpeg` wrappers) — same
+   zero-dependency rule as the game engine.
+4. **Small clips only**: mono 16-bit WAV, 44.1/48 kHz, ≤ ~5 s, ≤ ~450 KB per clip
+   (enforced by `tests/test_sound.py`). Ship excerpts, never full-length ambience beds.
 5. **Attribution in code**: record source URL + author + license in the
    `web/js/sound.js` header comment for every shipped clip.
 6. **Temp for sources, repo for clips**: download multi-MB sources to
    the system temp dir (`C:\Users\fidy7\AppData\Local\Temp\opencode`),
    commit only the remixed clips under `web/assets/sounds/`.
 7. **Project quotas still apply**: new JS stays out of `web/js/app.js`
-   (689 lines — keep sound logic in `web/js/sound.js`); bump `?v=` in
+   (~627 lines — keep sound logic in `web/js/sound.js` ~211 lines); bump `?v=` in
    `web/index.html` when touching JS; binary audio is exempt from
    `tests/test_file_size.py` (`.wav/.mp3/.ogg/...` in
    `IGNORED_EXTENSIONS`).
@@ -62,7 +62,9 @@ Python standard library only, and wiring it into the vanilla Web UI.
 
 ## 3. Remix Runbook (`scripts/remix_sounds.py`)
 
-Run from the project root. Shipped clip recipes (soft mastering at peak 0.45):
+Run from the project root. 5 stdlib-only modes: `ship` (horn blast + release tail),
+`horn` (full-file sting), `sea` (loudest-window ambience excerpt), `slice`
+(offset excerpt), `mix` (two-layer blend with gains/offsets). Soft mastering ~0.45 peak.
 
 ```powershell
 # Sting (end-turn ship horn): blast crossfaded to natural release tail
@@ -85,29 +87,50 @@ python .agents/skills/ironprice-sound/scripts/remix_sounds.py sea `
 python .agents/skills/ironprice-sound/scripts/remix_sounds.py sea `
   --src "C:\Users\fidy7\AppData\Local\Temp\opencode/0698.wav" `
   --dst web/assets/sounds/sail3.wav --window 2.2 --start 31.0
+
+# Single-layer excerpt (dice / favor / card / horns / click):
+python .agents/skills/ironprice-sound/scripts/remix_sounds.py slice `
+  --src "C:\Users\fidy7\AppData\Local\Temp\opencode/0582.wav" `
+  --dst web/assets/sounds/dice.wav --start 4.9 --window 1.6
+
+# Two-layer blend (clash / sink / reave / storm):
+python .agents/skills/ironprice-sound/scripts/remix_sounds.py mix `
+  --src "C:\Users\fidy7\AppData\Local\Temp\opencode/1299.wav" `
+  --src2 "C:\Users\fidy7\AppData\Local\Temp\opencode/0129.wav" `
+  --dst web/assets/sounds/clash.wav --window 0.9 --window2 0.9
 ```
 
-- Defaults reproduce the shipped clips (`ship`: peak 0.45, 1.8 s blast crossfaded
-  350 ms into 5.5–7.6 s natural reverb release; `sea`: peak 0.45, raised-cosine fades).
-- Shipped clip sizes:
-  - `end_turn.wav`: 313,156 bytes
-  - `sail.wav`: 194,084 bytes
-  - `sail2.wav`: 211,244 bytes
-  - `sail3.wav`: 211,244 bytes
+- Full 14-clip catalog + per-clip source/author/recipe: see `references/sources.md`
+  (shipped table: `sail/sail2/sail3`, `end_turn`, `dice`, `clash`, `sink`, `reave`,
+  `storm`, `favor`, `card`, `victory`, `defeat`, `click`).
+- Naming: JS key `endTurn` → file `end_turn.wav`; `sail` key randomizes 3 files.
+  Keep `SoundFX.files` keys stable — `tests/test_sound.py` asserts all 12 keys
+  and all 14 files exist.
 
 ---
 
 ## 4. Wiring Runbook (`web/js/sound.js` + `web/js/app.js`)
 
-- Playback goes through `SoundFX.play('<key>')` with keys from
-  `SoundFX.files` (`sail`, `endTurn`). Guard browser-only calls:
+- Playback goes through `SoundFX.play('<key>')` with 12 keys from
+  `SoundFX.files`: `sail` (randomized 3-file array), `endTurn`, `dice`, `clash`,
+  `sink`, `reave`, `storm`, `favor`, `card`, `victory`, `defeat`, `click`.
+  Guard browser-only calls:
   `if (typeof SoundFX !== 'undefined') SoundFX.play('sail');`
-- Hook points in `web/js/app.js`: `executeSail` (both battle and normal
-  paths), `stepAi` sail animation, `executeEndTurn` success.
+- Voice pooling: `MAX_VOICES=4` per file, idle-voice reuse else oldest-steal;
+  per-key base volumes + ±10% jitter; `sail/dice/click` get ±5% playback-rate wobble.
+- Hook points: sail animations, dice reveals (`dice_gate.js` plays `dice` + per-die
+  `click`), naval clash (`clash`), sink animations (`sink`), reave victory (`reave`),
+  storm hazard/miracle (`storm`), favor gains (`favor`), victory/defeat fanfares via
+  `playBattleResolution(battle, humanFaction)`, tactile button clicks via delegated
+  `click` listener in `bindToggle()` (excludes the mute toggle itself).
 - Mute toggle: `#btn-sound-toggle` in `web/index.html` header, bound in
-  `bindEvents` via `SoundFX.bindToggle()` (persists to `localStorage`).
+  `bindEvents` via `SoundFX.bindToggle()` (persists to `localStorage`
+  `ironprice_muted` as `1/0`; label `♪ Sound` / `✕ Sound`). `unlock()` preloads
+  ALL keys on first pointerdown/keydown (autoplay policy).
 - New clips need: file in `web/assets/sounds/`, key in
-  `SoundFX.files`, preload in `unlock()`, hook call, `?v=` bump.
+  `SoundFX.files` + `SoundFX.volumes`, header attribution comment, preload via
+  `unlock()` (automatic), hook call, `?v=` bump, and updates to
+  `tests/test_sound.py` expected lists + `references/sources.md`.
 
 ---
 
@@ -115,7 +138,8 @@ python .agents/skills/ironprice-sound/scripts/remix_sounds.py sea `
 
 ```powershell
 node -c web/js/sound.js
-python -m unittest discover -s tests   # 37 tests incl. file-size + web-UI
+python -m unittest discover -s tests   # 51 tests incl. file-size + web-UI + sound
+python -m unittest tests.test_sound -v # 4 sound tests: existence / mono-16bit / keys / MIME
 ```
 
 - In-process serve check (proves MIME + bytes without a live server):

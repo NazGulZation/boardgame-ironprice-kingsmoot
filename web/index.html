@@ -5,12 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>IRON PRICE: Kingsmoot — Board Game</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚓</text></svg>">
-  <link rel="stylesheet" href="css/style.css?v=2.46">
-  <link rel="stylesheet" href="css/panels.css?v=2.46">
-  <link rel="stylesheet" href="css/dice_tray.css?v=2.46">
-  <link rel="stylesheet" href="css/modals.css?v=2.46">
-  <link rel="stylesheet" href="css/battle.css?v=2.46">
-  <link rel="stylesheet" href="css/animations.css?v=2.46">
+  <link rel="stylesheet" href="css/style.css?v=2.52">
+  <link rel="stylesheet" href="css/panels.css?v=2.52">
+  <link rel="stylesheet" href="css/dice_tray.css?v=2.52">
+  <link rel="stylesheet" href="css/modals.css?v=2.52">
+  <link rel="stylesheet" href="css/battle.css?v=2.52">
+  <link rel="stylesheet" href="css/animations.css?v=2.54">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800;900&family=Metamorphous&family=MedievalSharp&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -180,10 +180,6 @@
         <div class="panel-header">
           <div class="panel-header-title-group">
             <h2 class="section-title">Reaver Orders</h2>
-            <div class="orders-action-count" id="tray-actions-tracker">
-              <span class="tray-actions-icon">⚡</span>
-              <span class="tray-actions-count" id="tray-actions-count">2 / 2</span>
-            </div>
           </div>
           <span class="active-badge" id="panel-active-indicator">Your Turn</span>
         </div>
@@ -191,22 +187,22 @@
         <div class="selection-info-box" id="selection-info">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
             <span class="info-label">TARGET SHIP / HAVEN:</span>
-            <span style="font-size: 0.74rem; color: var(--gold-accent); font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase;">[Right-Click ➔ Sail / Reave]</span>
+            <span style="font-size: 0.82rem; color: var(--gold-accent); font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase;">[Right-Click ➔ Sail / Reave]</span>
           </div>
           <span class="info-value" id="selected-entity-name">None (Select longship or island)</span>
         </div>
 
         <div class="action-buttons-grid">
-          <!-- Sail Action -->
-          <div class="action-btn-wrapper">
+          <!-- Sail / Reave hidden: right-click on board covers these (kept in DOM for JS compat) -->
+          <div class="action-btn-wrapper" style="display: none;">
             <button class="action-btn" id="btn-action-sail" disabled>
               <span class="btn-icon">⚓</span>
               <span class="btn-text"><strong>Sail Fleet</strong><small>Traverse seas up to 2-3 nodes</small></span>
             </button>
           </div>
 
-          <!-- Reave Action -->
-          <div class="action-btn-wrapper">
+          <!-- Reave Action (hidden: right-click keep to Reave) -->
+          <div class="action-btn-wrapper" style="display: none;">
             <button class="action-btn btn-danger" id="btn-action-reave" disabled>
               <span class="btn-icon">⚔</span>
               <span class="btn-text"><strong>Reave Green Land</strong><small>Pay the Iron Price for Hoard & Legend</small></span>
@@ -238,7 +234,7 @@
           </div>
         </div>
 
-        <!-- Action Footer: End Turn / Pass Turn & AI Step -->
+        <!-- Action Footer: single swapping button (Pass Turn / Step Rival Turn) -->
         <div class="action-footer" id="action-footer">
           <button class="btn btn-warning btn-block btn-iron btn-endturn-sidebar" id="btn-action-endturn">
             <span class="endturn-tray-icon">⚓</span>
@@ -247,7 +243,11 @@
               <small class="endturn-tray-sub">Hold Tide</small>
             </div>
           </button>
-          <button class="btn btn-ai btn-block btn-iron" id="btn-ai-step" style="display: none;">Step Rival Turn</button>
+          <div class="orders-action-count orders-action-footer" id="tray-actions-tracker">
+            <span class="tray-actions-icon">⚡</span>
+            <span class="tray-actions-label">Actions left:</span>
+            <span class="tray-actions-count" id="tray-actions-count">2 / 2</span>
+          </div>
         </div>
       </div>
 
@@ -526,6 +526,7 @@
 
       <!-- Battle Controls Footer -->
       <div class="battle-modal-footer" id="battle-modal-footer">
+        <button class="btn btn-primary btn-roll-pulse" id="btn-battle-roll" style="display: none;">🎲 ROLL THE DICE — Tap to roll!</button>
         <button class="btn btn-secondary btn-iron" id="btn-battle-retreat">
           Retreat Fleet
         </button>
@@ -562,14 +563,15 @@
   </div>
 
   <!-- JS Application Scripts with Cache Buster -->
-  <script src="js/api.js?v=2.46"></script>
-  <script src="js/map_builder.js?v=2.46"></script>
-  <script src="js/map_animator.js?v=2.46"></script>
-  <script src="js/map_renderer.js?v=2.46"></script>
-  <script src="js/battle_fleets.js?v=2.46"></script>
-  <script src="js/sound.js?v=2.46"></script>
-  <script src="js/ui.js?v=2.46"></script>
-  <script src="js/app.js?v=2.46"></script>
-  <script src="js/naval_choice.js?v=2.46"></script>
+  <script src="js/api.js?v=2.52"></script>
+  <script src="js/map_builder.js?v=2.52"></script>
+  <script src="js/map_animator.js?v=2.54"></script>
+  <script src="js/map_renderer.js?v=2.54"></script>
+  <script src="js/battle_fleets.js?v=2.52"></script>
+  <script src="js/sound.js?v=2.52"></script>
+  <script src="js/ui.js?v=2.52"></script>
+  <script src="js/dice_gate.js?v=2.53"></script>
+  <script src="js/app.js?v=2.54"></script>
+  <script src="js/naval_choice.js?v=2.52"></script>
 </body>
 </html>

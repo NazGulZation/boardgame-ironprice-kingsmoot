@@ -515,17 +515,20 @@ class MapRenderer {
 
   // Swords play BEFORE the dice popup: tableau renders, clash resolves,
   // then the post-battle state (respawns) renders underneath the modal.
-  async stageNavalClash(battle, prevState, nextState) {
+  // alertOnly (human rolls first): rings only; casualties + sinking wait.
+  async stageNavalClash(battle, prevState, nextState, opts = {}) {
     if (!battle) {
       if (nextState) this.update(nextState, { type: 'none' });
-      return;
+      return null;
     }
-    this.update((prevState && prevState.nodes) ? this._battleTableau(prevState, battle) : nextState, { type: 'none' });
+    const tableau = (prevState && prevState.nodes) ? this._battleTableau(prevState, battle) : nextState;
+    this.update(tableau, { type: 'none' });
     try {
       await this.animateNavalClash(battle.node_id, battle.attacker_ship_id, battle.defender_ship_id);
-      if (battle.state === 'finished') this.animateBattleCasualties(battle);
+      if (battle.state === 'finished' && !opts.alertOnly) this.animateBattleCasualties(battle);
     } catch (e) { console.warn('Naval clash animation failed:', e); }
-    if (nextState) this.update(nextState, { type: 'none' });
+    if (nextState && !opts.alertOnly) this.update(nextState, { type: 'none' });
+    return tableau;
   }
 
   // Sinking plays AFTER the dice popup is dismissed: each sunk hull is
@@ -619,6 +622,25 @@ class MapRenderer {
 
   animateCrewLoss(shipId, crewLost, nodeId = null, customPos = null) {
     return this.animator.animateCrewLoss(shipId, crewLost, nodeId, customPos);
+  }
+
+  animateCrewGain(shipId, gained, nodeId = null, customPos = null) {
+    return this.animator.animateCrewGain(shipId, gained, nodeId, customPos);
+  }
+
+  animateStormStrike(shipId, nodeId = null, customPos = null) {
+    return this.animator.animateStormStrike(shipId, nodeId, customPos);
+  }
+
+  animateStormHit(shipId, nodeId = null) {
+    this.animateStormStrike(shipId, nodeId);
+    return this.animateCrewLoss(shipId, 1, nodeId);
+  }
+
+  animateMusterGains(gains, fallbackNodeId = null) {
+    (gains || []).forEach(g => {
+      if (g && g.gained > 0) this.animateCrewGain(g.ship_id, g.gained, g.node_id || fallbackNodeId);
+    });
   }
 
   animateBattleCasualties(battle) {

@@ -50,7 +50,7 @@
 
 .section-title {
   font-family: var(--font-title);
-  font-size: 0.98rem;
+  font-size: 1.08rem;
   font-weight: 800;
   color: var(--gold-accent);
   letter-spacing: 1px;
@@ -64,28 +64,36 @@
 .panel-header-iron {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2px 10px;
   margin-bottom: 10px;
   border-bottom: 1px solid rgba(197, 151, 44, 0.25);
   padding-bottom: 6px;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .panel-header-iron .section-title {
   margin-bottom: 0;
-  font-size: 0.90rem;
-  letter-spacing: 0.8px;
-  white-space: nowrap;
+  font-size: 1.0rem;
+  letter-spacing: 0.6px;
+  white-space: normal;
+  flex: 1 1 auto;
+  min-width: 0;
+  line-height: 1.25;
 }
 
 .panel-sub-label {
   font-family: var(--font-medieval);
-  font-size: 0.74rem;
+  font-size: 0.8rem;
   font-weight: 700;
-  color: #a9bfd6;
-  letter-spacing: 1px;
+  color: #c9d9ea;
+  letter-spacing: 0.8px;
   text-transform: uppercase;
   white-space: nowrap;
   flex-shrink: 0;
+  margin-left: auto;
 }
 
 /* ---------------- CLAIMANTS LIST (HERALDIC WAR BANNERS) ---------------- */
@@ -93,7 +101,7 @@
 .claimants-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .claimant-card {
@@ -102,10 +110,10 @@
   border: 1.5px solid #293a4d;
   border-left: 4px solid #4a617a;
   border-radius: 4px;
-  padding: 6px 10px;
+  padding: 8px 12px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
   transition: all 0.25s ease;
   position: relative;
   box-shadow: 
@@ -139,7 +147,7 @@
 .claimant-name {
   font-family: var(--font-title);
   font-weight: 800;
-  font-size: 0.96rem;
+  font-size: 1.1rem;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -149,7 +157,7 @@
 }
 
 .claimant-icon {
-  font-size: 0.98rem;
+  font-size: 1.1rem;
   line-height: 1;
 }
 
@@ -157,13 +165,15 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
   padding: 0 1px;
 }
 
 .claimant-epithet {
   font-family: var(--font-medieval);
-  font-size: 0.82rem;
-  color: #d6b258;
+  font-size: 0.92rem;
+  color: #e6c66a;
   letter-spacing: 0.5px;
   font-style: italic;
   white-space: nowrap;
@@ -173,8 +183,8 @@
 
 .claimant-flagship {
   font-family: var(--font-medieval);
-  font-size: 0.78rem;
-  color: #9ec3e6;
+  font-size: 0.88rem;
+  color: #bcd8f0;
   font-weight: 600;
   letter-spacing: 0.4px;
   white-space: nowrap;
@@ -186,9 +196,9 @@
 
 .claimant-role-badge {
   font-family: var(--font-title);
-  font-size: 0.68rem;
+  font-size: 0.78rem;
   font-weight: 800;
-  padding: 2.5px 8px;
+  padding: 3px 10px;
   border-radius: 3px;
   letter-spacing: 0.8px;
   text-transform: uppercase;
@@ -219,9 +229,9 @@
 
 /* Carved Basalt / Brass Counter Weights */
 .c-stat {
-  background: #070b10;
-  border: 1px solid #202e3e;
-  padding: 3px 4px;
+  background: #0a1119;
+  border: 1px solid #33506b;
+  padding: 5px 6px;
   border-radius: 3px;
   text-align: center;
   box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.85);
@@ -229,25 +239,25 @@
 
 .c-stat-label {
   font-family: var(--font-title);
-  font-size: 0.62rem;
+  font-size: 0.75rem;
   font-weight: 800;
-  color: #9bb2c8;
+  color: #bccfdd;
   display: block;
-  letter-spacing: 0.8px;
+  letter-spacing: 0.5px;
 }
 
 .c-stat-val {
   font-family: var(--font-title);
   font-weight: 900;
-  font-size: 0.86rem;
-  margin-top: 1px;
+  font-size: 1.05rem;
+  margin-top: 2px;
   text-shadow: 0 1px 3px #000;
 }
 
-.c-stat-val.gold { color: #f5cf68; }
-.c-stat-val.legend { color: #c86420; }
-.c-stat-val.favor { color: #4885ad; }
-.c-stat-val.crew { color: #357a5b; }
+.c-stat-val.gold { color: #ffd875; }
+.c-stat-val.legend { color: #ff9a3c; }
+.c-stat-val.favor { color: #7cc4ff; }
+.c-stat-val.crew { color: #5fd39a; }
 
 /* ---------------- 2. ACTION PANEL (REAVER'S FORGED MAP TABLE) ---------------- */
 
@@ -284,24 +294,41 @@
   line-height: 1;
 }
 
+/* Relocated footer counter: full-width line below Pass Turn, larger */
+.orders-action-footer {
+  width: 100%;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 10px;
+  font-size: 0.95rem;
+  border-radius: 4px;
+}
+
 .orders-action-count.spent {
   border-color: #702618;
   color: #ff6b57;
 }
 
 .orders-action-count .tray-actions-icon {
-  font-size: 0.74rem;
+  font-size: 0.95rem;
   color: var(--gold-accent);
 }
 
+.orders-action-count .tray-actions-label {
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+
 .orders-action-count .tray-actions-count {
-  font-size: 0.76rem;
+  font-size: 0.95rem;
   font-weight: 800;
 }
 
 .active-badge {
   font-family: var(--font-title);
-  font-size: 0.74rem;
+  font-size: 0.84rem;
   font-weight: 900;
   padding: 3px 10px;
   border-radius: 3px;
@@ -316,14 +343,14 @@
   background: rgba(4, 7, 12, 0.65);
   border: 1.5px solid #2b3e52;
   border-radius: 4px;
-  padding: 5px 10px;
+  padding: 7px 10px;
   margin-bottom: 6px;
   box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.85);
 }
 
 .selection-info-box .info-label {
   font-family: var(--font-title);
-  font-size: 0.68rem;
+  font-size: 0.78rem;
   font-weight: 800;
   color: #9bb3ca;
   letter-spacing: 0.8px;
@@ -331,7 +358,7 @@
 
 .selection-info-box .info-value {
   font-family: var(--font-title);
-  font-size: 0.86rem;
+  font-size: 0.98rem;
   font-weight: 800;
   color: #fff;
   letter-spacing: 0.5px;
@@ -351,7 +378,7 @@
   background: linear-gradient(180deg, #1b2737 0%, #101924 100%);
   border: 1.5px solid #364b63;
   border-radius: 4px;
-  padding: 6px 10px;
+  padding: 8px 10px;
   color: var(--text-main);
   cursor: pointer;
   display: flex;
@@ -414,7 +441,7 @@
 .action-btn .btn-text strong {
   display: block;
   font-family: var(--font-title);
-  font-size: 0.86rem;
+  font-size: 0.98rem;
   font-weight: 800;
   letter-spacing: 0.5px;
   color: #fff;
@@ -423,7 +450,7 @@
 .action-btn .btn-text small {
   display: block;
   font-family: var(--font-medieval);
-  font-size: 0.70rem;
+  font-size: 0.82rem;
   color: #b0c4d8;
   font-weight: 500;
   margin-top: 1px;
@@ -433,14 +460,14 @@
 .action-footer {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
   margin-top: 2px;
 }
 
 .btn-endturn-sidebar {
   width: 100%;
-  min-height: 44px;
-  padding: 6px 14px;
+  min-height: 56px;
+  padding: 8px 14px;
   font-family: var(--font-title);
   border-radius: 4px;
   border: 2px solid #a35016;
@@ -463,8 +490,20 @@
   transform: translateY(-1px);
 }
 
+/* Single-slot AI mode: same large footprint, purple Step Rival styling */
+.btn-endturn-sidebar.btn-endturn-ai {
+  border-color: #8e3eb9;
+  background: linear-gradient(180deg, #6c2a8b 0%, #44135b 60%, #250933 100%);
+}
+
+.btn-endturn-sidebar.btn-endturn-ai:hover:not(:disabled) {
+  background: linear-gradient(180deg, #7e34a0 0%, #521a6e 60%, #2e0d3e 100%);
+  border-color: #a44fce;
+  box-shadow: 0 0 16px rgba(126, 52, 160, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
 .btn-endturn-sidebar.btn-endturn-ready {
-  min-height: 48px;
+  min-height: 60px;
   border-color: #ffd043;
   background: linear-gradient(180deg, #f39c12 0%, #d35400 45%, #872800 100%);
   box-shadow: 0 0 20px rgba(243, 156, 18, 0.9), 0 6px 16px rgba(0, 0, 0, 0.85);
@@ -483,7 +522,7 @@
 }
 
 .endturn-tray-icon {
-  font-size: 1.35rem;
+  font-size: 1.5rem;
   line-height: 1;
 }
 
@@ -496,7 +535,7 @@
 }
 
 .endturn-tray-main {
-  font-size: 0.92rem;
+  font-size: 1.05rem;
   font-weight: 900;
   letter-spacing: 1.1px;
   text-transform: uppercase;
@@ -504,7 +543,7 @@
 
 .endturn-tray-sub {
   font-family: var(--font-medieval);
-  font-size: 0.68rem;
+  font-size: 0.78rem;
   color: #ffd08a;
   letter-spacing: 0.6px;
   text-transform: uppercase;

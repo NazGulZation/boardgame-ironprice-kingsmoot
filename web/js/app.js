@@ -51,6 +51,7 @@ class KingsmootApp {
       const hazardKey = JSON.stringify(this.gameState.last_hazard_outcome);
       if (this.lastSeenHazardStr !== hazardKey) {
         this.lastSeenHazardStr = hazardKey;
+        if (typeof SoundFX !== 'undefined') SoundFX.play('storm');
         this.ui.showHazardNotification(this.gameState.last_hazard_outcome);
       }
     }
@@ -228,9 +229,7 @@ class KingsmootApp {
     }
   }
 
-  // Shared human reave completion: full UI refresh, but the MAP keeps
-  // wiped hulls at the raid origin behind the dice popup (no vanish);
-  // after close it plays axe + dying, and only then reveals respawns.
+  // Shared human reave completion: full UI refresh with raid animation
   completeHumanReave(res, shipId, targetLandId, shipLoc) {
     if (!res.success) {
       this.ui.showToast(res.error || "Reave failed!", "error");
@@ -243,6 +242,7 @@ class KingsmootApp {
     this.mapRenderer.update(this.mapRenderer.raidTableau(reaveOutcome, shipLoc, res.state), this.currentSelection);
 
     if (reaveOutcome) {
+      // Dice + plunder sounds fire on the player's Roll click (see dice_gate.js)
       this.ui.showReaveModal(reaveOutcome, async () => {
         if (shipLoc) {
           await this.mapRenderer.animateReaveTargeting(shipLoc, targetLandId, reaveOutcome, shipId);
@@ -250,7 +250,7 @@ class KingsmootApp {
           this.mapRenderer.update(this.gameState, this.currentSelection);
         }
         this.checkAiTurn();
-      });
+      }, 0, { requiresClick: true });
     } else {
       this.checkAiTurn();
     }
@@ -284,12 +284,13 @@ class KingsmootApp {
             if (typeof SoundFX !== 'undefined') SoundFX.play('sail');
             await this.mapRenderer.animateShipSail(shipId, currentLoc, targetNodeId, activeFaction);
           }
-          await this.mapRenderer.stageNavalClash(battle, this.gameState, res.state);
+          const clashTableau = await this.mapRenderer.stageNavalClash(battle, this.gameState, res.state, { alertOnly: true });
           this.isClashAnimating = false;
           this.gameState = res.state;
           this.currentSelection = { type: 'none' };
           this.currentBattle = battle;
           this.refresh(false);
+          if (clashTableau) this.mapRenderer.update(clashTableau, { type: 'none' });
           this.showBattle(this.currentBattle);
           return;
         }
@@ -371,12 +372,10 @@ class KingsmootApp {
     }
 
     try {
-      const res = await API.sendAction('muster', {
-        node_id: nodeId,
-        ship_id: shipId
-      });
+      const res = await API.sendAction('muster', { node_id: nodeId, ship_id: shipId });
 
       if (res.success) {
+        if (this.mapRenderer) this.mapRenderer.animateMusterGains(res.crew_gains, res.node_id || nodeId);
         this.gameState = res.state;
         this.refresh();
       } else {
@@ -392,6 +391,7 @@ class KingsmootApp {
     try {
       const res = await API.sendAction('pray');
       if (res.success) {
+        if (typeof SoundFX !== 'undefined') SoundFX.play('favor');
         this.gameState = res.state;
         this.refresh();
       } else {
@@ -428,17 +428,21 @@ class KingsmootApp {
         const nextState = res.state;
         const activeFaction = prevState ? prevState.active_faction : nextState.active_faction;
 
+        // 0. Call Storm -> storm strike + crew-loss floater + toast
+        if (res.miracle === 'call_storm') {
+          if (typeof SoundFX !== 'undefined') SoundFX.play('storm');
+          if (this.mapRenderer) this.mapRenderer.animateStormHit(res.ship_id, res.target_node);
+          this.ui.showToast(`≋ STORM INVOKED! ${activeFaction} batters rival fleet at ${(res.target_node || 'sea').toUpperCase()} (-1 crew & pushed back)!`, "info");
+        }
+        if (res.action === 'muster' && this.mapRenderer) this.mapRenderer.animateMusterGains(res.crew_gains, res.node_id);
+
         // 1. Check if a SAIL action occurred -> animate ship sailing across nodes
         if (res.ship_id && res.from && res.to && res.from !== res.to) {
           if (typeof SoundFX !== 'undefined') SoundFX.play('sail');
           await this.mapRenderer.animateShipSail(res.ship_id, res.from, res.to, activeFaction);
         }
 
-        // 2. Check if a REAVE action occurred -> map-only raid presentation:
-        //    axe-flight + keep impact on the map is the SOLE visual for AI turns.
-        //    The dice-roll popup modal is intentionally suppressed during AI turns
-        //    (it would cover the map and hide the ravage animation); the bottom
-        //    dice tray shows the tumbling dice instead.
+        // 2. AI reave is map-only (popup suppressed, dice tray shows tumbling dice).
         const newReave = res.outcome || (nextState.last_reave_outcome &&
           (!prevReaveOutcome || JSON.stringify(prevReaveOutcome) !== JSON.stringify(nextState.last_reave_outcome)) ? nextState.last_reave_outcome : null);
         const isRaid = Boolean(newReave && newReave.attacker_roll && newReave.defender_roll);
@@ -463,43 +467,42 @@ class KingsmootApp {
           }
         }
 
-        // 3. Naval clash: swords play BEFORE the dice popup via staged
-        //    tableau; sinking plays AFTER popup dismiss (or at once here
-        //    when no popup follows, e.g. AI-vs-AI finished battles).
+        // 3. Naval clash alert (human rolls first: sinking waits for post-modal)
         const battle = res.battle || (nextState && nextState.active_battle);
+        const stepHuman = nextState.players.find(p => !p.is_ai);
+        const stepHumanBattle = battle && stepHuman && (battle.attacker_faction === stepHuman.faction || battle.defender_faction === stepHuman.faction) ? battle : null;
+        let clashTableau = null;
         if (res.battle_triggered && battle) {
           this.isClashAnimating = true;
-          await this.mapRenderer.stageNavalClash(battle, prevState, nextState);
-          await this.mapRenderer.playShipSinking(battle);
+          if (typeof SoundFX !== 'undefined') SoundFX.play('clash');
+          clashTableau = await this.mapRenderer.stageNavalClash(battle, prevState, nextState, { alertOnly: Boolean(stepHumanBattle) });
+          const sinkNow = (battle.sunk_ship_ids || []).length && !stepHumanBattle;
+          if (sinkNow && typeof SoundFX !== 'undefined') SoundFX.play('sink');
+          if (sinkNow) await this.mapRenderer.playShipSinking(battle);
           this.isClashAnimating = false;
         }
-
         this.gameState = nextState;
+        if (stepHumanBattle) this.currentBattle = stepHumanBattle; // refresh must not double-show
         this.refresh(false);
+        if (stepHumanBattle && clashTableau) this.mapRenderer.update(clashTableau, { type: 'none' });
 
-        // Re-apply rolling dice AFTER refresh: refresh() re-renders the tray in
-        // settled mode from the fresh state object (different reference), which
-        // would otherwise instantly wipe the raid's tumbling-dice effect.
         if (isRaid) {
+          if (typeof SoundFX !== 'undefined') {
+            SoundFX.play('dice');
+            if (newReave.success) setTimeout(() => SoundFX.play('reave'), 600);
+          }
           this.ui.renderDiceRoll(newReave, true);
         }
 
-        // If human player is actively engaged in an unresolved battle, show battle modal
-        const humanPlayer = this.gameState.players.find(p => !p.is_ai);
-        const isHumanInBattle = battle && humanPlayer && 
-          (battle.attacker_faction === humanPlayer.faction || battle.defender_faction === humanPlayer.faction) && 
-          battle.state !== 'finished';
-        
-        if (isHumanInBattle) {
-          this.currentBattle = battle;
+        // Human-engaged battles (even round-1 knockouts) own the modal pace
+        if (stepHumanBattle) {
+          this.currentBattle = stepHumanBattle;
           this.showBattle(this.currentBattle);
           return;
         }
 
         // Visual pacing: wait a moment before scheduling next AI step
-        setTimeout(() => {
-          this.checkAiTurn();
-        }, 500);
+        setTimeout(() => this.checkAiTurn(), 500);
       }
     } catch (err) {
       console.error("AI step error:", err);
@@ -538,35 +541,39 @@ class KingsmootApp {
       onRetreat: () => this.handleBattleAction({ retreat: true }),
       onContinue: () => this.handleBattleAction({ continue_round: true }),
       onDismiss: async () => {
+        const human = this.gameState.players.find(p => !p.is_ai);
+        if (typeof SoundFX !== 'undefined') SoundFX.playBattleResolution(battle, human ? human.faction : null);
         this.currentBattle = null;
-        if (this.ui.elements.modalBattle) {
-          this.ui.elements.modalBattle.style.display = 'none';
-        }
+        if (this.ui.elements.modalBattle) this.ui.elements.modalBattle.style.display = 'none';
         if (battle && this.mapRenderer) this.mapRenderer.animateBattleCasualties(battle);
         if (battle.state === 'finished' && (battle.sunk_ship_ids || []).length) {
+          if (typeof SoundFX !== 'undefined') SoundFX.play('sink');
           await this.mapRenderer.playShipSinking(battle);
         }
         this.refresh();
       }
-    }, activeFaction, playerFavor, this.gameState);
+    }, activeFaction, playerFavor, this.gameState, { requiresClick: (typeof DiceGate !== 'undefined' && DiceGate.battleNeedsClick(battle, this.gameState)) });
   }
 
   async handleBattleAction(actionPayload) {
     if (!this.currentBattle) return;
+    if (actionPayload.miracle_cost || actionPayload.use_blood_price) {
+      if (typeof SoundFX !== 'undefined') SoundFX.play('favor');
+    }
     try {
       actionPayload.battle_id = this.currentBattle.battle_id;
       const res = await API.sendAction('battle_round', actionPayload);
       if (res.success) {
         this.gameState = res.state;
         const battle = res.battle || (res.state && res.state.active_battle);
+        const humanRoll = (typeof DiceGate !== 'undefined') && DiceGate.isHumanBattle(battle, this.gameState);
+        if (typeof SoundFX !== 'undefined' && !humanRoll) { SoundFX.play('dice'); SoundFX.play('clash'); }
         if (battle) {
           this.currentBattle = battle;
           this.showBattle(this.currentBattle);
         } else {
           this.currentBattle = null;
-          if (this.ui.elements.modalBattle) {
-            this.ui.elements.modalBattle.style.display = 'none';
-          }
+          if (this.ui.elements.modalBattle) this.ui.elements.modalBattle.style.display = 'none';
           this.refresh();
         }
       } else {
@@ -618,13 +625,11 @@ class KingsmootApp {
       const enemy = (this.gameState && this.gameState.nodes[targetNodeId])
         ? this.gameState.nodes[targetNodeId].occupants.find(s => s.faction !== this.gameState.active_faction && s.crew > 0)
         : null;
-      const res = await API.sendAction('favor_miracle', {
-        miracle_type: 'call_storm',
-        target_node: targetNodeId
-      });
+      const res = await API.sendAction('favor_miracle', { miracle_type: 'call_storm', target_node: targetNodeId });
 
       if (res.success) {
-        if (enemy && this.mapRenderer) this.mapRenderer.animateCrewLoss(enemy.id, 1, targetNodeId);
+        if (typeof SoundFX !== 'undefined') SoundFX.play('storm');
+        if (this.mapRenderer) this.mapRenderer.animateStormHit((enemy && enemy.id) || res.ship_id, targetNodeId);
         this.gameState = res.state;
         this.refresh();
         this.ui.showToast(`≋ STORM INVOKED! Rival fleet at ${targetNodeId.toUpperCase()} battered by raging waves (-1 crew & pushed back)!`, "info");
@@ -640,11 +645,15 @@ class KingsmootApp {
   bindEvents() {
     const el = this.ui.elements;
     if (el.btnSail) el.btnSail.addEventListener('click', () => this.executeSailFromButton());
-    el.btnReave.addEventListener('click', () => this.executeReave());
+    if (el.btnReave) el.btnReave.addEventListener('click', () => this.executeReave());
     el.btnMuster.addEventListener('click', () => this.executeMuster());
     el.btnPray.addEventListener('click', () => this.executePray());
-    el.btnEndTurn.addEventListener('click', () => this.executeEndTurn());
-    el.btnAiStep.addEventListener('click', () => this.stepAi());
+    el.btnEndTurn.addEventListener('click', () => {
+      const active = this.gameState && this.gameState.players ? this.gameState.players[this.gameState.active_player_idx] : null;
+      if (active && active.is_ai) this.stepAi();
+      else this.executeEndTurn();
+    });
+    if (el.btnAiStep) el.btnAiStep.addEventListener('click', () => this.stepAi());
     if (typeof SoundFX !== 'undefined') SoundFX.bindToggle();
     if (el.btnCallStorm) el.btnCallStorm.addEventListener('click', () => this.handleCallStormClick());
 

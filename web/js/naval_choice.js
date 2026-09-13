@@ -69,7 +69,7 @@ class NavalChoice {
 // Patch UIController.showBattleModal to render choice mode first.
 if (typeof UIController !== 'undefined') {
   UIController.prototype._origShowBattleModal = UIController.prototype.showBattleModal;
-  UIController.prototype.showBattleModal = function (battleState, callbacks = {}, activeFaction = null, playerFavor = 0, gameState = null) {
+  UIController.prototype.showBattleModal = function (battleState, callbacks = {}, activeFaction = null, playerFavor = 0, gameState = null, opts = {}) {
     const choiceBox = document.getElementById('battle-choice-box');
     const choiceDesc = document.getElementById('battle-choice-desc');
     const btnNow = document.getElementById('btn-battle-resolve-now');
@@ -99,7 +99,7 @@ if (typeof UIController !== 'undefined') {
       return;
     }
     if (choiceBox) choiceBox.style.display = 'none';
-    return this._origShowBattleModal(battleState, callbacks, activeFaction, playerFavor, gameState);
+    return this._origShowBattleModal(battleState, callbacks, activeFaction, playerFavor, gameState, opts);
   };
 
   // Patch action gating: End Turn stays available while deferred/awaiting.
@@ -142,6 +142,7 @@ if (typeof KingsmootApp !== 'undefined') {
           this.mapRenderer.animateBattleCasualties(battle);
         }
         if (battle.state === 'finished' && (battle.sunk_ship_ids || []).length && this.mapRenderer) {
+          if (typeof SoundFX !== 'undefined') SoundFX.play('sink');
           await this.mapRenderer.playShipSinking(battle);
         }
         this.refresh();
@@ -150,7 +151,8 @@ if (typeof KingsmootApp !== 'undefined') {
     const activePlayer = this.gameState.players[this.gameState.active_player_idx];
     const playerFavor = activePlayer ? activePlayer.favor : 0;
     const activeFaction = this.gameState.active_faction;
-    this.ui.showBattleModal(battle, baseCallbacks, activeFaction, playerFavor, this.gameState);
+    const needsClick = (typeof DiceGate !== 'undefined') && DiceGate.battleNeedsClick(battle, this.gameState);
+    this.ui.showBattleModal(battle, baseCallbacks, activeFaction, playerFavor, this.gameState, { requiresClick: needsClick });
   };
 
   // Patch refresh so deferred clashes never pop the dice modal mid-manoeuvre.
