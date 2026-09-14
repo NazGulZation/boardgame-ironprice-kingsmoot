@@ -104,7 +104,8 @@
       "y": 170,
       "defense": 3,
       "hoard": 3,
-      "legend": 1
+      "legend": 1,
+      "image": "assets/nodes/deepwood.jpg"
     },
     {
       "id": "bear",
@@ -114,7 +115,8 @@
       "y": 170,
       "defense": 4,
       "hoard": 4,
-      "legend": 1
+      "legend": 1,
+      "image": "assets/nodes/bear.jpg"
     },
     {
       "id": "winterfell",
@@ -124,7 +126,8 @@
       "y": 220,
       "defense": 5,
       "hoard": 5,
-      "legend": 2
+      "legend": 2,
+      "image": "assets/nodes/winterfell.jpg"
     },
     {
       "id": "seagard",
@@ -134,7 +137,8 @@
       "y": 410,
       "defense": 3,
       "hoard": 3,
-      "legend": 1
+      "legend": 1,
+      "image": "assets/nodes/seagard.jpg"
     },
     {
       "id": "lannisport",
@@ -144,7 +148,8 @@
       "y": 420,
       "defense": 4,
       "hoard": 4,
-      "legend": 1
+      "legend": 1,
+      "image": "assets/nodes/lannisport.jpg"
     },
     {
       "id": "casterly",
@@ -154,7 +159,8 @@
       "y": 460,
       "defense": 6,
       "hoard": 6,
-      "legend": 2
+      "legend": 2,
+      "image": "assets/nodes/casterly.jpg"
     },
     {
       "id": "shield",
@@ -164,7 +170,8 @@
       "y": 660,
       "defense": 2,
       "hoard": 2,
-      "legend": 1
+      "legend": 1,
+      "image": "assets/nodes/shield.jpg"
     },
     {
       "id": "fair",
@@ -185,7 +192,8 @@
       "y": 660,
       "defense": 5,
       "hoard": 4,
-      "legend": 2
+      "legend": 2,
+      "image": "assets/nodes/oldtown.jpg"
     },
     {
       "id": "banefort",
@@ -206,7 +214,8 @@
       "y": 660,
       "defense": 2,
       "hoard": 2,
-      "legend": 1
+      "legend": 1,
+      "image": "assets/nodes/arbor.jpg"
     },
     {
       "id": "flint",
